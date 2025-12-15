@@ -18,10 +18,10 @@ const showNav = computed(() => !['login', 'chat'].includes(route.name as string)
   <div class="relative min-h-screen overflow-x-hidden safe-area-top">
     <router-view v-slot="{ Component }">
       <transition 
-        name="fade-slide" 
+        name="fade" 
         mode="out-in"
       >
-        <component :is="Component" />
+        <component :is="Component" :key="route.fullPath" />
       </transition>
     </router-view>
     
@@ -30,18 +30,13 @@ const showNav = computed(() => !['login', 'chat'].includes(route.name as string)
 </template>
 
 <style>
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
 }
 
-.fade-slide-enter-from {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
-  transform: translateY(10px);
-}
-
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
 }
 </style>
