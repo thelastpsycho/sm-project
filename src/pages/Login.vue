@@ -38,10 +38,11 @@
       <!-- On-Screen Keypad -->
       <div class="grid grid-cols-3 gap-6 w-full max-w-[280px]">
         <button 
-          v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9]" 
+          v-for="(n, index) in [1, 2, 3, 4, 5, 6, 7, 8, 9]" 
           :key="n"
           @click="addDigit(n)"
-          class="w-16 h-16 rounded-full bg-gray-200 dark:bg-white/10 text-2xl font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20 active:bg-gray-400 dark:active:bg-white/30 transition-colors flex items-center justify-center select-none"
+          class="w-16 h-16 rounded-full bg-gray-200 dark:bg-white/10 text-2xl font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20 active:bg-gray-400 dark:active:bg-white/30 transition-all flex items-center justify-center select-none active:scale-90 animate-fade-in-up"
+          :style="{ animationDelay: `${index * 50}ms` }"
         >
           {{ n }}
         </button>
@@ -51,14 +52,16 @@
         
         <button 
           @click="addDigit(0)"
-          class="w-16 h-16 rounded-full bg-gray-200 dark:bg-white/10 text-2xl font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20 active:bg-gray-400 dark:active:bg-white/30 transition-colors flex items-center justify-center select-none"
+          class="w-16 h-16 rounded-full bg-gray-200 dark:bg-white/10 text-2xl font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-white/20 active:bg-gray-400 dark:active:bg-white/30 transition-all flex items-center justify-center select-none active:scale-90 animate-fade-in-up"
+          style="animation-delay: 450ms"
         >
           0
         </button>
         
         <button 
           @click="backspace"
-          class="w-16 h-16 rounded-full flex items-center justify-center text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/5 active:opacity-50 transition-colors select-none"
+          class="w-16 h-16 rounded-full flex items-center justify-center text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/5 active:opacity-50 transition-all select-none active:scale-90 animate-fade-in-up"
+          style="animation-delay: 500ms"
         >
           <BackspaceIcon class="w-8 h-8" />
         </button>

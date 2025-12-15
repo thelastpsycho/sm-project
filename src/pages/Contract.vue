@@ -9,7 +9,7 @@
     <form @submit.prevent="handleSubmit" class="p-4 space-y-6">
       
       <!-- Section: Person Information -->
-      <div class="bg-white dark:bg-sm-card-dark rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-white/5 space-y-5">
+      <div class="bg-white dark:bg-sm-card-dark rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-white/5 space-y-5 animate-fade-in-up" style="animation-delay: 100ms;">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider opacity-50">Details</h2>
         
         <div class="grid grid-cols-2 gap-4">
@@ -66,7 +66,7 @@
       </div>
 
       <!-- Section: Contact -->
-      <div class="bg-white dark:bg-sm-card-dark rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-white/5 space-y-5">
+      <div class="bg-white dark:bg-sm-card-dark rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-white/5 space-y-5 animate-fade-in-up" style="animation-delay: 200ms;">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider opacity-50">Contact</h2>
         
         <div class="bg-gray-50 dark:bg-black/20 rounded-2xl p-1">
@@ -90,7 +90,7 @@
       </div>
 
        <!-- Section: Options -->
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-2 gap-4 animate-fade-in-up" style="animation-delay: 300ms;">
         <!-- Allotment Toggle -->
         <label class="bg-white dark:bg-sm-card-dark p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-white/5 cursor-pointer relative overflow-hidden group">
           <input type="checkbox" v-model="form.allotment" value="add" class="peer sr-only">

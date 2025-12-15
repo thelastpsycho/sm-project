@@ -13,7 +13,7 @@
           ></span>
         </div>
       </div>
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight animate-fade-in-up">
         Good {{ timeOfDay }},<br />
         <span class="text-sm-primary">Experience SM</span>
       </h1>
@@ -23,7 +23,7 @@
     <div class="px-4 space-y-4">
       
       <!-- Quick Actions Bento Grid -->
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-2 gap-4 animate-fade-in-up" style="animation-delay: 100ms;">
         <!-- Chat Card -->
         <router-link
           to="/chat"
@@ -72,7 +72,7 @@
       </div>
 
       <!-- Theme & Status Section -->
-      <div class="bg-white dark:bg-sm-card-dark/50 backdrop-blur-md rounded-3xl p-5 border border-gray-100 dark:border-white/5">
+      <div class="bg-white dark:bg-sm-card-dark/50 backdrop-blur-md rounded-3xl p-5 border border-gray-100 dark:border-white/5 animate-fade-in-up" style="animation-delay: 200ms;">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-semibold text-gray-900 dark:text-white">System Status</h3>
           <span class="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-sm-secondary">
