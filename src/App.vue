@@ -19,7 +19,6 @@ const showNav = computed(() => !['login', 'chat'].includes(route.name as string)
     <router-view v-slot="{ Component }">
       <transition 
         name="fade" 
-        mode="out-in"
       >
         <component :is="Component" :key="route.fullPath" />
       </transition>
@@ -30,6 +29,10 @@ const showNav = computed(() => !['login', 'chat'].includes(route.name as string)
 </template>
 
 <style>
+/* 
+  Simultaneous Cross-fade 
+  Note: This requires the container to be relative (which it is)
+*/
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;
@@ -38,5 +41,17 @@ const showNav = computed(() => !['login', 'chat'].includes(route.name as string)
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* 
+  Prevent layout jump during transition by taking the leaving element out of flow.
+  CAUTION: This assumes pages share the same top alignment.
+*/
+.fade-leave-active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none; /* Prevent clicks on fading out element */
 }
 </style>
