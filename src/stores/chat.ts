@@ -110,17 +110,18 @@ export const useChatStore = defineStore('chat', () => {
     const outboxItem = outbox.value[outboxIndex]
 
     const messageIndex = messages.value.findIndex(
-      msg => msg.sessionId === outboxItem.sessionId &&
-      msg.text === outboxItem.text &&
-      msg.sender === 'user' &&
-      msg.status === 'sending'
+      msg => outboxItem &&
+        msg.sessionId === outboxItem.sessionId &&
+        msg.text === outboxItem.text &&
+        msg.sender === 'user' &&
+        msg.status === 'sending'
     )
 
-    if (messageIndex !== -1) {
+    if (messageIndex !== -1 && messages.value[messageIndex]) {
       messages.value[messageIndex].status = 'sent'
     }
 
-    if (serverResponse && serverResponse.message) {
+    if (serverResponse && serverResponse.message && outboxItem) {
       const botMessage: Message = {
         id: crypto.randomUUID(),
         sessionId: outboxItem.sessionId,
@@ -143,12 +144,13 @@ export const useChatStore = defineStore('chat', () => {
     const outboxItem = outbox.value[outboxIndex]
 
     const messageIndex = messages.value.findIndex(
-      msg => msg.sessionId === outboxItem.sessionId &&
-      msg.text === outboxItem.text &&
-      msg.sender === 'user'
+      msg => outboxItem &&
+        msg.sessionId === outboxItem.sessionId &&
+        msg.text === outboxItem.text &&
+        msg.sender === 'user'
     )
 
-    if (messageIndex !== -1) {
+    if (messageIndex !== -1 && messages.value[messageIndex]) {
       messages.value[messageIndex].status = 'failed'
     }
 

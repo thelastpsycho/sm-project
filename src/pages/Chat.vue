@@ -120,7 +120,7 @@ const groupedMessages = computed(() => {
     } else {
       const prev = messages.value[i - 1]
       // Group if same sender and within 2 mins
-      if (prev.sender === msg.sender && msg.timestamp - prev.timestamp < 120000) {
+      if (prev && prev.sender === msg.sender && msg.timestamp - prev.timestamp < 120000) {
         currentGroup.push(msg)
       } else {
         groups.push(currentGroup)

@@ -25,7 +25,7 @@ export type ContractResponse = {
   phone: string
   allotment: string[]
   notifyMe: string[]
-  email to notify when contract is ready!: string
+  emailToNotifyWhenContractIsReady: string
   submittedAt: string
   formMode: string
 }
