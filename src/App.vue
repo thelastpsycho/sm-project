@@ -15,7 +15,7 @@ const showNav = computed(() => !['login', 'chat'].includes(route.name as string)
 </script>
 
 <template>
-  <div class="relative min-h-screen overflow-x-hidden safe-area-top">
+  <div class="relative min-h-screen overflow-x-hidden safe-area-top bg-sm-bg dark:bg-sm-bg-dark transition-colors duration-300">
     <router-view v-slot="{ Component }">
       <transition 
         name="fade" 
