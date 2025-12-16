@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, toRaw } from 'vue'
 import type { Message, OutboxItem } from '@/types/chat'
 import { postChat } from '@/utils/api'
 import { scheduleRetry } from '@/utils/offline'
@@ -34,8 +34,8 @@ export const useChatStore = defineStore('chat', () => {
 
   const persistToStorage = async () => {
     try {
-      await localForage.setItem(CHAT_STORAGE_KEY, messages.value)
-      await localForage.setItem(OUTBOX_STORAGE_KEY, outbox.value)
+      await localForage.setItem(CHAT_STORAGE_KEY, toRaw(messages.value))
+      await localForage.setItem(OUTBOX_STORAGE_KEY, toRaw(outbox.value))
     } catch (error) {
       console.error('Failed to persist chat data to storage:', error)
     }
@@ -121,11 +121,13 @@ export const useChatStore = defineStore('chat', () => {
       messages.value[messageIndex].status = 'sent'
     }
 
-    if (serverResponse && serverResponse.message && outboxItem) {
+    const responseMessage = serverResponse?.output?.message || serverResponse?.message
+
+    if (responseMessage && outboxItem) {
       const botMessage: Message = {
         id: crypto.randomUUID(),
         sessionId: outboxItem.sessionId,
-        text: serverResponse.message,
+        text: responseMessage,
         sender: 'bot',
         timestamp: Date.now(),
         status: 'sent'

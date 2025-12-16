@@ -10,7 +10,7 @@ const api = axios.create({
 
 export const postChat = async (payload: { sessionId: string; text: string }) => {
   try {
-    const response = await api.post('/webhook-test/your-chat-webhook-id', payload)
+    const response = await api.post('/webhook/f9d94d1b-aa15-4b76-8326-b83d9b49e609', payload)
     return response.data
   } catch (error) {
     if (axios.isAxiosError(error)) {
