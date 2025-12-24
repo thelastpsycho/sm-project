@@ -39,7 +39,7 @@ export const postRFP = async (payload: {
   rate_premiere: string
 }) => {
   try {
-    const response = await api.post('/webhook-test/bb8aa15d-08f5-4a19-97e4-c8cd9faad445', payload)
+    const response = await api.post('/webhook/bb8aa15d-08f5-4a19-97e4-c8cd9faad445', payload)
     return response.data
   } catch (error) {
     if (axios.isAxiosError(error)) {
