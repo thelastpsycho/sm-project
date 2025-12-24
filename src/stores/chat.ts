@@ -170,7 +170,17 @@ export const useChatStore = defineStore('chat', () => {
       messages.value[messageIndex].status = 'sent'
     }
 
-    const responseMessage = serverResponse?.output?.message || serverResponse?.message
+    let responseMessage = serverResponse?.output?.message || serverResponse?.message
+
+    // Handle nested stringified JSON case (e.g. Rate Agent)
+    if (!responseMessage && typeof serverResponse?.output === 'string') {
+      try {
+        const parsedOutput = JSON.parse(serverResponse.output)
+        responseMessage = parsedOutput.Message || parsedOutput.message
+      } catch (e) {
+        console.warn('Failed to parse output string:', e)
+      }
+    }
 
     if (responseMessage && outboxItem) {
       const botMessage: Message = {
