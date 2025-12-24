@@ -21,5 +21,6 @@ export interface AgentConfig {
   id: AgentId
   name: string
   webhookUrl: string
+  disabled?: boolean
   payloadAdapter: (text: string, sessionId: string) => any
 }

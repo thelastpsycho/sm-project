@@ -13,13 +13,14 @@ const AGENTS: Record<AgentId, AgentConfig> = {
   general: {
     id: 'general',
     name: 'General',
+    disabled: true,
     webhookUrl: 'https://workflow.anvayabali.com/webhook/f9d94d1b-aa15-4b76-8326-b83d9b49e609',
     payloadAdapter: (text, sessionId) => ({ text, sessionId })
   },
   rate: {
     id: 'rate',
     name: 'Rate',
-    webhookUrl: 'https://workflow.anvayabali.com/webhook-test/1828a9f4-5ec3-4fc6-9ce9-2a10f09d71a9',
+    webhookUrl: 'https://workflow.anvayabali.com/webhook/1828a9f4-5ec3-4fc6-9ce9-2a10f09d71a9',
     payloadAdapter: (text, sessionId) => ({
       message: {
         text,
@@ -32,6 +33,7 @@ const AGENTS: Record<AgentId, AgentConfig> = {
   forecast: {
     id: 'forecast',
     name: 'Forecast',
+    disabled: true,
     webhookUrl: '', // To be configured
     payloadAdapter: (text, sessionId) => ({ text, sessionId })
   }
@@ -41,7 +43,7 @@ export const useChatStore = defineStore('chat', () => {
   const messages = ref<Message[]>([])
   const outbox = ref<OutboxItem[]>([])
   const isSending = ref(false)
-  const activeAgentId = ref<AgentId>('general')
+  const activeAgentId = ref<AgentId>('rate')
 
   const pendingCount = computed(() => outbox.value.length)
   const activeAgent = computed(() => AGENTS[activeAgentId.value])
@@ -132,6 +134,12 @@ export const useChatStore = defineStore('chat', () => {
           // For now, we assume the user stays on the same agent or we use the currently active one.
           // Better approach: Store agentId in OutboxItem.
           // However, for this iteration, using activeAgent is acceptable as per plan.
+
+          // Using optional chaining or explicit check
+          if (!activeAgent.value) {
+            console.error('No active agent configured')
+            throw new Error('No active agent')
+          }
 
           const response = await postChat(activeAgent.value, item.text, item.sessionId)
 

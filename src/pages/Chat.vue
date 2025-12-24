@@ -12,15 +12,21 @@
             <div class="relative">
               <select
                 :value="activeAgent?.id"
-                @change="(e) => setAgent((e.target as HTMLSelectElement).value as any)"
+                @change="(e: Event) => {
+                  const val = (e.target as HTMLSelectElement).value as any;
+                  const agent = availableAgents.find((a: any) => a.id === val);
+                  if (agent && !agent.disabled) setAgent(val);
+                }"
                 class="appearance-none bg-gray-100 dark:bg-white/10 text-xs font-medium px-2 py-1 pr-6 rounded-lg text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-sm-primary border-none cursor-pointer"
               >
                 <option 
                   v-for="agent in availableAgents" 
                   :key="agent.id" 
                   :value="agent.id"
+                  :disabled="agent.disabled"
+                  :class="{ 'opacity-50 text-gray-400': agent.disabled }"
                 >
-                  {{ agent.name }}
+                  {{ agent.name }}{{ agent.disabled ? ' (Coming Soon)' : '' }}
                 </option>
               </select>
               <div class="absolute inset-y-0 right-0 flex items-center px-1 pointer-events-none">
