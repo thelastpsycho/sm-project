@@ -14,12 +14,13 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
-    "vue": "^3.5.25",
-    "vue-router": "^4.5.0",
-    "pinia": "^2.3.0",
+    "@heroicons/vue": "^2.2.0",
     "axios": "^1.7.9",
+    "firebase": "^12.7.0",
     "localforage": "^1.10.0",
-    "@heroicons/vue": "^2.2.0"
+    "pinia": "^2.3.0",
+    "vue": "^3.5.25",
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.3",

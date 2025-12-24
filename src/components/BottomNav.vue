@@ -1,7 +1,7 @@
 <template>
   <nav class="fixed bottom-6 left-4 right-4 z-50">
     <div class="max-w-md mx-auto bg-white/80 dark:bg-sm-card-dark/80 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-lg shadow-black/5">
-      <div class="grid grid-cols-3 h-16 items-center">
+      <div class="grid grid-cols-4 h-16 items-center">
         <router-link
           v-for="item in navItems"
           :key="item.name"
@@ -36,7 +36,8 @@ import { useRoute } from 'vue-router'
 import {
   HomeIcon,
   ChatBubbleLeftRightIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
@@ -56,11 +57,18 @@ const navItems = [
     name: 'Contract',
     to: '/contract',
     icon: DocumentTextIcon
+  },
+  {
+    name: 'RFP',
+    to: '/rfp',
+    icon: ClipboardDocumentListIcon
   }
 ]
 
 const navItemClasses = (item: typeof navItems[0]) => {
-  const isActive = route.path === item.to
+  const isActive = item.to === '/' 
+    ? route.path === '/'
+    : route.path.startsWith(item.to)
 
   return isActive
     ? 'text-sm-primary dark:text-blue-400'

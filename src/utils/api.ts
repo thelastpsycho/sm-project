@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: 'https://workflow.anvayabali.com',
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -20,6 +20,35 @@ export const postChat = async (payload: { sessionId: string; text: string }) => 
       throw error
     }
     throw new Error('Failed to send message')
+  }
+}
+
+export const postRFP = async (payload: {
+  title: string
+  pic_name: string
+  full_company_name: string
+  event_date_start: string
+  event_date_end: string
+  number_of_participants: string
+  number_of_rooms_required: string
+  sales_pic_name: string
+  sales_pic_position: string
+  sales_pic_email: string
+  sales_pic_phone_number: string
+  rate_deluxe: string
+  rate_premiere: string
+}) => {
+  try {
+    const response = await api.post('/webhook-test/bb8aa15d-08f5-4a19-97e4-c8cd9faad445', payload)
+    return response.data
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.code === 'NETWORK_ERROR' || !navigator.onLine) {
+        throw new Error('Network error - please check your connection')
+      }
+      throw error
+    }
+    throw new Error('Failed to submit RFP')
   }
 }
 

@@ -3,6 +3,8 @@ import Home from '@/pages/Home.vue'
 import Chat from '@/pages/Chat.vue'
 import Contract from '@/pages/Contract.vue'
 import Login from '@/pages/Login.vue'
+import RFP from '@/pages/RFP.vue'
+import RFPHistory from '@/pages/RFPHistory.vue'
 import { useSessionStore } from '@/stores/session'
 
 const router = createRouter({
@@ -22,6 +24,21 @@ const router = createRouter({
       path: '/contract',
       name: 'contract',
       component: Contract
+    },
+    {
+      path: '/rfp',
+      name: 'rfp-history',
+      component: RFPHistory
+    },
+    {
+      path: '/rfp/new',
+      name: 'rfp-new',
+      component: RFP
+    },
+    {
+      path: '/rfp/:id',
+      name: 'rfp-edit',
+      component: RFP
     },
     {
       path: '/login',
