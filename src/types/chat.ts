@@ -14,3 +14,12 @@ export type OutboxItem = {
   createdAt: number
   attempts: number
 }
+
+export type AgentId = 'general' | 'rate' | 'forecast'
+
+export interface AgentConfig {
+  id: AgentId
+  name: string
+  webhookUrl: string
+  payloadAdapter: (text: string, sessionId: string) => any
+}

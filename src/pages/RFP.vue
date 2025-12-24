@@ -48,6 +48,11 @@
                  <input v-model="form.event_date_end" type="date" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" />
                </div>
              </div>
+
+             <div class="px-4 py-2 border-t border-gray-200 dark:border-white/5">
+                <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Proposal Validity</label>
+                <input v-model="form.proposal_validity_date" type="date" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" />
+             </div>
            </div>
         </div>
       </div>
@@ -179,6 +184,7 @@ const form = ref<RFPForm>({
   full_company_name: '',
   event_date_start: '',
   event_date_end: '',
+  proposal_validity_date: '',
   number_of_participants: '',
   number_of_rooms_required: '',
   sales_pic_name: '',
@@ -201,7 +207,8 @@ const isFormValid = computed(() => {
          form.value.full_company_name && 
          form.value.sales_pic_email &&
          form.value.event_date_start &&
-         form.value.event_date_end
+         form.value.event_date_end &&
+         form.value.proposal_validity_date
 })
 
 const loadRFP = async () => {
@@ -277,6 +284,15 @@ const handleSubmit = async () => {
     }
 
     const res = await postRFP(form.value)
+    
+    // Save links if they exist
+    if (res && (res.link_to_pdf || res.link_to_slide)) {
+      await setDoc(doc(db, 'rfps', id), {
+        link_to_pdf: res.link_to_pdf || null,
+        link_to_slide: res.link_to_slide || null
+      }, { merge: true })
+    }
+
     responseContent.value = res
     showModal.value = true
   } catch (e: any) {
@@ -297,6 +313,7 @@ const resetForm = () => {
     full_company_name: '',
     event_date_start: '',
     event_date_end: '',
+    proposal_validity_date: '',
     number_of_participants: '',
     number_of_rooms_required: '',
     sales_pic_name: '',

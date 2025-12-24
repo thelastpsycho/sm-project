@@ -8,9 +8,12 @@ const api = axios.create({
   }
 })
 
-export const postChat = async (payload: { sessionId: string; text: string }) => {
+import type { AgentConfig } from '@/types/chat'
+
+export const postChat = async (config: AgentConfig, text: string, sessionId: string) => {
   try {
-    const response = await api.post('/webhook/f9d94d1b-aa15-4b76-8326-b83d9b49e609', payload)
+    const payload = config.payloadAdapter(text, sessionId)
+    const response = await api.post(config.webhookUrl, payload)
     return response.data
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -29,6 +32,7 @@ export const postRFP = async (payload: {
   full_company_name: string
   event_date_start: string
   event_date_end: string
+  proposal_validity_date: string
   number_of_participants: string
   number_of_rooms_required: string
   sales_pic_name: string

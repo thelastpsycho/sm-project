@@ -59,6 +59,20 @@
                <span>{{ rfp.number_of_participants || 0 }} pax</span>
             </div>
           </div>
+
+          <!-- PDF Link -->
+          <div v-if="rfp.link_to_pdf" class="mt-3 pt-3 border-t border-gray-100 dark:border-white/5 flex">
+            <a 
+              :href="rfp.link_to_pdf" 
+              target="_blank"
+              @click.stop
+              class="flex items-center gap-2 text-[10px] font-bold text-red-600 hover:text-red-700 dark:text-red-400 transition-colors"
+            >
+              <DocumentTextIcon class="w-3.5 h-3.5" />
+              <span>View PDF Proposal</span>
+              <ArrowTopRightOnSquareIcon class="w-3 h-3" />
+            </a>
+          </div>
         </router-link>
       </div>
     </div>
@@ -70,13 +84,15 @@ import { ref, onMounted } from 'vue'
 import { collection, query, orderBy, getDocs } from 'firebase/firestore'
 import { db } from '@/utils/firebase'
 import type { RFPForm } from '@/types/rfp'
-import { PlusIcon, DocumentTextIcon, CalendarIcon, UserGroupIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, DocumentTextIcon, CalendarIcon, UserGroupIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline'
 
 interface RFPRecord extends RFPForm {
   id: string
   createdAt?: any
   updatedAt?: any
   generated?: boolean
+  link_to_pdf?: string
+  link_to_slide?: string
 }
 
 const rfps = ref<RFPRecord[]>([])

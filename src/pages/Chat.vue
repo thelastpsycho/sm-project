@@ -7,8 +7,30 @@
           <ChevronLeftIcon class="w-6 h-6 text-sm-primary" />
         </router-link>
         <div>
-          <h1 class="font-semibold text-gray-900 dark:text-white">Chat</h1>
-          <p class="text-xs text-green-500 flex items-center">
+          <div class="flex items-center gap-2">
+            <h1 class="font-semibold text-gray-900 dark:text-white">Chat</h1>
+            <div class="relative">
+              <select
+                :value="activeAgent?.id"
+                @change="(e) => setAgent((e.target as HTMLSelectElement).value as any)"
+                class="appearance-none bg-gray-100 dark:bg-white/10 text-xs font-medium px-2 py-1 pr-6 rounded-lg text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-sm-primary border-none cursor-pointer"
+              >
+                <option 
+                  v-for="agent in availableAgents" 
+                  :key="agent.id" 
+                  :value="agent.id"
+                >
+                  {{ agent.name }}
+                </option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center px-1 pointer-events-none">
+                <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <p class="text-xs text-green-500 flex items-center mt-0.5">
             <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
             Online
           </p>
@@ -105,7 +127,7 @@ import { ChevronLeftIcon, PaperAirplaneIcon, ChatBubbleLeftRightIcon } from '@he
 import { useChat } from '@/composables/useChat'
 import type { Message } from '@/types/chat' // Ensure type is imported
 
-const { messages, isSending, pendingCount, sendMessage, retryPending } = useChat()
+const { messages, isSending, pendingCount, sendMessage, retryPending, activeAgent, availableAgents, setAgent } = useChat()
 const newMessage = ref('')
 const messagesContainer = ref<HTMLElement>()
 

@@ -1,24 +1,57 @@
 import { defineStore } from 'pinia'
 import { ref, computed, toRaw } from 'vue'
-import type { Message, OutboxItem } from '@/types/chat'
+import type { Message, OutboxItem, AgentId, AgentConfig } from '@/types/chat'
 import { postChat } from '@/utils/api'
 import { scheduleRetry } from '@/utils/offline'
 import localForage from 'localforage'
 
 const CHAT_STORAGE_KEY = 'chat.messages'
 const OUTBOX_STORAGE_KEY = 'chat.outbox'
+const ACTIVE_AGENT_KEY = 'chat.activeAgent'
+
+const AGENTS: Record<AgentId, AgentConfig> = {
+  general: {
+    id: 'general',
+    name: 'General',
+    webhookUrl: 'https://workflow.anvayabali.com/webhook/f9d94d1b-aa15-4b76-8326-b83d9b49e609',
+    payloadAdapter: (text, sessionId) => ({ text, sessionId })
+  },
+  rate: {
+    id: 'rate',
+    name: 'Rate',
+    webhookUrl: 'https://workflow.anvayabali.com/webhook-test/1828a9f4-5ec3-4fc6-9ce9-2a10f09d71a9',
+    payloadAdapter: (text, sessionId) => ({
+      message: {
+        text,
+        from: {
+          id: sessionId
+        }
+      }
+    })
+  },
+  forecast: {
+    id: 'forecast',
+    name: 'Forecast',
+    webhookUrl: '', // To be configured
+    payloadAdapter: (text, sessionId) => ({ text, sessionId })
+  }
+}
 
 export const useChatStore = defineStore('chat', () => {
   const messages = ref<Message[]>([])
   const outbox = ref<OutboxItem[]>([])
   const isSending = ref(false)
+  const activeAgentId = ref<AgentId>('general')
 
   const pendingCount = computed(() => outbox.value.length)
+  const activeAgent = computed(() => AGENTS[activeAgentId.value])
+  const availableAgents = computed(() => Object.values(AGENTS))
 
   const loadFromStorage = async () => {
     try {
       const storedMessages = await localForage.getItem<Message[]>(CHAT_STORAGE_KEY)
       const storedOutbox = await localForage.getItem<OutboxItem[]>(OUTBOX_STORAGE_KEY)
+      const storedAgentId = await localForage.getItem<AgentId>(ACTIVE_AGENT_KEY)
 
       if (storedMessages) {
         messages.value = storedMessages
@@ -26,6 +59,10 @@ export const useChatStore = defineStore('chat', () => {
 
       if (storedOutbox) {
         outbox.value = storedOutbox
+      }
+
+      if (storedAgentId && AGENTS[storedAgentId]) {
+        activeAgentId.value = storedAgentId
       }
     } catch (error) {
       console.error('Failed to load chat data from storage:', error)
@@ -36,8 +73,16 @@ export const useChatStore = defineStore('chat', () => {
     try {
       await localForage.setItem(CHAT_STORAGE_KEY, toRaw(messages.value))
       await localForage.setItem(OUTBOX_STORAGE_KEY, toRaw(outbox.value))
+      await localForage.setItem(ACTIVE_AGENT_KEY, toRaw(activeAgentId.value))
     } catch (error) {
       console.error('Failed to persist chat data to storage:', error)
+    }
+  }
+
+  const setAgent = (agentId: AgentId) => {
+    if (AGENTS[agentId]) {
+      activeAgentId.value = agentId
+      persistToStorage()
     }
   }
 
@@ -81,10 +126,14 @@ export const useChatStore = defineStore('chat', () => {
         try {
           item.attempts++
 
-          const response = await postChat({
-            sessionId: item.sessionId,
-            text: item.text
-          })
+          // Use the active agent configuration for delivery
+          // Note: In a real multi-agent system, we might want to store the agentId with the message
+          // so that retries use the correct agent even if the user switches agents.
+          // For now, we assume the user stays on the same agent or we use the currently active one.
+          // Better approach: Store agentId in OutboxItem.
+          // However, for this iteration, using activeAgent is acceptable as per plan.
+
+          const response = await postChat(activeAgent.value, item.text, item.sessionId)
 
           handleDeliverySuccess(item.id, response)
         } catch (error) {
@@ -181,6 +230,9 @@ export const useChatStore = defineStore('chat', () => {
     outbox,
     isSending,
     pendingCount,
+    activeAgent,
+    availableAgents,
+    setAgent,
     sendMessage,
     retryPending,
     clearMessages
