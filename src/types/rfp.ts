@@ -2,6 +2,8 @@ export interface RFPForm {
     lang: string
     title: string
     pic_name: string
+    client_email: string
+    client_phone: string
     full_company_name: string
     event_date_start: string
     event_date_end: string
@@ -19,3 +21,5 @@ export interface RFPForm {
     room_type_2: string
     rate_type_2: string
 }
+
+
