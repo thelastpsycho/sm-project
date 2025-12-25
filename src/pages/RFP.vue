@@ -53,6 +53,17 @@
                 </div>
              </div>
 
+             <div class="flex px-4 py-2 border-b border-gray-200 dark:border-white/5">
+                <div class="flex-1 border-r border-gray-200 dark:border-white/5 mr-3">
+                   <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Client Email</label>
+                   <input v-model="form.client_email" type="email" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" placeholder="david@company.com" />
+                </div>
+                <div class="flex-1">
+                   <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Client Phone</label>
+                   <input v-model="form.client_phone" type="tel" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" placeholder="+62 812..." />
+                </div>
+              </div>
+
              <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5">
                <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Company Name</label>
                <input 
@@ -63,14 +74,20 @@
                />
              </div>
              
-             <div class="flex px-4 py-2">
-               <div class="flex-1 mr-3">
-                 <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Start Date</label>
-                 <input v-model="form.event_date_start" type="date" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" />
-               </div>
-               <div class="flex-1">
-                 <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">End Date</label>
-                 <input v-model="form.event_date_end" type="date" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" />
+             <div class="px-4 py-2">
+               <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Event Dates</label>
+               <div 
+                 @click="showDatePicker = true"
+                 class="w-full flex items-center justify-between cursor-pointer py-1"
+               >
+                 <div class="flex items-center gap-2">
+                   <CalendarIcon class="w-4 h-4 text-sm-primary" />
+                   <span v-if="form.event_date_start" class="text-sm font-bold text-gray-900 dark:text-white transition-all">
+                     {{ formatDateLabel(form.event_date_start) }} - {{ formatDateLabel(form.event_date_end) }}
+                   </span>
+                   <span v-else class="text-sm text-gray-400 font-medium">Select Arrival & Departure</span>
+                 </div>
+                 <ChevronRightIcon class="w-4 h-4 text-gray-300" />
                </div>
              </div>
 
@@ -285,6 +302,19 @@
       :content="responseContent" 
       @close="showModal = false" 
     />
+
+    <!-- Date Picker Modal -->
+    <div v-if="showDatePicker" class="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="showDatePicker = false"></div>
+      <div class="relative w-full max-w-md bg-white dark:bg-sm-card-dark rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl animate-fade-in-up">
+        <DateRangePicker 
+          :initial-start="form.event_date_start"
+          :initial-end="form.event_date_end"
+          @select="handleDateRangeSelect"
+          @close="showDatePicker = false"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -295,6 +325,8 @@ import { postRFP } from '@/utils/api'
 import type { RFPForm } from '@/types/rfp'
 import ResponseModal from '@/components/ResponseModal.vue'
 import ProcessingModal from '@/components/ProcessingModal.vue'
+import DateRangePicker from '@/components/DateRangePicker.vue'
+import { CalendarIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import { db, ensureAuth } from '@/utils/firebase'
 import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore'
 
@@ -368,6 +400,8 @@ const form = ref<RFPForm>({
   lang: 'EN',
   title: 'Mr',
   pic_name: '',
+  client_email: '',
+  client_phone: '',
   full_company_name: '',
   event_date_start: '',
   event_date_end: '',
@@ -386,6 +420,20 @@ const form = ref<RFPForm>({
   rate_type_2: ''
 })
 
+const showDatePicker = ref(false)
+
+const handleDateRangeSelect = (range: { start: string, end: string }) => {
+  form.value.event_date_start = range.start
+  form.value.event_date_end = range.end
+  showDatePicker.value = false
+}
+
+const formatDateLabel = (dateString: string) => {
+  if (!dateString) return ''
+  const d = new Date(dateString)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 const showAdditionalRooms = ref(false)
 
 const isSubmitting = ref(false)
@@ -398,6 +446,7 @@ const responseContent = ref<any>(null)
 const isFormValid = computed(() => {
   return form.value.pic_name && 
          form.value.full_company_name && 
+         (form.value.client_email || form.value.client_phone) &&
          form.value.sales_pic_email &&
          form.value.event_date_start &&
          form.value.event_date_end &&
@@ -487,9 +536,16 @@ const handleSubmit = async () => {
       router.replace({ name: 'rfp-edit', params: { id } })
     }
 
-    // Convert all form fields to strings to avoid n8n/Google Slides type errors
+    // Convert all form fields to strings and format rates with commas
+    const rateFields = ['rate_deluxe', 'rate_premiere', 'rate_type_1', 'rate_type_2']
     const sanitizedPayload: RFPForm = Object.keys(form.value).reduce((acc, key) => {
-      acc[key as keyof RFPForm] = String(form.value[key as keyof RFPForm] ?? '')
+      const val = form.value[key as keyof RFPForm]
+      if (rateFields.includes(key) && val && !isNaN(Number(val))) {
+        // Format as thousand-separated string: e.g. 2,100,000
+        acc[key as keyof RFPForm] = new Intl.NumberFormat('en-US').format(Number(val))
+      } else {
+        acc[key as keyof RFPForm] = String(val ?? '')
+      }
       return acc
     }, {} as RFPForm)
 
@@ -532,6 +588,8 @@ const resetForm = () => {
     lang: 'EN',
     title: 'Mr',
     pic_name: '',
+    client_email: '',
+    client_phone: '',
     full_company_name: '',
     event_date_start: '',
     event_date_end: '',
