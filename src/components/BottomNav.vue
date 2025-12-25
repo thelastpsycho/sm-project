@@ -74,6 +74,7 @@ import {
   ChatBubbleLeftRightIcon,
   DocumentTextIcon,
   ClipboardDocumentListIcon,
+  PlusIcon,
   Bars3Icon,
   XMarkIcon
 } from '@heroicons/vue/24/outline'
@@ -98,7 +99,12 @@ const navItems = [
     icon: DocumentTextIcon
   },
   {
-    name: 'RFP',
+    name: 'New RFP',
+    to: '/rfp/new',
+    icon: PlusIcon
+  },
+  {
+    name: 'RFP History',
     to: '/rfp',
     icon: ClipboardDocumentListIcon
   }
