@@ -76,7 +76,7 @@
              </div>
              <div class="bg-gray-50 dark:bg-black/20 rounded-3xl p-6 relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-5">
-                   <CalendarIcon class="w-20 h-20" />
+                   <!-- <CalendarIcon class="w-20 h-20" /> -->
                 </div>
                 <div class="flex items-center justify-between relative z-10">
                    <div>
