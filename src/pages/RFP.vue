@@ -319,7 +319,7 @@
     <ResponseModal 
       :is-open="showModal" 
       :content="responseContent" 
-      @close="showModal = false" 
+      @close="handleCloseResponseModal" 
     />
 
     <!-- Date Picker Modal -->
@@ -482,6 +482,7 @@ const errorMessage = ref('')
 const showModal = ref(false)
 const showReviewModal = ref(false)
 const responseContent = ref<any>(null)
+const lastCreatedId = ref<string | null>(null)
 
 // Basic validation
 const isFormValid = computed(() => {
@@ -579,9 +580,10 @@ const handleFinalSubmit = async () => {
   try {
     // Auto-save before generating
     const id = await saveToFirebase(true)
-    if (!isEditing.value) {
-      router.replace({ name: 'rfp-edit', params: { id } })
-    }
+    lastCreatedId.value = id
+    // NOTE: We don't router.replace here anymore because it causes a component re-mount
+    // which cancels the UI updates for the success modal.
+
 
     // Convert all form fields to strings and format rates with commas
     const rateFields = ['rate_deluxe', 'rate_premiere', 'rate_type_1', 'rate_type_2']
@@ -624,6 +626,13 @@ const handleFinalSubmit = async () => {
     errorMessage.value = e.response?.data?.message || 'Failed to generate proposal'
   } finally {
     isSubmitting.value = false
+  }
+}
+
+const handleCloseResponseModal = () => {
+  showModal.value = false
+  if (!isEditing.value && lastCreatedId.value) {
+    router.replace({ name: 'rfp-edit', params: { id: lastCreatedId.value } })
   }
 }
 
