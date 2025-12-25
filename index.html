@@ -1,65 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#2563eb">
+  <title>SM - Mobile App</title>
 
-    <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+  <style>
+    /* Loading styles */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
 
-    <!-- Safe Area Support -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    .dark #loading {
+      background: #0f172a;
+    }
 
-    <title>SM - Mobile App</title>
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e5e7eb;
+      border-top: 4px solid #2563eb;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
 
-    <style>
-      /* Loading styles */
-      #loading {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #f8fafc;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
 
-      .dark #loading {
-        background: #0f172a;
+      100% {
+        transform: rotate(360deg);
       }
+    }
+  </style>
+</head>
 
-      .spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid #e5e7eb;
-        border-top: 4px solid #2563eb;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
+<body class="bg-sm-bg dark:bg-sm-bg-dark">
+  <div id="loading">
+    <div class="spinner"></div>
+  </div>
+  <div id="app" style="display: none;"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
 
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    </style>
-  </head>
-  <body class="bg-sm-bg dark:bg-sm-bg-dark">
-    <div id="loading">
-      <div class="spinner"></div>
-    </div>
-    <div id="app" style="display: none;"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
 </html>
