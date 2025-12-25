@@ -1,4 +1,5 @@
 export interface RFPForm {
+    lang: string
     title: string
     pic_name: string
     full_company_name: string
@@ -13,4 +14,8 @@ export interface RFPForm {
     sales_pic_phone_number: string
     rate_deluxe: string
     rate_premiere: string
+    room_type_1: string
+    rate_type_1: string
+    room_type_2: string
+    rate_type_2: string
 }

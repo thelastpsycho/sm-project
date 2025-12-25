@@ -11,7 +11,7 @@ onMounted(() => {
   themeStore.applyTheme()
 })
 
-const showNav = computed(() => !['login', 'chat'].includes(route.name as string))
+const showNav = computed(() => !['login'].includes(route.name as string))
 </script>
 
 <template>

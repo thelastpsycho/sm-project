@@ -33,7 +33,8 @@
           <!-- Beverage Package PDF -->
           <a
             href="/beverage_package.pdf"
-            download
+            target="_blank"
+            rel="noopener noreferrer"
             class="flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
           >
             <div class="flex items-center space-x-3">
@@ -51,7 +52,8 @@
           <!-- Canape PDF -->
           <a
             href="/canape.pdf"
-            download
+            target="_blank"
+            rel="noopener noreferrer"
             class="flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
           >
             <div class="flex items-center space-x-3">
@@ -97,14 +99,15 @@
                   v-for="menu in menuItems"
                   :key="menu.file"
                   :href="`/menus/${menu.file}`"
-                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
                   class="flex items-center justify-between p-2 rounded-xl hover:bg-white dark:hover:bg-white/5 transition-all duration-200 group"
                 >
                   <div class="flex items-center space-x-2 flex-1 min-w-0">
                     <div class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></div>
                     <span class="text-xs font-medium truncate">{{ menu.displayName }}</span>
                   </div>
-                  <ArrowDownTrayIcon class="h-4 w-4 text-sm-secondary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
+                  <ArrowTopRightOnSquareIcon class="h-4 w-4 text-sm-secondary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
                 </a>
               </div>
             </div>
@@ -168,33 +171,33 @@ const menusExpanded = ref(false)
 
 // Menu items with formatted display names
 const menuItems = [
-  { file: 'BUFFET - ASIAN MENU 850.000.pdf', displayName: 'Asian - Buffet - 850k' },
-  { file: 'BUFFET - ASIAN MENU 950.000.pdf', displayName: 'Asian - Buffet - 950k' },
-  { file: 'BUFFET - INDONESIAN MENU 950.000.pdf', displayName: 'Indonesian - Buffet - 950k' },
-  { file: 'BUFFET - INTERNATIONAL MENU 850.000.pdf', displayName: 'International - Buffet - 850k' },
-  { file: 'BUFFET - INTERNATIONAL MENU 950.000.pdf', displayName: 'International - Buffet - 950k' },
-  { file: 'BUFFET - WESTERN MENU 850.000.pdf', displayName: 'Western - Buffet - 850k' },
-  { file: 'BUFFET - WESTERN MENU 950.000.pdf', displayName: 'Western - Buffet - 950k' },
-  { file: 'BUFFET BBQ DINNER - INDONESIAN 850.000.pdf', displayName: 'Indonesian - BBQ Dinner - 850k' },
-  { file: 'BUFFET BBQ DINNER - INDONESIAN 950.000.pdf', displayName: 'Indonesian - BBQ Dinner - 950k' },
-  { file: 'BUFFET BBQ DINNER - INTERNATIONAL 850.000.pdf', displayName: 'International - BBQ Dinner - 850k' },
-  { file: 'BUFFET BBQ DINNER - INTERNATIONAL 950.000.pdf', displayName: 'International - BBQ Dinner - 950k' },
-  { file: 'BUFFET BBQ DINNER - INTERNATIONAL 1.000.000.pdf', displayName: 'International - BBQ Dinner - 1000k' },
-  { file: 'BUFFET BBQ DINNER - WESTERN 850.000.pdf', displayName: 'Western - BBQ Dinner - 850k' },
-  { file: 'BUFFET BBQ DINNER - WESTERN 950.000.pdf', displayName: 'Western - BBQ Dinner - 950k' },
-  { file: 'BUFFET BBQ DINNER - WESTERN 1.000.000.pdf', displayName: 'Western - BBQ Dinner - 1000k' },
-  { file: 'BUFFET BBQ DINNER SEAFOOD 850.000.pdf', displayName: 'Seafood - BBQ Dinner - 850k' },
-  { file: 'BUFFET BBQ DINNER SEAFOOD 950.000.pdf', displayName: 'Seafood - BBQ Dinner - 950k' },
-  { file: 'BUFFET BBQ DINNER SEAFOOD 1.000.000.pdf', displayName: 'Seafood - BBQ Dinner - 1000k' },
-  { file: 'SET MENU - ASIAN 900.000.pdf', displayName: 'Asian - Set Menu - 900k' },
-  { file: 'SET MENU - ASIAN 1.000.000.pdf', displayName: 'Asian - Set Menu - 1000k' },
-  { file: 'FAMILY SET MENU - ASIAN 1.100.000.pdf', displayName: 'Asian - Family Set Menu - 1100k' },
-  { file: 'SET MENU - INDONESIAN 900.000.pdf', displayName: 'Indonesian - Set Menu - 900k' },
-  { file: 'SET MENU - INDONESIAN 1.000.000.pdf', displayName: 'Indonesian - Set Menu - 1000k' },
-  { file: 'SET MENU - INDONESIAN 1.100.000.pdf', displayName: 'Indonesian - Set Menu - 1100k' },
-  { file: 'SET MENU - WESTERN 900.000.pdf', displayName: 'Western - Set Menu - 900k' },
-  { file: 'SET MENU - WESTERN 1.000.000.pdf', displayName: 'Western - Set Menu - 1000k' },
-  { file: 'SET MENU - WESTERN 1.100.000.pdf', displayName: 'Western - Set Menu - 1100k' },
+  { file: 'Asian - Buffet - 850k.pdf', displayName: 'Asian - Buffet - 850k' },
+  { file: 'Asian - Buffet - 950k.pdf', displayName: 'Asian - Buffet - 950k' },
+  { file: 'Indonesian - Buffet - 950k.pdf', displayName: 'Indonesian - Buffet - 950k' },
+  { file: 'International - Buffet - 850k.pdf', displayName: 'International - Buffet - 850k' },
+  { file: 'International - Buffet - 950k.pdf', displayName: 'International - Buffet - 950k' },
+  { file: 'Western - Buffet - 850k.pdf', displayName: 'Western - Buffet - 850k' },
+  { file: 'Western - Buffet - 950k.pdf', displayName: 'Western - Buffet - 950k' },
+  { file: 'Indonesian - BBQ Dinner - 850k.pdf', displayName: 'Indonesian - BBQ Dinner - 850k' },
+  { file: 'Indonesian - BBQ Dinner - 950k.pdf', displayName: 'Indonesian - BBQ Dinner - 950k' },
+  { file: 'International - BBQ Dinner - 850k.pdf', displayName: 'International - BBQ Dinner - 850k' },
+  { file: 'International - BBQ Dinner - 950k.pdf', displayName: 'International - BBQ Dinner - 950k' },
+  { file: 'International - BBQ Dinner - 1000k.pdf', displayName: 'International - BBQ Dinner - 1000k' },
+  { file: 'Western - BBQ Dinner - 850k.pdf', displayName: 'Western - BBQ Dinner - 850k' },
+  { file: 'Western - BBQ Dinner - 950k.pdf', displayName: 'Western - BBQ Dinner - 950k' },
+  { file: 'Western - BBQ Dinner - 1000k.pdf', displayName: 'Western - BBQ Dinner - 1000k' },
+  { file: 'Seafood - BBQ Dinner - 850k.pdf', displayName: 'Seafood - BBQ Dinner - 850k' },
+  { file: 'Seafood - BBQ Dinner - 950k.pdf', displayName: 'Seafood - BBQ Dinner - 950k' },
+  { file: 'Seafood - BBQ Dinner - 1000k.pdf', displayName: 'Seafood - BBQ Dinner - 1000k' },
+  { file: 'Asian - Set Menu - 900k.pdf', displayName: 'Asian - Set Menu - 900k' },
+  { file: 'Asian - Set Menu - 1000k.pdf', displayName: 'Asian - Set Menu - 1000k' },
+  { file: 'Asian - Family Set Menu - 1100k.pdf', displayName: 'Asian - Family Set Menu - 1100k' },
+  { file: 'Indonesian - Set Menu - 900k.pdf', displayName: 'Indonesian - Set Menu - 900k' },
+  { file: 'Indonesian - Set Menu - 1000k.pdf', displayName: 'Indonesian - Set Menu - 1000k' },
+  { file: 'Indonesian - Set Menu - 1100k.pdf', displayName: 'Indonesian - Set Menu - 1100k' },
+  { file: 'Western - Set Menu - 900k.pdf', displayName: 'Western - Set Menu - 900k' },
+  { file: 'Western - Set Menu - 1000k.pdf', displayName: 'Western - Set Menu - 1000k' },
+  { file: 'Western - Set Menu - 1100k.pdf', displayName: 'Western - Set Menu - 1100k' },
 ]
 
 const isOnline = computed(() => navigator.onLine)

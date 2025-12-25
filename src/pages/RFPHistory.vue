@@ -60,7 +60,7 @@
             </div>
           </div>
 
-          <!-- PDF Link -->
+          <!-- Proposal Link -->
           <div v-if="rfp.link_to_pdf" class="mt-3 pt-3 border-t border-gray-100 dark:border-white/5 flex">
             <a 
               :href="rfp.link_to_pdf" 
@@ -70,7 +70,7 @@
             >
               <DocumentTextIcon class="w-3.5 h-3.5" />
               <span>View PDF Proposal</span>
-              <ArrowTopRightOnSquareIcon class="w-3 h-3" />
+              <ArrowTopRightOnSquareIcon class="w-3 h-3 opacity-50" />
             </a>
           </div>
         </router-link>

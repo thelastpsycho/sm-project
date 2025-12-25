@@ -2,13 +2,14 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: 'https://workflow.anvayabali.com',
-  timeout: 60000,
+  timeout: 300000,
   headers: {
     'Content-Type': 'application/json'
   }
 })
 
 import type { AgentConfig } from '@/types/chat'
+import type { RFPForm } from '@/types/rfp'
 
 export const postChat = async (config: AgentConfig, text: string, sessionId: string) => {
   try {
@@ -26,22 +27,7 @@ export const postChat = async (config: AgentConfig, text: string, sessionId: str
   }
 }
 
-export const postRFP = async (payload: {
-  title: string
-  pic_name: string
-  full_company_name: string
-  event_date_start: string
-  event_date_end: string
-  proposal_validity_date: string
-  number_of_participants: string
-  number_of_rooms_required: string
-  sales_pic_name: string
-  sales_pic_position: string
-  sales_pic_email: string
-  sales_pic_phone_number: string
-  rate_deluxe: string
-  rate_premiere: string
-}) => {
+export const postRFP = async (payload: RFPForm) => {
   try {
     const response = await api.post('/webhook/bb8aa15d-08f5-4a19-97e4-c8cd9faad445', payload)
     return response.data

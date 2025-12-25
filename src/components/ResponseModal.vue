@@ -40,22 +40,7 @@
             </div>
 
             <div class="grid gap-4">
-              <!-- Slide Link -->
-              <a 
-                v-if="content.link_to_slide"
-                :href="content.link_to_slide"
-                target="_blank"
-                class="flex items-center gap-4 p-4 rounded-2xl bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-500/20 group hover:scale-[1.02] transition-transform cursor-pointer"
-              >
-                <div class="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/40 text-orange-600 flex items-center justify-center">
-                  <PresentationChartBarIcon class="w-6 h-6" />
-                </div>
-                <div class="flex-1">
-                  <h5 class="font-bold text-gray-900 dark:text-white">Presentation Slides</h5>
-                  <p class="text-xs text-orange-600/80 dark:text-orange-400">View Google Slides</p>
-                </div>
-                <ArrowTopRightOnSquareIcon class="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" />
-              </a>
+
 
               <!-- PDF Link -->
               <a 
@@ -69,7 +54,7 @@
                 </div>
                 <div class="flex-1">
                   <h5 class="font-bold text-gray-900 dark:text-white">PDF Document</h5>
-                  <p class="text-xs text-red-600/80 dark:text-red-400">Download Proposal</p>
+                  <p class="text-xs text-red-600/80 dark:text-red-400">View PDF Proposal</p>
                 </div>
                 <ArrowTopRightOnSquareIcon class="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
               </a>
@@ -119,7 +104,6 @@ import { useRouter } from 'vue-router'
 import { 
   XMarkIcon, 
   ClipboardDocumentListIcon,
-  PresentationChartBarIcon, 
   DocumentTextIcon,
   ArrowTopRightOnSquareIcon
 } from '@heroicons/vue/24/outline'
@@ -144,7 +128,7 @@ const goToHistory = () => {
 const isStructuredResponse = computed(() => {
   return props.content && 
          typeof props.content === 'object' && 
-         (props.content.link_to_pdf || props.content.link_to_slide)
+         props.content.link_to_pdf
 })
 
 const formattedContent = computed(() => {

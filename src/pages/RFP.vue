@@ -8,6 +8,31 @@
 
     <form @submit.prevent="handleSubmit" class="p-4 space-y-6">
       
+      <!-- Section: Language Choice -->
+      <div class="flex items-center justify-between p-1 bg-white dark:bg-sm-card-dark rounded-3xl shadow-sm border border-gray-100 dark:border-white/5 animate-fade-in-up" style="animation-delay: 50ms;">
+        <div class="pl-4">
+          <p class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-widest opacity-40">Document Language</p>
+        </div>
+        <div class="flex p-1 bg-gray-50 dark:bg-white/5 rounded-2xl">
+          <button
+            type="button"
+            @click="form.lang = 'EN'"
+            class="px-6 py-1.5 rounded-xl text-xs font-bold transition-all"
+            :class="form.lang === 'EN' ? 'bg-sm-primary text-white shadow-md shadow-blue-500/20' : 'text-gray-400 dark:text-gray-500'"
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            @click="form.lang = 'ID'"
+            class="px-6 py-1.5 rounded-xl text-xs font-bold transition-all"
+            :class="form.lang === 'ID' ? 'bg-sm-primary text-white shadow-md shadow-blue-500/20' : 'text-gray-400 dark:text-gray-500'"
+          >
+            ID
+          </button>
+        </div>
+      </div>
+      
       <!-- Section: Client Details -->
       <div class="bg-white dark:bg-sm-card-dark rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-white/5 space-y-5 animate-fade-in-up" style="animation-delay: 100ms;">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider opacity-50">Client Details</h2>
@@ -80,20 +105,47 @@
         <div class="bg-gray-50 dark:bg-black/20 rounded-2xl p-1">
              <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5">
                <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Name</label>
-               <input v-model="form.sales_pic_name" type="text" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" placeholder="Jessica Wong" />
+               <select 
+                 v-model="form.sales_pic_name" 
+                 @change="handleSalesContactChange"
+                 class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 text-sm font-medium"
+               >
+                 <option value="" disabled>Select Sales Contact</option>
+                 <option v-for="contact in salesContacts" :key="contact.name" :value="contact.name">
+                   {{ contact.name }}
+                 </option>
+               </select>
              </div>
-             <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5">
-               <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Position</label>
-               <input v-model="form.sales_pic_position" type="text" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" placeholder="Event Sales Coordinator" />
-             </div>
-             <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5">
-               <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Email</label>
-               <input v-model="form.sales_pic_email" type="email" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" placeholder="jessica.wong@anvayabali.com" />
-             </div>
-             <div class="px-4 py-2">
-               <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Phone</label>
-               <input v-model="form.sales_pic_phone_number" type="tel" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" placeholder="+62 821..." />
-             </div>
+              <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5" :class="{ 'opacity-50': form.sales_pic_name }">
+                <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Position</label>
+                <input 
+                  v-model="form.sales_pic_position" 
+                  type="text" 
+                  :disabled="!!form.sales_pic_name"
+                  class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium disabled:cursor-not-allowed" 
+                  placeholder="Event Sales Coordinator" 
+                />
+              </div>
+              <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5" :class="{ 'opacity-50': form.sales_pic_name }">
+                <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Email</label>
+                <input 
+                  v-model="form.sales_pic_email" 
+                  type="email" 
+                  :disabled="!!form.sales_pic_name"
+                  class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium disabled:cursor-not-allowed" 
+                  placeholder="jessica.wong@anvayabali.com" 
+                />
+              </div>
+              <div class="px-4 py-2" :class="{ 'opacity-50': form.sales_pic_name }">
+                <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Phone</label>
+                <input 
+                  v-model="form.sales_pic_phone_number" 
+                  type="tel" 
+                  :disabled="!!form.sales_pic_name"
+                  class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium disabled:cursor-not-allowed" 
+                  placeholder="+62 821..." 
+                />
+              </div>
         </div>
       </div>
 
@@ -102,14 +154,93 @@
         <h2 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider opacity-50">Proposed Rates</h2>
         
         <div class="bg-gray-50 dark:bg-black/20 rounded-2xl p-1">
-           <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5">
-             <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Deluxe Rate</label>
-             <input v-model="form.rate_deluxe" type="number" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" placeholder="1950000" />
-           </div>
-           <div class="px-4 py-2">
-             <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Premiere Rate</label>
-             <input v-model="form.rate_premiere" type="number" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" placeholder="2350000" />
-           </div>
+            <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5">
+              <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Deluxe Rate</label>
+              <select v-model="form.rate_deluxe" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 text-sm font-medium">
+                <option value="" disabled>Select Deluxe Rate</option>
+                <option v-for="rate in deluxeRateOptions" :key="rate" :value="rate.toString()">
+                  {{ formatCurrency(rate) }}
+                </option>
+              </select>
+            </div>
+            <div class="px-4 py-2">
+              <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Premiere Rate</label>
+              <select v-model="form.rate_premiere" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 text-sm font-medium">
+                <option value="" disabled>Select Premiere Rate</option>
+                <option v-for="rate in premiereRateOptions" :key="rate" :value="rate.toString()">
+                  {{ formatCurrency(rate) }}
+                </option>
+              </select>
+            </div>
+        </div>
+      </div>
+
+      <!-- Section: Additional Room Types -->
+      <div class="bg-white dark:bg-sm-card-dark rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-white/5 space-y-5 animate-fade-in-up" style="animation-delay: 450ms;">
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider opacity-50">Additional Room Types</h2>
+        
+        <div class="space-y-4">
+          <!-- Compact Question Toggle -->
+          <div class="flex items-center justify-between p-1 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5">
+            <div class="pl-4">
+              <p class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider opacity-70">Add more rooms?</p>
+            </div>
+            <div class="flex p-1 bg-white dark:bg-white/10 rounded-xl shadow-inner shadow-black/5">
+              <button
+                type="button"
+                @click="showAdditionalRooms = true"
+                class="px-5 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all"
+                :class="showAdditionalRooms ? 'bg-sm-primary text-white shadow-md shadow-blue-500/20 scale-105' : 'text-gray-400 dark:text-gray-500'"
+              >
+                YES
+              </button>
+              <button
+                type="button"
+                @click="showAdditionalRooms = false; clearAdditionalRooms()"
+                class="px-5 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all"
+                :class="!showAdditionalRooms ? 'bg-sm-primary text-white shadow-md shadow-blue-500/20 scale-105' : 'text-gray-400 dark:text-gray-500'"
+              >
+                NO
+              </button>
+            </div>
+          </div>
+
+          <!-- Additional Room Type Fields -->
+          <div v-if="showAdditionalRooms" class="space-y-3 animate-fade-in-up">
+            <!-- Room Type 1 -->
+            <div class="bg-gray-50 dark:bg-black/20 rounded-2xl p-1">
+              <div class="grid grid-cols-2 gap-px">
+                <div class="px-4 py-2 bg-white dark:bg-sm-card-dark rounded-l-xl">
+                  <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Room Type 1</label>
+                  <select v-model="form.room_type_1" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 text-sm font-medium">
+                    <option value="" disabled>Select Room Type</option>
+                    <option v-for="option in roomTypeOptions" :key="option" :value="option">{{ option }}</option>
+                  </select>
+                </div>
+                <div class="px-4 py-2 bg-white dark:bg-sm-card-dark rounded-r-xl">
+                  <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Rate</label>
+                  <input v-model="form.rate_type_1" type="number" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium text-sm" placeholder="2750000" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Room Type 2 -->
+            <div class="bg-gray-50 dark:bg-black/20 rounded-2xl p-1">
+              <div class="grid grid-cols-2 gap-px">
+                <div class="px-4 py-2 bg-white dark:bg-sm-card-dark rounded-l-xl">
+                  <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Room Type 2</label>
+                  <select v-model="form.room_type_2" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 text-sm font-medium">
+                    <option value="" disabled>Select Room Type</option>
+                    <option v-for="option in roomTypeOptions" :key="option" :value="option">{{ option }}</option>
+                  </select>
+                </div>
+                <div class="px-4 py-2 bg-white dark:bg-sm-card-dark rounded-r-xl">
+                  <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Rate</label>
+                  <input v-model="form.rate_type_2" type="number" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium text-sm" placeholder="3150000" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -174,11 +305,67 @@ const isEditing = computed(() => !!route.params.id)
 const titleOptions = [
   { value: 'Mr', label: 'Mr.' },
   { value: 'Ms', label: 'Ms.' },
-  { value: 'Mrs', label: 'Mrs.' },
-  { value: 'Dr', label: 'Dr.' }
+  { value: 'Ibu', label: 'Ibu' },
+  { value: 'Bapak', label: 'Bapak' }
 ]
 
+const salesContacts = [
+  {
+    name: 'Andi Krisnatha',
+    position: 'Asst. Director of Sales & Distribution',
+    email: 'andikrisnatha@theanvayabali.com',
+    phone: '62811389938'
+  },
+  {
+    name: 'Purnama',
+    position: 'Sales Executive',
+    email: 'purnama@theanvayabali.com',
+    phone: '6285179645546'
+  },
+  {
+    name: 'Linda Permata',
+    position: 'Sales Executive',
+    email: 'lindapermata@theanvayabali.com',
+    phone: '6281338353759'
+  },
+  {
+    name: 'Riska Chintya',
+    position: 'Assistant Sales Manager',
+    email: 'riskachintya@theanvayabali.com',
+    phone: '6281236362979'
+  },
+  {
+    name: 'Doni Dwi Artha',
+    position: 'Mice Coordinator',
+    email: 'micecoordinator@theanvayabali.com',
+    phone: '6282147598154'
+  },
+  {
+    name: 'Aprilia Krisdayani',
+    position: 'Ecommerce Executive',
+    email: 'ecommerce@theanvayabali.com',
+    phone: '6285738316631'
+  }
+]
+
+const roomTypeOptions = [
+  'Premiere with Lagoon Access',
+  'Deluxe Suite',
+  'Premiere Suite',
+  'Anvaya Suite Whirlpool',
+  'Beach Front Private Suite',
+  'Anvaya Suite Private Pool'
+]
+
+const deluxeRateOptions = Array.from({ length: (2750000 - 1850000) / 50000 + 1 }, (_, i) => 1850000 + (i * 50000))
+const premiereRateOptions = Array.from({ length: (3050000 - 2250000) / 50000 + 1 }, (_, i) => 2250000 + (i * 50000))
+
+const formatCurrency = (val: number) => {
+  return new Intl.NumberFormat('id-ID').format(val)
+}
+
 const form = ref<RFPForm>({
+  lang: 'EN',
   title: 'Mr',
   pic_name: '',
   full_company_name: '',
@@ -192,8 +379,14 @@ const form = ref<RFPForm>({
   sales_pic_email: '',
   sales_pic_phone_number: '',
   rate_deluxe: '',
-  rate_premiere: ''
+  rate_premiere: '',
+  room_type_1: '',
+  rate_type_1: '',
+  room_type_2: '',
+  rate_type_2: ''
 })
+
+const showAdditionalRooms = ref(false)
 
 const isSubmitting = ref(false)
 const isSaving = ref(false)
@@ -210,6 +403,17 @@ const isFormValid = computed(() => {
          form.value.event_date_end &&
          form.value.proposal_validity_date
 })
+
+const isOnlineReact = computed(() => navigator.onLine)
+
+const handleSalesContactChange = () => {
+  const selected = salesContacts.find(c => c.name === form.value.sales_pic_name)
+  if (selected) {
+    form.value.sales_pic_position = selected.position
+    form.value.sales_pic_email = selected.email
+    form.value.sales_pic_phone_number = selected.phone
+  }
+}
 
 const loadRFP = async () => {
   if (!route.params.id) return
@@ -283,17 +487,34 @@ const handleSubmit = async () => {
       router.replace({ name: 'rfp-edit', params: { id } })
     }
 
-    const res = await postRFP(form.value)
+    // Convert all form fields to strings to avoid n8n/Google Slides type errors
+    const sanitizedPayload: RFPForm = Object.keys(form.value).reduce((acc, key) => {
+      acc[key as keyof RFPForm] = String(form.value[key as keyof RFPForm] ?? '')
+      return acc
+    }, {} as RFPForm)
+
+    const res = await postRFP(sanitizedPayload)
     
-    // Save links if they exist
-    if (res && (res.link_to_pdf || res.link_to_slide)) {
+    // Handle new response format: { id: "...", success: true }
+    let linkToPdf = res.link_to_pdf || null
+
+    if (res.id && res.success) {
+      linkToPdf = `https://drive.google.com/file/d/${res.id}/view`
+    }
+
+    // Save link if it exists
+    if (linkToPdf) {
       await setDoc(doc(db, 'rfps', id), {
-        link_to_pdf: res.link_to_pdf || null,
-        link_to_slide: res.link_to_slide || null
+        link_to_pdf: linkToPdf
       }, { merge: true })
     }
 
-    responseContent.value = res
+    // Pass the link back to responseContent for the modal
+    responseContent.value = {
+      ...res,
+      link_to_pdf: linkToPdf,
+      company_name: form.value.full_company_name
+    }
     showModal.value = true
   } catch (e: any) {
     errorMessage.value = e.message || 'Failed to submit'
@@ -308,6 +529,7 @@ onMounted(() => {
 
 const resetForm = () => {
   form.value = {
+    lang: 'EN',
     title: 'Mr',
     pic_name: '',
     full_company_name: '',
@@ -321,7 +543,19 @@ const resetForm = () => {
     sales_pic_email: '',
     sales_pic_phone_number: '',
     rate_deluxe: '',
-    rate_premiere: ''
+    rate_premiere: '',
+    room_type_1: '',
+    rate_type_1: '',
+    room_type_2: '',
+    rate_type_2: ''
   }
+  showAdditionalRooms.value = false
+}
+
+const clearAdditionalRooms = () => {
+  form.value.room_type_1 = ''
+  form.value.rate_type_1 = ''
+  form.value.room_type_2 = ''
+  form.value.rate_type_2 = ''
 }
 </script>
