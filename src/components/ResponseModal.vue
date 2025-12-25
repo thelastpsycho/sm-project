@@ -105,7 +105,8 @@ import {
   XMarkIcon, 
   ClipboardDocumentListIcon,
   DocumentTextIcon,
-  ArrowTopRightOnSquareIcon
+  ArrowTopRightOnSquareIcon,
+  CheckIcon
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps<{
