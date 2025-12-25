@@ -91,10 +91,22 @@
                </div>
              </div>
 
-             <div class="px-4 py-2 border-t border-gray-200 dark:border-white/5">
-                <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Proposal Validity</label>
-                <input v-model="form.proposal_validity_date" type="date" class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium" />
-             </div>
+              <div class="px-4 py-2 border-t border-gray-200 dark:border-white/5">
+                 <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Proposal Validity</label>
+                 <div 
+                   @click="showValidityPicker = true"
+                   class="w-full flex items-center justify-between cursor-pointer py-1"
+                 >
+                   <div class="flex items-center gap-2">
+                     <CalendarIcon class="w-4 h-4 text-sm-primary" />
+                     <span v-if="form.proposal_validity_date" class="text-sm font-bold text-gray-900 dark:text-white transition-all">
+                       {{ formatDateLabel(form.proposal_validity_date) }}
+                     </span>
+                     <span v-else class="text-sm text-gray-400 font-medium">Select Validity Date</span>
+                   </div>
+                   <ChevronRightIcon class="w-4 h-4 text-gray-300" />
+                 </div>
+              </div>
            </div>
         </div>
       </div>
@@ -310,8 +322,22 @@
         <DateRangePicker 
           :initial-start="form.event_date_start"
           :initial-end="form.event_date_end"
+          mode="range"
           @select="handleDateRangeSelect"
           @close="showDatePicker = false"
+        />
+      </div>
+    </div>
+
+    <!-- Validity Picker Modal -->
+    <div v-if="showValidityPicker" class="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="showValidityPicker = false"></div>
+      <div class="relative w-full max-w-md bg-white dark:bg-sm-card-dark rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl animate-fade-in-up">
+        <DateRangePicker 
+          :initial-start="form.proposal_validity_date"
+          mode="single"
+          @select="handleValiditySelect"
+          @close="showValidityPicker = false"
         />
       </div>
     </div>
@@ -421,11 +447,17 @@ const form = ref<RFPForm>({
 })
 
 const showDatePicker = ref(false)
+const showValidityPicker = ref(false)
 
 const handleDateRangeSelect = (range: { start: string, end: string }) => {
   form.value.event_date_start = range.start
   form.value.event_date_end = range.end
   showDatePicker.value = false
+}
+
+const handleValiditySelect = (range: { start: string }) => {
+  form.value.proposal_validity_date = range.start
+  showValidityPicker.value = false
 }
 
 const formatDateLabel = (dateString: string) => {

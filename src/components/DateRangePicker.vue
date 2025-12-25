@@ -49,7 +49,7 @@
 
           <!-- Selection Circle -->
           <div 
-            v-if="isStart(day.dateString) || isEnd(day.dateString)" 
+            v-if="isSelected(day.dateString)" 
             class="absolute inset-4 bg-sm-primary rounded-xl shadow-lg shadow-blue-500/30 z-10 scale-110"
           ></div>
 
@@ -57,26 +57,28 @@
           <span 
             class="relative z-20 text-sm font-bold transition-colors"
             :class="[
-              isStart(day.dateString) || isEnd(day.dateString) ? 'text-white' : 'text-gray-700 dark:text-gray-200 group-hover:text-sm-primary',
-              isPast(day.dateString) && !isStart(day.dateString) ? 'opacity-30' : ''
+              isSelected(day.dateString) ? 'text-white' : 'text-gray-700 dark:text-gray-200 group-hover:text-sm-primary',
+              isPast(day.dateString) && !isSelected(day.dateString) ? 'opacity-30' : ''
             ]"
           >
             {{ day.day }}
           </span>
 
-          <!-- Labels -->
-          <span 
-            v-if="isStart(day.dateString)" 
-            class="relative z-20 text-[8px] font-black uppercase tracking-tighter text-white/90 -mt-1"
-          >
-            Arrival
-          </span>
-          <span 
-            v-if="isEnd(day.dateString)" 
-            class="relative z-20 text-[8px] font-black uppercase tracking-tighter text-white/90 -mt-1"
-          >
-            Departure
-          </span>
+          <!-- Labels (Only for Range Mode) -->
+          <template v-if="mode === 'range'">
+            <span 
+              v-if="isStart(day.dateString)" 
+              class="relative z-20 text-[8px] font-black uppercase tracking-tighter text-white/90 -mt-1"
+            >
+              Arrival
+            </span>
+            <span 
+              v-if="isEnd(day.dateString)" 
+              class="relative z-20 text-[8px] font-black uppercase tracking-tighter text-white/90 -mt-1"
+            >
+              Departure
+            </span>
+          </template>
         </div>
       </div>
     </div>
@@ -86,13 +88,13 @@
       <div class="text-[10px] text-gray-400">
         <div v-if="start" class="flex items-center gap-1">
           <span class="font-bold text-gray-600 dark:text-gray-300">{{ formatDate(start) }}</span>
-          <span v-if="end"> - <span class="font-bold text-gray-600 dark:text-gray-300">{{ formatDate(end) }}</span></span>
+          <span v-if="mode === 'range' && end"> - <span class="font-bold text-gray-600 dark:text-gray-300">{{ formatDate(end) }}</span></span>
         </div>
-        <div v-else>Select dates</div>
+        <div v-else>Select {{ mode === 'range' ? 'arrival & departure' : 'date' }}</div>
       </div>
       <button 
         @click="confirm"
-        :disabled="!start || !end"
+        :disabled="mode === 'range' ? (!start || !end) : !start"
         class="px-5 py-2 rounded-xl bg-sm-primary text-white text-xs font-black tracking-widest shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
       >
         CONFIRM
@@ -105,10 +107,13 @@
 import { ref, computed } from 'vue'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   initialStart?: string
   initialEnd?: string
-}>()
+  mode?: 'range' | 'single'
+}>(), {
+  mode: 'range'
+})
 
 const emit = defineEmits(['select', 'close'])
 
@@ -156,6 +161,12 @@ const nextMonth = () => {
 const handleDateClick = (dateString: string) => {
   if (isPast(dateString)) return
 
+  if (props.mode === 'single') {
+    start.value = dateString
+    end.value = ''
+    return
+  }
+
   if (!start.value || (start.value && end.value)) {
     start.value = dateString
     end.value = ''
@@ -181,9 +192,11 @@ const isPast = (dateString: string) => {
 }
 
 const isStart = (dateString: string) => start.value === dateString
-const isEnd = (dateString: string) => end.value === dateString
+const isEnd = (dateString: string) => props.mode === 'range' && end.value === dateString
+const isSelected = (dateString: string) => isStart(dateString) || isEnd(dateString)
 
 const isInRange = (dateString: string) => {
+  if (props.mode === 'single') return false
   if (!start.value || !end.value) return isStart(dateString) || isEnd(dateString)
   const d = new Date(dateString)
   const s = new Date(start.value)
@@ -203,8 +216,14 @@ const formatDate = (dateString: string) => {
 }
 
 const confirm = () => {
-  if (start.value && end.value) {
-    emit('select', { start: start.value, end: end.value })
+  if (props.mode === 'single') {
+    if (start.value) {
+      emit('select', { start: start.value })
+    }
+  } else {
+    if (start.value && end.value) {
+      emit('select', { start: start.value, end: end.value })
+    }
   }
 }
 </script>
