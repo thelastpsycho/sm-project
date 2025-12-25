@@ -22,53 +22,69 @@
     <!-- Main Content Grid -->
     <div class="px-4 space-y-4">
       
-      <!-- Quick Actions Bento Grid -->
-      <div class="grid grid-cols-2 gap-4 animate-fade-in-up" style="animation-delay: 100ms;">
-        <!-- Chat Card -->
-        <router-link
-          to="/chat"
-          class="group relative overflow-hidden bg-white dark:bg-sm-card-dark p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-white/5 transition-all duration-300 active:scale-95"
-        >
-          <div class="absolute top-0 right-0 p-4 opacity-50">
-            <div class="w-16 h-16 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-all"></div>
-          </div>
-          <div class="relative z-10 flex flex-col h-full justify-between">
-            <div class="w-10 h-10 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 mb-4">
-              <ChatBubbleLeftRightIcon class="h-6 w-6" />
+      <!-- Downloads Section -->
+      <div class="bg-white dark:bg-sm-card-dark/50 backdrop-blur-md rounded-3xl p-5 border border-gray-100 dark:border-white/5 animate-fade-in-up" style="animation-delay: 100ms;">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-gray-900 dark:text-white">Downloads</h3>
+          <ArrowDownTrayIcon class="h-5 w-5 text-sm-secondary" />
+        </div>
+        
+        <div class="space-y-3">
+          <!-- Beverage Package PDF -->
+          <a
+            href="/beverage_package.pdf"
+            download
+            class="flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
+          >
+            <div class="flex items-center space-x-3">
+              <div class="p-2 bg-orange-500/10 rounded-xl shadow-sm">
+                <DocumentArrowDownIcon class="h-5 w-5 text-orange-500" />
+              </div>
+              <div>
+                <span class="text-sm font-medium block">Beverage Package</span>
+                <span class="text-xs text-sm-secondary">PDF Document</span>
+              </div>
             </div>
-            <div>
-              <h3 class="font-bold text-gray-900 dark:text-white">Chat</h3>
-              <p class="text-xs text-sm-secondary mt-1">Connect instantly</p>
-            </div>
-            
-            <!-- Notification Badge -->
-            <div v-if="pendingMessages > 0" class="absolute top-5 right-5 flex">
-               <span class="flex h-3 w-3 relative">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-              </span>
-            </div>
-          </div>
-        </router-link>
+            <ChevronRightIcon class="h-5 w-5 text-sm-secondary" />
+          </a>
 
-        <!-- Contract Card -->
-        <router-link
-          to="/contract"
-          class="group relative overflow-hidden bg-white dark:bg-sm-card-dark p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-white/5 transition-all duration-300 active:scale-95"
-        >
-          <div class="absolute top-0 right-0 p-4 opacity-50">
-            <div class="w-16 h-16 bg-sm-accent/10 rounded-full blur-xl group-hover:bg-sm-accent/20 transition-all"></div>
-          </div>
-          <div class="relative z-10 flex flex-col h-full justify-between">
-            <div class="w-10 h-10 rounded-2xl bg-sm-accent text-white flex items-center justify-center shadow-lg shadow-green-500/30 mb-4">
-              <DocumentTextIcon class="h-6 w-6" />
+          <!-- Canape PDF -->
+          <a
+            href="/canape.pdf"
+            download
+            class="flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
+          >
+            <div class="flex items-center space-x-3">
+              <div class="p-2 bg-pink-500/10 rounded-xl shadow-sm">
+                <DocumentArrowDownIcon class="h-5 w-5 text-pink-500" />
+              </div>
+              <div>
+                <span class="text-sm font-medium block">Canapé Menu</span>
+                <span class="text-xs text-sm-secondary">PDF Document</span>
+              </div>
             </div>
-            <div>
-              <h3 class="font-bold text-gray-900 dark:text-white">Contract</h3>
-              <p class="text-xs text-sm-secondary mt-1">Submit request</p>
+            <ChevronRightIcon class="h-5 w-5 text-sm-secondary" />
+          </a>
+
+          <!-- Image Gallery -->
+          <a
+            href="https://drive.google.com/drive/folders/1hcDotCQGLoDw1MwR_I20f2Y7ZqWRtlYY"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
+          >
+            <div class="flex items-center space-x-3">
+              <div class="p-2 bg-blue-500/10 rounded-xl shadow-sm">
+                <PhotoIcon class="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <span class="text-sm font-medium block">Image Gallery</span>
+                <span class="text-xs text-sm-secondary">Google Drive</span>
+              </div>
             </div>
-          </div>
-        </router-link>
+            <ArrowTopRightOnSquareIcon class="h-5 w-5 text-sm-secondary" />
+          </a>
+        </div>
       </div>
 
       <!-- Theme & Status Section -->
@@ -99,12 +115,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { ChatBubbleLeftRightIcon, DocumentTextIcon, SwatchIcon } from '@heroicons/vue/24/outline'
+import { SwatchIcon, ArrowDownTrayIcon, DocumentArrowDownIcon, ChevronRightIcon, PhotoIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline'
 import SmPage from '@/components/ui/SmPage.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
-import { useChat } from '@/composables/useChat'
-
-const { pendingCount: pendingMessages } = useChat()
 
 const isOnline = computed(() => navigator.onLine)
 const timeOfDay = computed(() => {
