@@ -295,7 +295,7 @@
           :disabled="isSubmitting || !isFormValid"
           class="flex-1 py-4 rounded-2xl bg-sm-primary text-white font-bold shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:shadow-none hover:scale-[1.02] active:scale-95 transition-all text-center"
         >
-          <span v-if="!isSubmitting">Create RFP</span>
+          <span v-if="!isSubmitting">Review Proposal</span>
           <span v-else>Processing...</span>
         </button>
       </div>
@@ -308,6 +308,13 @@
     </form>
 
     <ProcessingModal :is-open="isSubmitting" />
+
+    <ReviewModal 
+      :is-open="showReviewModal" 
+      :form="form" 
+      @close="showReviewModal = false"
+      @confirm="handleFinalSubmit"
+    />
 
     <ResponseModal 
       :is-open="showModal" 
@@ -350,6 +357,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { postRFP } from '@/utils/api'
 import type { RFPForm } from '@/types/rfp'
 import ResponseModal from '@/components/ResponseModal.vue'
+import ReviewModal from '@/components/ReviewModal.vue'
 import ProcessingModal from '@/components/ProcessingModal.vue'
 import DateRangePicker from '@/components/DateRangePicker.vue'
 import { CalendarIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
@@ -472,6 +480,7 @@ const isSubmitting = ref(false)
 const isSaving = ref(false)
 const errorMessage = ref('')
 const showModal = ref(false)
+const showReviewModal = ref(false)
 const responseContent = ref<any>(null)
 
 // Basic validation
@@ -558,6 +567,12 @@ const handleSave = async () => {
 }
 
 const handleSubmit = async () => {
+  if (!isFormValid.value) return
+  showReviewModal.value = true
+}
+
+const handleFinalSubmit = async () => {
+  showReviewModal.value = false
   isSubmitting.value = true
   errorMessage.value = ''
 
@@ -605,7 +620,8 @@ const handleSubmit = async () => {
     }
     showModal.value = true
   } catch (e: any) {
-    errorMessage.value = e.message || 'Failed to submit'
+    console.error('Error generating RFP:', e)
+    errorMessage.value = e.response?.data?.message || 'Failed to generate proposal'
   } finally {
     isSubmitting.value = false
   }
