@@ -32,14 +32,15 @@
           @click="handleDateClick(day.dateString)"
           class="h-14 relative flex flex-col items-center justify-center cursor-pointer transition-all group"
           :class="[
-            getDayClass(day.dateString),
-            isToday(day.dateString) ? 'font-bold' : ''
+            isInRange(day.dateString) ? 'bg-sm-primary/10 z-0' : '',
+            isStart(day.dateString) ? 'rounded-l-xl ml-1 bg-sm-primary/20' : '',
+            isEnd(day.dateString) ? 'rounded-r-xl mr-1 bg-sm-primary/20' : ''
           ]"
         >
           <!-- Range Highlight Overlay -->
           <div 
             v-if="isInRange(day.dateString)" 
-            class="absolute inset-y-0 left-0 right-0 bg-[#b59c5d]/20 z-0"
+            class="absolute inset-y-0 left-0 right-0 bg-sm-primary/10 z-0"
             :class="[
               isStart(day.dateString) ? 'rounded-l-xl ml-1' : '',
               isEnd(day.dateString) ? 'rounded-r-xl mr-1' : ''
@@ -49,7 +50,7 @@
           <!-- Selection Circle -->
           <div 
             v-if="isStart(day.dateString) || isEnd(day.dateString)" 
-            class="absolute inset-4 bg-[#b59c5d] rounded-xl shadow-lg shadow-[#b59c5d]/30 z-10 scale-110"
+            class="absolute inset-4 bg-sm-primary rounded-xl shadow-lg shadow-blue-500/30 z-10 scale-110"
           ></div>
 
           <!-- Day Number -->
@@ -92,7 +93,7 @@
       <button 
         @click="confirm"
         :disabled="!start || !end"
-        class="px-5 py-2 rounded-xl bg-[#b59c5d] text-white text-xs font-black tracking-widest shadow-lg shadow-[#b59c5d]/20 disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
+        class="px-5 py-2 rounded-xl bg-sm-primary text-white text-xs font-black tracking-widest shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
       >
         CONFIRM
       </button>
