@@ -149,14 +149,35 @@
         </button>
       </div>
 
-      <!-- Messages -->
-      <div v-if="successMessage" class="p-4 rounded-2xl bg-green-50 text-green-700 text-sm text-center">
-        {{ successMessage }}
-      </div>
       <div v-if="errorMessage" class="p-4 rounded-2xl bg-red-50 text-red-700 text-sm text-center">
         {{ errorMessage }}
       </div>
     </form>
+
+    <!-- Submission Modal (Human in the Loop) -->
+    <div v-if="isApprovalModalOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-md" @click="closeModal"></div>
+      
+      <div class="relative bg-white dark:bg-sm-card-dark w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in-up">
+        <div class="p-8 text-center">
+          <div class="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Contract Submitted</h2>
+          <p class="text-gray-500 dark:text-gray-400 mb-8 text-sm">Your request has been sent and is currently waiting for approval.</p>
+          
+          <button 
+            @click="closeModal"
+            class="w-full py-4 bg-sm-primary text-white font-bold rounded-2xl shadow-lg shadow-blue-500/25 hover:scale-[1.02] active:scale-95 transition-all"
+          >
+            Great, Thanks!
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -177,8 +198,8 @@ const marketOptions = [
 const titleOptions = [
   { value: 'Mr.', label: 'Mr.' },
   { value: 'Ms.', label: 'Ms.' },
-  { value: 'rs.', label: 'Mrs.' },
-  { value: 'dr.', label: 'Dr.' }
+  { value: 'Bapak', label: 'Bapak' },
+  { value: 'Ibu', label: 'Ibu' }
 ]
 
 const form = ref<ContractForm>({
@@ -197,8 +218,8 @@ const form = ref<ContractForm>({
 })
 
 const isSubmitting = ref(false)
-const successMessage = ref('')
 const errorMessage = ref('')
+const isApprovalModalOpen = ref(false)
 
 // Simple validation
 const isFormValid = computed(() => {
@@ -207,19 +228,22 @@ const isFormValid = computed(() => {
 
 const handleSubmit = async () => {
   isSubmitting.value = true
-  successMessage.value = ''
   errorMessage.value = ''
 
   try {
     const sessionId = ensureSession()
     await postContract({ ...form.value, sessionId })
-    successMessage.value = 'Contract submitted successfully!'
-    setTimeout(resetForm, 2000)
+    isApprovalModalOpen.value = true
   } catch (e: any) {
     errorMessage.value = e.message || 'Failed to submit'
   } finally {
     isSubmitting.value = false
   }
+}
+
+const closeModal = () => {
+  isApprovalModalOpen.value = false
+  resetForm()
 }
 
 const resetForm = () => {

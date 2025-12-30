@@ -42,6 +42,11 @@ export const postRFP = async (payload: RFPForm) => {
   }
 }
 
+const toProperCase = (str: string) => {
+  if (!str) return str
+  return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase())
+}
+
 export const postContract = async (payload: {
   market: string
   company: string
@@ -58,7 +63,25 @@ export const postContract = async (payload: {
   sessionId: string
 }) => {
   try {
-    const response = await api.post('/webhook-test/da5e5913-c534-4b60-b621-146908662546', payload)
+    const transformedPayload = {
+      "Market": payload.market,
+      "Company": toProperCase(payload.company),
+      "Title": payload.title,
+      "Full Name": toProperCase(payload.fullName),
+      "Designation": toProperCase(payload.designation),
+      "Address Line 1": toProperCase(payload.addressLine1),
+      "Address Line 2": toProperCase(payload.addressLine2),
+      "Email": payload.email,
+      "Phone": payload.phone,
+      "Allotment": payload.allotment || [],
+      "notify me": payload.notifyMe || [],
+      "email to notify when contract is ready!": payload.emailToNotify,
+      "submittedAt": new Date().toISOString(),
+      "formMode": "live"
+    }
+    const response = await api.post('https://workflow.anvayabali.com/webhook/af1052ea-d967-4ea0-b580-d6b4ae8d9943', transformedPayload, {
+      timeout: 60000
+    })
     return response.data
   } catch (error) {
     if (axios.isAxiosError(error)) {
