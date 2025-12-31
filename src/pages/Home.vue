@@ -22,6 +22,66 @@
     <!-- Main Content Grid -->
     <div class="px-4 space-y-4">
       
+      <!-- Global Search -->
+      <div class="relative animate-fade-in-up" style="animation-delay: 50ms;">
+        <div class="relative group">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <MagnifyingGlassIcon class="h-5 w-5 text-sm-secondary group-focus-within:text-sm-primary transition-colors" />
+          </div>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search documents, pages, links..."
+            class="w-full bg-white dark:bg-sm-card-dark/50 backdrop-blur-md border border-gray-100 dark:border-white/5 rounded-2xl py-3.5 pl-11 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-sm-primary/20 focus:border-sm-primary/30 transition-all placeholder:text-sm-secondary"
+          />
+          <button
+            v-if="searchQuery"
+            @click="searchQuery = ''"
+            class="absolute inset-y-0 right-0 pr-4 flex items-center text-sm-secondary hover:text-sm-primary transition-colors"
+          >
+            <XMarkIcon class="h-5 w-5" />
+          </button>
+        </div>
+
+        <!-- Search Results Dropdown -->
+        <div 
+          v-if="searchQuery && filteredResults.length > 0"
+          class="absolute z-50 w-full mt-2 bg-white dark:bg-sm-card-dark border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        >
+          <div class="max-h-80 overflow-y-auto py-2">
+            <button
+              v-for="result in filteredResults"
+              :key="result.id"
+              @click="handleResultClick(result)"
+              class="w-full flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group text-left"
+            >
+              <div class="p-2 rounded-xl" :class="result.iconBg">
+                <component :is="result.icon" class="h-4 w-4" :class="result.iconColor" />
+              </div>
+              <div class="ml-3 flex-1 min-w-0">
+                <span class="text-sm font-medium block truncate">{{ result.name }}</span>
+                <span class="text-xs text-sm-secondary uppercase tracking-wider">{{ result.type }}</span>
+              </div>
+              <ChevronRightIcon class="h-4 w-4 text-sm-secondary opacity-0 group-hover:opacity-100 transition-all" />
+            </button>
+          </div>
+        </div>
+
+        <!-- No Results -->
+        <div 
+          v-if="searchQuery && filteredResults.length === 0"
+          class="absolute z-50 w-full mt-2 bg-white dark:bg-sm-card-dark border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl p-6 text-center animate-in fade-in zoom-in-95 duration-200"
+        >
+          <div class="mb-2 flex justify-center">
+            <div class="p-3 bg-gray-100 dark:bg-white/5 rounded-full">
+              <MagnifyingGlassIcon class="h-6 w-6 text-sm-secondary" />
+            </div>
+          </div>
+          <p class="text-sm font-medium text-gray-900 dark:text-white">No matches found</p>
+          <p class="text-xs text-sm-secondary mt-1">Try searching for something else</p>
+        </div>
+      </div>
+      
       <!-- Downloads Section -->
       <div class="bg-white dark:bg-sm-card-dark/50 backdrop-blur-md rounded-3xl p-5 border border-gray-100 dark:border-white/5 animate-fade-in-up" style="animation-delay: 100ms;">
         <div class="flex items-center justify-between mb-4">
@@ -31,42 +91,62 @@
         
         <div class="space-y-3">
           <!-- Beverage Package PDF -->
-          <a
-            href="/beverage_package.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
-          >
-            <div class="flex items-center space-x-3">
-              <div class="p-2 bg-orange-500/10 rounded-xl shadow-sm">
-                <DocumentArrowDownIcon class="h-5 w-5 text-orange-500" />
+          <div class="flex items-center space-x-2">
+            <a
+              href="/beverage_package.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex-1 flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
+            >
+              <div class="flex items-center space-x-3">
+                <div class="p-2 bg-orange-500/10 rounded-xl shadow-sm">
+                  <DocumentArrowDownIcon class="h-5 w-5 text-orange-500" />
+                </div>
+                <div>
+                  <span class="text-sm font-medium block">Beverage Package</span>
+                  <span class="text-xs text-sm-secondary">PDF Document</span>
+                </div>
               </div>
-              <div>
-                <span class="text-sm font-medium block">Beverage Package</span>
-                <span class="text-xs text-sm-secondary">PDF Document</span>
-              </div>
-            </div>
-            <ChevronRightIcon class="h-5 w-5 text-sm-secondary" />
-          </a>
+              <ChevronRightIcon class="h-5 w-5 text-sm-secondary" />
+            </a>
+            <button 
+              @click="copyLink('/beverage_package.pdf')"
+              class="p-3 rounded-2xl bg-sm-bg dark:bg-black/20 hover:bg-gray-100 dark:hover:bg-white/5 transition-all text-sm-secondary hover:text-sm-primary"
+              title="Copy Link"
+            >
+              <CheckIcon v-if="copiedPath === '/beverage_package.pdf'" class="h-5 w-5 text-green-500" />
+              <LinkIcon v-else class="h-5 w-5" />
+            </button>
+          </div>
 
           <!-- Canape PDF -->
-          <a
-            href="/canape.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
-          >
-            <div class="flex items-center space-x-3">
-              <div class="p-2 bg-pink-500/10 rounded-xl shadow-sm">
-                <DocumentArrowDownIcon class="h-5 w-5 text-pink-500" />
+          <div class="flex items-center space-x-2">
+            <a
+              href="/canape.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex-1 flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
+            >
+              <div class="flex items-center space-x-3">
+                <div class="p-2 bg-pink-500/10 rounded-xl shadow-sm">
+                  <DocumentArrowDownIcon class="h-5 w-5 text-pink-500" />
+                </div>
+                <div>
+                  <span class="text-sm font-medium block">Canapé Menu</span>
+                  <span class="text-xs text-sm-secondary">PDF Document</span>
+                </div>
               </div>
-              <div>
-                <span class="text-sm font-medium block">Canapé Menu</span>
-                <span class="text-xs text-sm-secondary">PDF Document</span>
-              </div>
-            </div>
-            <ChevronRightIcon class="h-5 w-5 text-sm-secondary" />
-          </a>
+              <ChevronRightIcon class="h-5 w-5 text-sm-secondary" />
+            </a>
+            <button 
+              @click="copyLink('/canape.pdf')"
+              class="p-3 rounded-2xl bg-sm-bg dark:bg-black/20 hover:bg-gray-100 dark:hover:bg-white/5 transition-all text-sm-secondary hover:text-sm-primary"
+              title="Copy Link"
+            >
+              <CheckIcon v-if="copiedPath === '/canape.pdf'" class="h-5 w-5 text-green-500" />
+              <LinkIcon v-else class="h-5 w-5" />
+            </button>
+          </div>
 
           <!-- Menus - Expandable -->
           <div class="rounded-2xl bg-sm-bg dark:bg-black/20 overflow-hidden">
@@ -95,42 +175,64 @@
               class="border-t border-gray-200 dark:border-white/5"
             >
               <div class="max-h-96 overflow-y-auto px-3 py-2 space-y-1">
-                <a
+                <div
                   v-for="menu in menuItems"
                   :key="menu.file"
-                  :href="`/menus/${menu.file}`"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="flex items-center justify-between p-2 rounded-xl hover:bg-white dark:hover:bg-white/5 transition-all duration-200 group"
+                  class="flex items-center space-x-1 group"
                 >
-                  <div class="flex items-center space-x-2 flex-1 min-w-0">
-                    <div class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></div>
-                    <span class="text-xs font-medium truncate">{{ menu.displayName }}</span>
-                  </div>
-                  <ArrowTopRightOnSquareIcon class="h-4 w-4 text-sm-secondary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
-                </a>
+                  <a
+                    :href="`/menus/${menu.file}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex-1 flex items-center justify-between p-2 rounded-xl hover:bg-white dark:hover:bg-white/5 transition-all duration-200"
+                  >
+                    <div class="flex items-center space-x-2 flex-1 min-w-0">
+                      <div class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></div>
+                      <span class="text-xs font-medium truncate">{{ menu.displayName }}</span>
+                    </div>
+                    <ArrowTopRightOnSquareIcon class="h-4 w-4 text-sm-secondary flex-shrink-0 ml-2" />
+                  </a>
+                  <button 
+                    @click="copyLink(`/menus/${menu.file}`)"
+                    class="p-2 rounded-xl text-sm-secondary hover:text-sm-primary transition-all"
+                    title="Copy Link"
+                  >
+                    <CheckIcon v-if="copiedPath === `/menus/${menu.file}`" class="h-4 w-4 text-green-500" />
+                    <LinkIcon v-else class="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Image Gallery -->
-          <a
-            href="https://drive.google.com/drive/folders/1hcDotCQGLoDw1MwR_I20f2Y7ZqWRtlYY"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
-          >
-            <div class="flex items-center space-x-3">
-              <div class="p-2 bg-blue-500/10 rounded-xl shadow-sm">
-                <PhotoIcon class="h-5 w-5 text-blue-500" />
+          <div class="flex items-center space-x-2">
+            <a
+              href="https://drive.google.com/drive/folders/1hcDotCQGLoDw1MwR_I20f2Y7ZqWRtlYY"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex-1 flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
+            >
+              <div class="flex items-center space-x-3">
+                <div class="p-2 bg-blue-500/10 rounded-xl shadow-sm">
+                  <PhotoIcon class="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <span class="text-sm font-medium block">Image Gallery</span>
+                  <span class="text-xs text-sm-secondary">Google Drive</span>
+                </div>
               </div>
-              <div>
-                <span class="text-sm font-medium block">Image Gallery</span>
-                <span class="text-xs text-sm-secondary">Google Drive</span>
-              </div>
-            </div>
-            <ArrowTopRightOnSquareIcon class="h-5 w-5 text-sm-secondary" />
-          </a>
+              <ArrowTopRightOnSquareIcon class="h-5 w-5 text-sm-secondary" />
+            </a>
+            <button 
+              @click="copyLink('https://drive.google.com/drive/folders/1hcDotCQGLoDw1MwR_I20f2Y7ZqWRtlYY')"
+              class="p-3 rounded-2xl bg-sm-bg dark:bg-black/20 hover:bg-gray-100 dark:hover:bg-white/5 transition-all text-sm-secondary hover:text-sm-primary"
+              title="Copy Link"
+            >
+              <CheckIcon v-if="copiedPath === 'https://drive.google.com/drive/folders/1hcDotCQGLoDw1MwR_I20f2Y7ZqWRtlYY'" class="h-5 w-5 text-green-500" />
+              <LinkIcon v-else class="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -162,9 +264,30 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { SwatchIcon, ArrowDownTrayIcon, DocumentArrowDownIcon, ChevronRightIcon, PhotoIcon, ArrowTopRightOnSquareIcon, DocumentTextIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
+import { useRouter } from 'vue-router'
+import { 
+  SwatchIcon, 
+  ArrowDownTrayIcon, 
+  DocumentArrowDownIcon, 
+  ChevronRightIcon, 
+  PhotoIcon, 
+  ArrowTopRightOnSquareIcon, 
+  DocumentTextIcon, 
+  ChevronDownIcon, 
+  LinkIcon, 
+  CheckIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
+  ChatBubbleLeftRightIcon,
+  DocumentDuplicateIcon,
+  ClockIcon,
+  PlusIcon
+} from '@heroicons/vue/24/outline'
 import SmPage from '@/components/ui/SmPage.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+
+const router = useRouter()
+const searchQuery = ref('')
 
 // Menu expansion state
 const menusExpanded = ref(false)
@@ -200,6 +323,21 @@ const menuItems = [
   { file: 'Western - Set Menu - 1100k.pdf', displayName: 'Western - Set Menu - 1100k' },
 ]
 
+const copiedPath = ref<string | null>(null)
+const copyLink = (path: string) => {
+  const url = path.startsWith('http') ? path : window.location.origin + path
+  navigator.clipboard.writeText(url).then(() => {
+    copiedPath.value = path
+    setTimeout(() => {
+      if (copiedPath.value === path) {
+        copiedPath.value = null
+      }
+    }, 2000)
+  }).catch(err => {
+    console.error('Failed to copy: ', err)
+  })
+}
+
 const isOnline = computed(() => navigator.onLine)
 const timeOfDay = computed(() => {
   const hour = new Date().getHours()
@@ -207,6 +345,45 @@ const timeOfDay = computed(() => {
   if (hour < 18) return 'Afternoon'
   return 'Evening'
 })
+
+// Searchable items configuration
+const searchableItems = computed(() => [
+  { id: 'home', name: 'Home', type: 'Page', path: '/', icon: SwatchIcon, iconBg: 'bg-purple-500/10', iconColor: 'text-purple-500' },
+  { id: 'chat', name: 'Chat Assistant', type: 'Page', path: '/chat', icon: ChatBubbleLeftRightIcon, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-500' },
+  { id: 'contract', name: 'Submit Contract', type: 'Page', path: '/contract', icon: DocumentDuplicateIcon, iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-500' },
+  { id: 'rfp-history', name: 'RFP History', type: 'Page', path: '/rfp', icon: ClockIcon, iconBg: 'bg-orange-500/10', iconColor: 'text-orange-500' },
+  { id: 'rfp-new', name: 'Create RFP', type: 'Page', path: '/rfp/new', icon: PlusIcon, iconBg: 'bg-green-500/10', iconColor: 'text-green-500' },
+  { id: 'beverage', name: 'Beverage Package', type: 'Document', path: '/beverage_package.pdf', icon: DocumentArrowDownIcon, iconBg: 'bg-orange-500/10', iconColor: 'text-orange-500' },
+  { id: 'canape', name: 'Canapé Menu', type: 'Document', path: '/canape.pdf', icon: DocumentArrowDownIcon, iconBg: 'bg-pink-500/10', iconColor: 'text-pink-500' },
+  { id: 'gallery', name: 'Image Gallery', type: 'Link', path: 'https://drive.google.com/drive/folders/1hcDotCQGLoDw1MwR_I20f2Y7ZqWRtlYY', icon: PhotoIcon, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-500' },
+  ...menuItems.map(m => ({
+    id: `menu-${m.file}`,
+    name: m.displayName,
+    type: 'Menu PDF',
+    path: `/menus/${m.file}`,
+    icon: DocumentTextIcon,
+    iconBg: 'bg-green-500/10',
+    iconColor: 'text-green-500'
+  }))
+])
+
+const filteredResults = computed(() => {
+  if (!searchQuery.value) return []
+  const query = searchQuery.value.toLowerCase()
+  return searchableItems.value.filter(item => 
+    item.name.toLowerCase().includes(query) || 
+    item.type.toLowerCase().includes(query)
+  ).slice(0, 8) // Limit results for better performance/UI
+})
+
+const handleResultClick = (result: any) => {
+  searchQuery.value = ''
+  if (result.path.startsWith('http') || result.path.endsWith('.pdf')) {
+    window.open(result.path, '_blank')
+  } else {
+    router.push(result.path)
+  }
+}
 
 const updateOnlineStatus = () => {
   // Force reactivity update via a dummy ref if needed, but computed usually works if deps change.
