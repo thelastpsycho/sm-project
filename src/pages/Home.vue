@@ -46,7 +46,7 @@
         <!-- Search Results Dropdown -->
         <div 
           v-if="searchQuery && filteredResults.length > 0"
-          class="absolute z-50 w-full mt-2 bg-white dark:bg-sm-card-dark border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+          class="w-full mt-2 bg-white dark:bg-sm-card-dark border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         >
           <div class="max-h-80 overflow-y-auto py-2">
             <button
@@ -70,7 +70,7 @@
         <!-- No Results -->
         <div 
           v-if="searchQuery && filteredResults.length === 0"
-          class="absolute z-50 w-full mt-2 bg-white dark:bg-sm-card-dark border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl p-6 text-center animate-in fade-in zoom-in-95 duration-200"
+          class="w-full mt-2 bg-white dark:bg-sm-card-dark border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl p-6 text-center animate-in fade-in zoom-in-95 duration-200"
         >
           <div class="mb-2 flex justify-center">
             <div class="p-3 bg-gray-100 dark:bg-white/5 rounded-full">
@@ -325,17 +325,38 @@ const menuItems = [
 
 const copiedPath = ref<string | null>(null)
 const copyLink = (path: string) => {
-  const url = path.startsWith('http') ? path : window.location.origin + path
-  navigator.clipboard.writeText(url).then(() => {
-    copiedPath.value = path
-    setTimeout(() => {
-      if (copiedPath.value === path) {
-        copiedPath.value = null
-      }
-    }, 2000)
-  }).catch(err => {
-    console.error('Failed to copy: ', err)
-  })
+  if (path.startsWith('http')) {
+    navigator.clipboard.writeText(path).then(() => {
+      handleCopySuccess(path)
+    }).catch(err => {
+      console.error('Failed to copy: ', err)
+    })
+    return
+  }
+
+  // Use configured app URL or fallback to current origin
+  const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin
+  
+  try {
+    // URL constructor handles encoding (spaces -> %20)
+    const url = new URL(encodeURI(path), baseUrl).toString()
+    navigator.clipboard.writeText(url).then(() => {
+      handleCopySuccess(path)
+    }).catch(err => {
+      console.error('Failed to copy: ', err)
+    })
+  } catch (e) {
+    console.error('Invalid URL:', e)
+  }
+}
+
+const handleCopySuccess = (path: string) => {
+  copiedPath.value = path
+  setTimeout(() => {
+    if (copiedPath.value === path) {
+      copiedPath.value = null
+    }
+  }, 2000)
 }
 
 const isOnline = computed(() => navigator.onLine)
