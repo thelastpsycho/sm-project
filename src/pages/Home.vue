@@ -407,6 +407,7 @@ const searchableItems = computed(() => [
   { id: 'beverage', name: 'Beverage Package', type: 'Document', path: '/beverage_package.pdf', icon: DocumentArrowDownIcon, iconBg: 'bg-orange-500/10', iconColor: 'text-orange-500' },
   { id: 'canape', name: 'Canapé Menu', type: 'Document', path: '/canape.pdf', icon: DocumentArrowDownIcon, iconBg: 'bg-pink-500/10', iconColor: 'text-pink-500' },
   { id: 'gallery', name: 'Image Gallery', type: 'Link', path: 'https://drive.google.com/drive/folders/1hcDotCQGLoDw1MwR_I20f2Y7ZqWRtlYY', icon: PhotoIcon, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-500' },
+  { id: 'factsheet', name: 'Factsheet', type: 'Link', path: 'https://drive.google.com/drive/folders/1GBaW75BLBMhPQOdV1kzuJwCJL_wAGHJa', icon: FolderIcon, iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-500' },
   ...menuItems.map(m => ({
     id: `menu-${m.file}`,
     name: m.displayName,
