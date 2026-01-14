@@ -90,6 +90,35 @@
         </div>
         
         <div class="space-y-3">
+          <!-- Factsheet -->
+          <div class="flex items-center space-x-2">
+            <a
+              href="https://drive.google.com/drive/folders/1GBaW75BLBMhPQOdV1kzuJwCJL_wAGHJa"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex-1 flex items-center justify-between p-3 rounded-2xl bg-sm-bg dark:bg-black/20 transition-all duration-300 active:scale-95 hover:bg-gray-100 dark:hover:bg-white/5"
+            >
+              <div class="flex items-center space-x-3">
+                <div class="p-2 bg-indigo-500/10 rounded-xl shadow-sm">
+                  <FolderIcon class="h-5 w-5 text-indigo-500" />
+                </div>
+                <div>
+                  <span class="text-sm font-medium block">Factsheet</span>
+                  <span class="text-xs text-sm-secondary">Google Drive</span>
+                </div>
+              </div>
+              <ArrowTopRightOnSquareIcon class="h-5 w-5 text-sm-secondary" />
+            </a>
+            <button
+              @click="copyLink('https://drive.google.com/drive/folders/1GBaW75BLBMhPQOdV1kzuJwCJL_wAGHJa')"
+              class="p-3 rounded-2xl bg-sm-bg dark:bg-black/20 hover:bg-gray-100 dark:hover:bg-white/5 transition-all text-sm-secondary hover:text-sm-primary"
+              title="Copy Link"
+            >
+              <CheckIcon v-if="copiedPath === 'https://drive.google.com/drive/folders/1GBaW75BLBMhPQOdV1kzuJwCJL_wAGHJa'" class="h-5 w-5 text-green-500" />
+              <LinkIcon v-else class="h-5 w-5" />
+            </button>
+          </div>
+
           <!-- Beverage Package PDF -->
           <div class="flex items-center space-x-2">
             <a
@@ -265,23 +294,24 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { 
-  SwatchIcon, 
-  ArrowDownTrayIcon, 
-  DocumentArrowDownIcon, 
-  ChevronRightIcon, 
-  PhotoIcon, 
-  ArrowTopRightOnSquareIcon, 
-  DocumentTextIcon, 
-  ChevronDownIcon, 
-  LinkIcon, 
+import {
+  SwatchIcon,
+  ArrowDownTrayIcon,
+  DocumentArrowDownIcon,
+  ChevronRightIcon,
+  PhotoIcon,
+  ArrowTopRightOnSquareIcon,
+  DocumentTextIcon,
+  ChevronDownIcon,
+  LinkIcon,
   CheckIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
   ChatBubbleLeftRightIcon,
   DocumentDuplicateIcon,
   ClockIcon,
-  PlusIcon
+  PlusIcon,
+  FolderIcon
 } from '@heroicons/vue/24/outline'
 import SmPage from '@/components/ui/SmPage.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
