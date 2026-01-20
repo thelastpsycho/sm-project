@@ -411,6 +411,12 @@ const salesContacts = [
     position: 'Ecommerce Executive',
     email: 'ecommerce@theanvayabali.com',
     phone: '6285738316631'
+  },
+  {
+    name: 'Putu Kerni',
+    position: 'Sales Executive',
+    email: 'putukerni@theanvayabali.com',
+    phone: '6285385814948'
   }
 ]
 
