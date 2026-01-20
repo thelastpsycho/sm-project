@@ -175,6 +175,7 @@ async function handleSubmit() {
           eventId: eventId.value,
           eventName: event.value?.eventName,
           companyName: event.value?.companyName,
+          language: eventLanguage.value,
           name: name.value.trim(),
           email: email.value.trim(),
           role: role.value,
