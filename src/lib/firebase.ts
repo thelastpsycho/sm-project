@@ -22,7 +22,7 @@ try {
   // Check if Firebase app already exists
   const existingApps = getApps()
   if (existingApps.length > 0) {
-    app = existingApps[0]
+    app = existingApps[0]!
     db = getFirestore(app)
   } else {
     app = initializeApp(firebaseConfig)
