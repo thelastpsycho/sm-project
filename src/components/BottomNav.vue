@@ -76,7 +76,8 @@ import {
   ClipboardDocumentListIcon,
   PlusIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  ClipboardDocumentIcon
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
@@ -107,6 +108,11 @@ const navItems = [
     name: 'RFP History',
     to: '/rfp',
     icon: ClipboardDocumentListIcon
+  },
+  {
+    name: 'Survey Admin',
+    to: '/survey/admin',
+    icon: ClipboardDocumentIcon
   }
 ]
 
