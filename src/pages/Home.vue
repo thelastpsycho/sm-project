@@ -311,7 +311,8 @@ import {
   DocumentDuplicateIcon,
   ClockIcon,
   PlusIcon,
-  FolderIcon
+  FolderIcon,
+  ClipboardDocumentIcon
 } from '@heroicons/vue/24/outline'
 import SmPage from '@/components/ui/SmPage.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
@@ -404,6 +405,7 @@ const searchableItems = computed(() => [
   { id: 'contract', name: 'Submit Contract', type: 'Page', path: '/contract', icon: DocumentDuplicateIcon, iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-500' },
   { id: 'rfp-history', name: 'RFP History', type: 'Page', path: '/rfp', icon: ClockIcon, iconBg: 'bg-orange-500/10', iconColor: 'text-orange-500' },
   { id: 'rfp-new', name: 'Create RFP', type: 'Page', path: '/rfp/new', icon: PlusIcon, iconBg: 'bg-green-500/10', iconColor: 'text-green-500' },
+  { id: 'survey-admin', name: 'Survey Admin', type: 'Page', path: '/survey/admin', icon: ClipboardDocumentIcon, iconBg: 'bg-teal-500/10', iconColor: 'text-teal-500' },
   { id: 'beverage', name: 'Beverage Package', type: 'Document', path: '/beverage_package.pdf', icon: DocumentArrowDownIcon, iconBg: 'bg-orange-500/10', iconColor: 'text-orange-500' },
   { id: 'canape', name: 'Canapé Menu', type: 'Document', path: '/canape.pdf', icon: DocumentArrowDownIcon, iconBg: 'bg-pink-500/10', iconColor: 'text-pink-500' },
   { id: 'gallery', name: 'Image Gallery', type: 'Link', path: 'https://drive.google.com/drive/folders/1hcDotCQGLoDw1MwR_I20f2Y7ZqWRtlYY', icon: PhotoIcon, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-500' },
