@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore'
 import { db, COLLECTIONS } from '@/lib/firebase'
 import { hashPin } from '@/lib/surveyUtils'
-import { DEFAULT_REVIEW_THRESHOLD } from '@/lib/surveyConstants'
+import { DEFAULT_REVIEW_THRESHOLD, DEFAULT_WEBHOOK_URL } from '@/lib/surveyConstants'
 
 export const useSurveyStore = defineStore('survey', () => {
   // State
@@ -23,6 +23,7 @@ export const useSurveyStore = defineStore('survey', () => {
   const adminSettings = ref<AdminSettings>({
     reviewThreshold: DEFAULT_REVIEW_THRESHOLD,
     googleReviewUrl: 'https://search.google.com/local/writereview',
+    webhookUrl: DEFAULT_WEBHOOK_URL,
     adminPinHash: ''
   })
   const loading = ref(false)
@@ -91,6 +92,7 @@ export const useSurveyStore = defineStore('survey', () => {
         adminSettings.value = {
           reviewThreshold: data.reviewThreshold || DEFAULT_REVIEW_THRESHOLD,
           googleReviewUrl: data.googleReviewUrl || 'https://search.google.com/local/writereview',
+          webhookUrl: data.webhookUrl || DEFAULT_WEBHOOK_URL,
           adminPinHash: data.adminPinHash || ''
         }
       }
@@ -162,7 +164,8 @@ export const useSurveyStore = defineStore('survey', () => {
       await updateDoc(doc(db, COLLECTIONS.ADMIN_SETTINGS, 'config'), {
         adminPinHash: defaultPinHash,
         reviewThreshold: DEFAULT_REVIEW_THRESHOLD,
-        googleReviewUrl: 'https://search.google.com/local/writereview'
+        googleReviewUrl: 'https://search.google.com/local/writereview',
+        webhookUrl: DEFAULT_WEBHOOK_URL
       })
     }
   }

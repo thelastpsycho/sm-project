@@ -164,7 +164,9 @@ async function handleSubmit() {
 
     // Send webhook notification
     try {
-      await fetch('https://workflow.anvayabali.com/webhook-test/2f86e433-6aac-42ab-a482-457777b45318', {
+      const webhookUrl = surveyStore.adminSettings.webhookUrl
+      if (webhookUrl) {
+        await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -183,7 +185,8 @@ async function handleSubmit() {
           averageScore,
           submittedAt: new Date().toISOString()
         })
-      })
+        })
+      }
     } catch (webhookError) {
       // Log webhook error but don't fail the submission
       console.error('Webhook notification failed:', webhookError)

@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { getDoc, doc, setDoc } from 'firebase/firestore'
 import { db, COLLECTIONS } from '@/lib/firebase'
 import { hashPin } from '@/lib/surveyUtils'
-import { DEFAULT_ADMIN_PIN, DEFAULT_REVIEW_THRESHOLD } from '@/lib/surveyConstants'
+import { DEFAULT_ADMIN_PIN, DEFAULT_REVIEW_THRESHOLD, DEFAULT_WEBHOOK_URL } from '@/lib/surveyConstants'
 
 export const useAdminStore = defineStore('admin', () => {
   // State
@@ -37,7 +37,8 @@ export const useAdminStore = defineStore('admin', () => {
         await setDoc(doc(db, COLLECTIONS.ADMIN_SETTINGS, 'config'), {
           adminPinHash: defaultHashedPin,
           reviewThreshold: DEFAULT_REVIEW_THRESHOLD,
-          googleReviewUrl: 'https://search.google.com/local/writereview'
+          googleReviewUrl: 'https://search.google.com/local/writereview',
+          webhookUrl: DEFAULT_WEBHOOK_URL
         })
 
         // Check if input matches default

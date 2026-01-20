@@ -120,3 +120,4 @@ export function getValidationMessages(language: EventLanguage): ValidationMessag
 
 export const DEFAULT_REVIEW_THRESHOLD = 4.0
 export const DEFAULT_ADMIN_PIN = '1234'
+export const DEFAULT_WEBHOOK_URL = 'https://workflow.anvayabali.com/webhook-test/2f86e433-6aac-42ab-a482-457777b45318'

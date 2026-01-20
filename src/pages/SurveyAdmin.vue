@@ -41,7 +41,8 @@ const newEvent = ref({
 // Settings
 const settings = ref({
   reviewThreshold: DEFAULT_REVIEW_THRESHOLD,
-  googleReviewUrl: 'https://search.google.com/local/writereview'
+  googleReviewUrl: 'https://search.google.com/local/writereview',
+  webhookUrl: 'https://workflow.anvayabali.com/webhook-test/2f86e433-6aac-42ab-a482-457777b45318'
 })
 
 const filteredResponses = computed(() => {
@@ -99,7 +100,8 @@ onMounted(async () => {
   await surveyStore.loadAllData()
   settings.value = {
     reviewThreshold: surveyStore.adminSettings.reviewThreshold,
-    googleReviewUrl: surveyStore.adminSettings.googleReviewUrl
+    googleReviewUrl: surveyStore.adminSettings.googleReviewUrl,
+    webhookUrl: surveyStore.adminSettings.webhookUrl
   }
 })
 
@@ -732,6 +734,21 @@ function getScorePercentage(score: number): number {
                     v-model="settings.googleReviewUrl"
                     required
                   />
+                </div>
+
+                <!-- Webhook URL -->
+                <div>
+                  <SmInput
+                    id="webhookUrl"
+                    type="url"
+                    label="Webhook URL"
+                    placeholder="https://workflow.anvayabali.com/webhook-test/..."
+                    v-model="settings.webhookUrl"
+                    required
+                  />
+                  <p class="text-xs text-gray-600 dark:text-gray-400 mt-1.5">
+                    This URL will receive a POST request with survey details when a guest submits their feedback.
+                  </p>
                 </div>
 
                 <!-- Save Button -->

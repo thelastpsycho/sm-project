@@ -28,6 +28,7 @@ export interface Response {
 export interface AdminSettings {
   reviewThreshold: number
   googleReviewUrl: string
+  webhookUrl: string
   adminPinHash: string
 }
 
