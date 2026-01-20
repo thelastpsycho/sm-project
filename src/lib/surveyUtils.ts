@@ -22,8 +22,8 @@ export function getInitials(name: string): string {
     .slice(0, 2)
 }
 
-export function generateSurveyUrl(eventId: string, baseUrl: string = window.location.origin): string {
-  return `${baseUrl}/survey/${eventId}`
+export function generateSurveyUrl(eventId: string): string {
+  return `${window.location.origin}/survey/${eventId}`
 }
 
 export function copyToClipboard(text: string): Promise<boolean> {
