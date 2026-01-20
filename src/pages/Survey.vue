@@ -162,6 +162,33 @@ async function handleSubmit() {
 
     await surveyStore.submitSurvey(response)
 
+    // Send webhook notification
+    try {
+      await fetch('https://workflow.anvayabali.com/webhook-test/2f86e433-6aac-42ab-a482-457777b45318', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          eventId: eventId.value,
+          eventName: event.value?.eventName,
+          companyName: event.value?.companyName,
+          name: name.value.trim(),
+          email: email.value.trim(),
+          role: role.value,
+          scores: scores.value,
+          textAnswers: textAnswers.value,
+          totalScore,
+          percentage,
+          averageScore,
+          submittedAt: new Date().toISOString()
+        })
+      })
+    } catch (webhookError) {
+      // Log webhook error but don't fail the submission
+      console.error('Webhook notification failed:', webhookError)
+    }
+
     // Redirect based on threshold
     if (averageScore >= surveyStore.adminSettings.reviewThreshold) {
       window.location.href = surveyStore.adminSettings.googleReviewUrl
