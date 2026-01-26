@@ -294,6 +294,17 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'Home - SM Mobile App',
+  meta: [
+    {
+      name: 'description',
+      content: 'Access documents, menus, downloads, and search functionality for The Anvaya Beach Resort Bali sales management system.'
+    }
+  ]
+})
 import {
   SwatchIcon,
   ArrowDownTrayIcon,

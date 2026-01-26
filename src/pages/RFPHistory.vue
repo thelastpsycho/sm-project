@@ -85,6 +85,17 @@ import { collection, query, orderBy, getDocs } from 'firebase/firestore'
 import { db } from '@/utils/firebase'
 import type { RFPForm } from '@/types/rfp'
 import { PlusIcon, DocumentTextIcon, CalendarIcon, UserGroupIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'RFP History - SM Mobile App',
+  meta: [
+    {
+      name: 'description',
+      content: 'View and manage all your Request for Proposal (RFP) history, track draft and generated proposals for The Anvaya Beach Resort Bali.'
+    }
+  ]
+})
 
 interface RFPRecord extends RFPForm {
   id: string

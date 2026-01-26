@@ -21,6 +21,17 @@ import {
   ChevronDownIcon,
   Cog6ToothIcon
 } from '@heroicons/vue/24/outline'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'Survey Admin - SM Mobile App',
+  meta: [
+    {
+      name: 'description',
+      content: 'Admin panel for managing MICE event surveys at The Anvaya Beach Resort Bali. Create events, view responses, and configure survey settings.'
+    }
+  ]
+})
 
 const router = useRouter()
 const surveyStore = useSurveyStore()

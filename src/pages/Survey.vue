@@ -11,6 +11,7 @@ import TextQuestion from '@/components/survey/TextQuestion.vue'
 import SmButton from '@/components/ui/SmButton.vue'
 import SmCard from '@/components/ui/SmCard.vue'
 import { useSurveyStore } from '@/stores/survey'
+import { useHead } from '@vueuse/head'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,6 +23,21 @@ const eventId = computed(() => route.params.eventId as string)
 const event = ref<Event | null>(null)
 const loading = ref(true)
 const submitting = ref(false)
+
+// Reactive page title with company name
+useHead(computed(() => ({
+  title: event.value
+    ? `${event.value.companyName} - Event Survey - SM Mobile App`
+    : 'Event Survey - SM Mobile App',
+  meta: [
+    {
+      name: 'description',
+      content: event.value
+        ? `Share your feedback about the ${event.value.eventName} for ${event.value.companyName} at The Anvaya Beach Resort Bali.`
+        : 'Share your feedback about your MICE event experience at The Anvaya Beach Resort Bali. Your input helps us improve our services.'
+    }
+  ]
+})))
 const currentStep = ref<'info' | 'questions'>('info')
 
 // Pre-survey info

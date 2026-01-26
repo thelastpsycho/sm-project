@@ -1,5 +1,16 @@
 <script setup lang="ts">
 import SmCard from '@/components/ui/SmCard.vue'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'Thank You - SM Mobile App',
+  meta: [
+    {
+      name: 'description',
+      content: 'Thank you for completing our MICE event survey. We sincerely appreciate your feedback and look forward to welcoming you back to The Anvaya Beach Resort Bali.'
+    }
+  ]
+})
 </script>
 
 <template>

@@ -186,6 +186,17 @@ import { ref, computed } from 'vue'
 import { postContract } from '@/utils/api'
 import { useSession } from '@/composables/useSession'
 import type { ContractForm } from '@/types/contract'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'Submit Contract - SM Mobile App',
+  meta: [
+    {
+      name: 'description',
+      content: 'Submit new contract requests with client details, contact information, and allotment options for The Anvaya Beach Resort Bali.'
+    }
+  ]
+})
 
 const { ensureSession } = useSession()
 

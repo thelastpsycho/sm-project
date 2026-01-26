@@ -132,6 +132,17 @@ import { ref, nextTick, watch, computed } from 'vue'
 import { ChevronLeftIcon, PaperAirplaneIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline' // Ensure these are imported
 import { useChat } from '@/composables/useChat'
 import type { Message } from '@/types/chat' // Ensure type is imported
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'Chat Assistant - SM Mobile App',
+  meta: [
+    {
+      name: 'description',
+      content: 'Chat with AI assistant to get help with proposals, contracts, and general inquiries for The Anvaya Beach Resort Bali.'
+    }
+  ]
+})
 
 const { messages, isSending, pendingCount, sendMessage, retryPending, activeAgent, availableAgents, setAgent } = useChat()
 const newMessage = ref('')

@@ -75,6 +75,17 @@ import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSessionStore } from '@/stores/session'
 import { BackspaceIcon } from '@heroicons/vue/24/outline'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'Login - SM Mobile App',
+  meta: [
+    {
+      name: 'description',
+      content: 'Secure login page for The Anvaya Beach Resort Bali sales management mobile application.'
+    }
+  ]
+})
 
 const router = useRouter()
 const sessionStore = useSessionStore()

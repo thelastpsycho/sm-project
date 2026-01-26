@@ -363,6 +363,17 @@ import DateRangePicker from '@/components/DateRangePicker.vue'
 import { CalendarIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import { db, ensureAuth } from '@/utils/firebase'
 import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'New RFP - SM Mobile App',
+  meta: [
+    {
+      name: 'description',
+      content: 'Create and manage Request for Proposal (RFP) with client details, event requirements, and room rates for The Anvaya Beach Resort Bali.'
+    }
+  ]
+})
 
 const route = useRoute()
 const router = useRouter()

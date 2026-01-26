@@ -5,6 +5,17 @@ import SmCard from '@/components/ui/SmCard.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmButton from '@/components/ui/SmButton.vue'
 import { useAdminStore } from '@/stores/admin'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'Admin Login - SM Mobile App',
+  meta: [
+    {
+      name: 'description',
+      content: 'Secure admin login for The Anvaya Beach Resort Bali MICE survey management system.'
+    }
+  ]
+})
 
 const router = useRouter()
 const adminStore = useAdminStore()
