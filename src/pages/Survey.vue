@@ -29,17 +29,46 @@ const event = ref<Event | null>(null)
 const loading = ref(true)
 const submitting = ref(false)
 
-// Reactive page title with company name
+// Reactive page title with company name and Open Graph tags for social sharing
 useHead(computed(() => ({
   title: event.value
-    ? `${event.value.companyName} - Event Survey - SM Mobile App`
+    ? `${event.value.companyName} - ${event.value.eventName}`
     : 'Event Survey - SM Mobile App',
   meta: [
     {
       name: 'description',
       content: event.value
-        ? `Share your feedback about the ${event.value.eventName} for ${event.value.companyName} at The Anvaya Beach Resort Bali.`
+        ? `Share your feedback about ${event.value.eventName} for ${event.value.companyName} at The Anvaya Beach Resort Bali.`
         : 'Share your feedback about your MICE event experience at The Anvaya Beach Resort Bali. Your input helps us improve our services.'
+    },
+    // Open Graph tags for WhatsApp, Facebook, etc.
+    {
+      property: 'og:title',
+      content: event.value
+        ? `${event.value.companyName} - ${event.value.eventName}`
+        : 'Event Survey - The Anvaya Beach Resort Bali'
+    },
+    {
+      property: 'og:description',
+      content: event.value
+        ? `Share your feedback about ${event.value.eventName} for ${event.value.companyName} at The Anvaya Beach Resort Bali.`
+        : 'Share your feedback about your MICE event experience at The Anvaya Beach Resort Bali.'
+    },
+    {
+      property: 'og:type',
+      content: 'website'
+    },
+    {
+      property: 'og:url',
+      content: `https://sm.anvayabali.com/survey/${eventId.value}`
+    },
+    {
+      property: 'og:image',
+      content: 'https://sm.anvayabali.com/logo-theanvaya.svg'
+    },
+    {
+      property: 'og:site_name',
+      content: 'The Anvaya Beach Resort Bali'
     }
   ]
 })))
