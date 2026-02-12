@@ -28,8 +28,8 @@ function updateValue(value: string) {
 
 <template>
   <div class="mb-5 sm:mb-6 last:mb-0">
-    <p class="text-sm sm:text-base text-gray-900 dark:text-white mb-3 leading-relaxed">
-      <span class="text-sm-primary mr-1.5">{{ questionNumber }}.</span>
+    <p class="text-sm sm:text-base text-gray-900 mb-3 leading-relaxed font-medium">
+      <span class="text-teal-600 mr-2">{{ questionNumber }}.</span>
       {{ question }}
     </p>
     <SmTextarea

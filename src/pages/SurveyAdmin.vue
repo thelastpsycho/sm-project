@@ -19,7 +19,8 @@ import {
   ClipboardDocumentIcon,
   CheckIcon,
   ChevronDownIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  QrCodeIcon
 } from '@heroicons/vue/24/outline'
 import { useHead } from '@vueuse/head'
 
@@ -41,6 +42,7 @@ const activeTab = ref<AdminTab>('dashboard')
 const copiedEventId = ref<string | null>(null)
 const selectedEventId = ref<string>('all')
 const expandedResponseId = ref<string | null>(null)
+const selectedEventForQR = ref<Event | null>(null)
 
 // New event form
 const newEvent = ref({
@@ -152,6 +154,15 @@ async function handleCopyUrl(eventId: string) {
     copiedEventId.value = eventId
     setTimeout(() => copiedEventId.value = null, 2000)
   }
+}
+
+function handleShowQR(event: Event) {
+  selectedEventForQR.value = event
+}
+
+function getQRCodeUrl(eventId: string): string {
+  const surveyUrl = generateSurveyUrl(eventId)
+  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(surveyUrl)}`
 }
 
 async function handleSaveSettings() {
@@ -439,6 +450,13 @@ function getScorePercentage(score: number): number {
                     <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5">{{ new Date(event.createdAt).toLocaleDateString() }}</p>
                   </div>
                   <div class="flex items-center gap-1 sm:gap-1.5 sm:gap-2 flex-shrink-0">
+                    <button
+                      @click="handleShowQR(event)"
+                      class="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-teal-600 dark:text-teal-400"
+                      title="Show QR code"
+                    >
+                      <QrCodeIcon class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </button>
                     <button
                       @click="handleCopyUrl(event.id)"
                       class="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
@@ -786,6 +804,66 @@ function getScorePercentage(score: number): number {
           </div>
         </main>
       </template>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div
+      v-if="selectedEventForQR"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      @click.self="selectedEventForQR = null"
+    >
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="relative bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl shadow-2xl max-w-sm w-full p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
+        <!-- Close Button -->
+        <button
+          @click="selectedEventForQR = null"
+          class="absolute top-3 right-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+        >
+          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <!-- Header -->
+        <div class="text-center mb-6">
+          <div class="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <QrCodeIcon class="w-6 h-6 text-teal-600 dark:text-teal-400" />
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">Survey QR Code</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">{{ selectedEventForQR.eventName }}</p>
+        </div>
+
+        <!-- QR Code Image -->
+        <div class="flex justify-center mb-6">
+          <div class="p-4 bg-white rounded-xl shadow-lg border border-gray-200">
+            <img
+              :src="getQRCodeUrl(selectedEventForQR.id)"
+              :alt="`QR code for ${selectedEventForQR.eventName}`"
+              class="w-64 h-64"
+            />
+          </div>
+        </div>
+
+        <!-- Event Info -->
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 mb-6">
+          <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Company</p>
+          <p class="text-sm font-semibold text-gray-900 dark:text-white mb-3">{{ selectedEventForQR.companyName }}</p>
+          <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Survey Link</p>
+          <p class="text-xs font-mono text-gray-700 dark:text-gray-300 break-all">{{ generateSurveyUrl(selectedEventForQR.id) }}</p>
+        </div>
+
+        <!-- Download Button -->
+        <a
+          :href="getQRCodeUrl(selectedEventForQR.id)"
+          download="survey-qr-code.png"
+          class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download QR Code
+        </a>
+      </div>
     </div>
   </SmPage>
 </template>

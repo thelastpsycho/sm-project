@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { doc, getDoc } from 'firebase/firestore'
 import { db, COLLECTIONS } from '@/lib/firebase'
@@ -16,6 +16,11 @@ import { useHead } from '@vueuse/head'
 const route = useRoute()
 const router = useRouter()
 const surveyStore = useSurveyStore()
+
+// Force light mode on survey page
+onMounted(() => {
+  document.documentElement.classList.remove('dark')
+})
 
 const eventId = computed(() => route.params.eventId as string)
 
@@ -225,35 +230,70 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen py-4 sm:py-6 px-3 sm:px-4">
+  <div class="min-h-screen py-4 sm:py-6 px-3 sm:px-4 bg-gray-50">
     <div class="max-w-xl mx-auto">
       <!-- Loading State -->
       <div v-if="loading" class="min-h-[50vh] flex items-center justify-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-sm-primary"></div>
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
       </div>
 
       <!-- Error State -->
       <div v-else-if="errors.general && !event" class="min-h-[50vh] flex items-center justify-center">
-        <SmCard class="max-w-md text-center p-6">
-          <p class="text-gray-700 dark:text-gray-300">{{ errors.general }}</p>
+        <SmCard class="max-w-md text-center p-6 bg-white border border-gray-200 rounded-2xl shadow-sm">
+          <p class="text-gray-700">{{ errors.general }}</p>
         </SmCard>
       </div>
 
       <!-- Survey Content -->
       <template v-else>
         <!-- Header -->
-        <div class="text-center mb-5 sm:mb-6">
-          <div class="flex items-center justify-center mb-3">
-            <img
-              src="/logo-theanvaya.svg"
-              alt="The Anvaya Beach Resort Bali"
-              class="h-8 sm:h-10 w-auto"
-            />
+        <div class="mb-6 sm:mb-8">
+          <!-- Logo -->
+          <div class="flex items-center justify-center mb-4 sm:mb-5">
+            <div class="relative">
+              <div class="absolute inset-0 bg-gradient-to-br from-teal-400/20 to-blue-500/20 rounded-full blur-xl"></div>
+              <img
+                src="/logo-theanvaya.svg"
+                alt="The Anvaya Beach Resort Bali"
+                class="relative h-10 sm:h-12 w-auto"
+              />
+            </div>
           </div>
-          <div class="bg-white dark:bg-gray-800 px-4 sm:px-5 py-3 border border-sm-primary/15 rounded-xl">
-            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">{{ ui.eventSurvey }}</p>
-            <p class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">{{ event?.eventName }}</p>
-            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{{ event?.companyName }}</p>
+
+          <!-- Event Info Card -->
+          <div class="relative overflow-hidden">
+            <!-- Decorative background -->
+            <div class="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-blue-500/5"></div>
+            <div class="absolute top-0 left-0 w-32 h-32 bg-teal-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+            <div class="absolute bottom-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+
+            <!-- Content -->
+            <div class="relative bg-white backdrop-blur-md border border-teal-100 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-lg shadow-teal-500/5">
+              <!-- Decorative line -->
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-0.5 bg-gradient-to-r from-transparent via-teal-500 to-transparent rounded-full"></div>
+
+              <div class="text-center">
+                <!-- Label -->
+                <p class="text-xs sm:text-sm font-medium text-teal-600 tracking-wider uppercase mb-2 flex items-center justify-center gap-2">
+                  <span class="w-8 h-px bg-gradient-to-r from-transparent to-teal-500/50"></span>
+                  {{ ui.eventSurvey }}
+                  <span class="w-8 h-px bg-gradient-to-l from-transparent to-teal-500/50"></span>
+                </p>
+
+                <!-- Event Name -->
+                <h1 class="text-lg sm:text-xl font-bold text-gray-900 mb-2 leading-tight">
+                  {{ event?.eventName }}
+                </h1>
+
+                <!-- Company Name with icon -->
+                <div class="flex items-center justify-center gap-2 text-gray-600">
+                  <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span class="text-sm">{{ event?.companyName }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -272,23 +312,23 @@ async function handleSubmit() {
         <template v-else>
           <!-- Progress Bar -->
           <div class="mb-4 sm:mb-5">
-            <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-1.5">
+            <div class="flex justify-between text-xs text-gray-600 mb-1.5">
               <span>{{ ui.progress }}</span>
               <span>{{ answeredCount }} {{ ui.answeredOf }} {{ totalQuestions }}</span>
             </div>
-            <div class="h-1.5 bg-sm-primary/15 rounded-full overflow-hidden">
+            <div class="h-1.5 bg-teal-100 rounded-full overflow-hidden">
               <div
-                class="h-full bg-sm-primary transition-all duration-300"
+                class="h-full bg-teal-500 transition-all duration-300"
                 :style="{ width: `${progress}%` }"
               />
             </div>
           </div>
 
           <!-- Survey Form -->
-          <form @submit.prevent="handleSubmit" class="bg-white dark:bg-gray-800 border border-sm-primary/15 p-4 sm:p-5 rounded-xl">
+          <form @submit.prevent="handleSubmit" class="bg-white border border-gray-200 p-4 sm:p-6 rounded-2xl shadow-sm">
             <!-- Rating Questions -->
             <div class="mb-6">
-              <p class="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-5 tracking-wide">
+              <p class="text-sm font-medium text-gray-700 mb-5 tracking-wide">
                 {{ ui.rateYourExperience }}
               </p>
               <LikertScale
@@ -305,8 +345,8 @@ async function handleSubmit() {
             </div>
 
             <!-- Text Questions -->
-            <div class="mb-5 pt-5 border-t border-sm-primary/10">
-              <p class="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-5 tracking-wide">
+            <div class="mb-5 pt-5 border-t border-gray-100">
+              <p class="text-sm font-medium text-gray-700 mb-5 tracking-wide">
                 {{ ui.yourFeedback }}
               </p>
               <TextQuestion
@@ -323,8 +363,8 @@ async function handleSubmit() {
             </div>
 
             <!-- Error Message -->
-            <div v-if="errors.general" class="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p class="text-red-600 dark:text-red-400 text-sm">{{ errors.general }}</p>
+            <div v-if="errors.general" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p class="text-red-600 text-sm">{{ errors.general }}</p>
             </div>
 
             <!-- Submit Button -->
@@ -340,7 +380,7 @@ async function handleSubmit() {
         </template>
 
         <!-- Footer -->
-        <p class="text-center text-xs text-gray-600 dark:text-gray-400 mt-4 sm:mt-5">
+        <p class="text-center text-xs text-gray-500 mt-4 sm:mt-5">
           {{ ui.thankYouForChoosing }}
         </p>
       </template>

@@ -48,11 +48,11 @@ function handleNext() {
 </script>
 
 <template>
-  <SmCard class="bg-white dark:bg-gray-800 border border-sm-primary/15 p-4 sm:p-6">
-    <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-5 text-center">
+  <SmCard class="bg-white border border-gray-200 p-4 sm:p-6 rounded-2xl shadow-sm">
+    <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-5 text-center">
       {{ ui.welcomeTitle }}
     </h2>
-    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-5 sm:mb-6 text-center">
+    <p class="text-xs sm:text-sm text-gray-600 mb-5 sm:mb-6 text-center">
       {{ ui.welcomeDescription }}
     </p>
 
@@ -87,8 +87,8 @@ function handleNext() {
             :class="[
               'px-4 py-2 sm:py-2.5 rounded-lg border-2 text-xs sm:text-sm font-semibold transition-all',
               role === r.value
-                ? 'bg-sm-primary text-white border-sm-primary'
-                : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-sm-primary/30 hover:border-sm-primary hover:bg-sm-primary/5'
+                ? 'bg-teal-500 text-white border-teal-500'
+                : 'bg-white text-gray-900 border-gray-200 hover:border-teal-300 hover:bg-teal-50'
             ]"
             @click="selectRole(r.value)"
           >
@@ -98,8 +98,8 @@ function handleNext() {
         <p v-if="errors.role" class="text-red-500 text-xs mt-1.5">{{ errors.role }}</p>
       </div>
 
-      <div v-if="errors.general" class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-        <p class="text-red-600 dark:text-red-400 text-sm">{{ errors.general }}</p>
+      <div v-if="errors.general" class="p-3 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-red-600 text-sm">{{ errors.general }}</p>
       </div>
 
       <SmButton
