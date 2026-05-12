@@ -79,17 +79,48 @@ export const postContract = async (payload: {
       "submittedAt": new Date().toISOString(),
       "formMode": "live"
     }
+
+    // Log request payload
+    console.log('🚀 Sending contract to n8n:', {
+      url: 'https://workflow.anvayabali.com/webhook/af1052ea-d967-4ea0-b580-d6b4ae8d9943',
+      payload: transformedPayload
+    })
+
     const response = await api.post('https://workflow.anvayabali.com/webhook/af1052ea-d967-4ea0-b580-d6b4ae8d9943', transformedPayload, {
       timeout: 60000
     })
+
+    // Log successful response
+    console.log('✅ n8n response received:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      headers: response.headers
+    })
+
     return response.data
   } catch (error) {
+    // Log error details
     if (axios.isAxiosError(error)) {
+      console.error('❌ Contract submission error:', {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          data: error.config?.data
+        }
+      })
+
       if (error.code === 'NETWORK_ERROR' || !navigator.onLine) {
         throw new Error('Network error - please check your connection')
       }
       throw error
     }
+    console.error('❌ Unexpected error:', error)
     throw new Error('Failed to submit contract')
   }
 }
