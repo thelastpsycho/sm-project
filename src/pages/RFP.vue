@@ -130,50 +130,31 @@
       <!-- Section: Sales PIC -->
       <div class="bg-white dark:bg-sm-card-dark rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-white/5 space-y-5 animate-fade-in-up" style="animation-delay: 300ms;">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider opacity-50">Sales Contact</h2>
-        
+
         <div class="bg-gray-50 dark:bg-black/20 rounded-2xl p-1">
              <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5">
                <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Name</label>
-               <select 
-                 v-model="form.sales_pic_name" 
-                 @change="handleSalesContactChange"
-                 class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 text-sm font-medium"
-               >
-                 <option value="" disabled>Select Sales Contact</option>
-                 <option v-for="contact in salesContacts" :key="contact.name" :value="contact.name">
-                   {{ contact.name }}
-                 </option>
-               </select>
+               <div class="text-sm font-medium text-gray-900 dark:text-white py-1">
+                 {{ form.sales_pic_name || 'Not logged in' }}
+               </div>
              </div>
-              <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5" :class="{ 'opacity-50': form.sales_pic_name }">
+              <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5">
                 <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Position</label>
-                <input 
-                  v-model="form.sales_pic_position" 
-                  type="text" 
-                  :disabled="!!form.sales_pic_name"
-                  class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium disabled:cursor-not-allowed" 
-                  placeholder="Event Sales Coordinator" 
-                />
+                <div class="text-sm font-medium text-gray-900 dark:text-white py-1">
+                  {{ form.sales_pic_position || '-' }}
+                </div>
               </div>
-              <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5" :class="{ 'opacity-50': form.sales_pic_name }">
+              <div class="px-4 py-2 border-b border-gray-200 dark:border-white/5">
                 <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Email</label>
-                <input 
-                  v-model="form.sales_pic_email" 
-                  type="email" 
-                  :disabled="!!form.sales_pic_name"
-                  class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium disabled:cursor-not-allowed" 
-                  placeholder="jessica.wong@anvayabali.com" 
-                />
+                <div class="text-sm font-medium text-gray-900 dark:text-white py-1">
+                  {{ form.sales_pic_email || '-' }}
+                </div>
               </div>
-              <div class="px-4 py-2" :class="{ 'opacity-50': form.sales_pic_name }">
+              <div class="px-4 py-2">
                 <label class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Phone</label>
-                <input 
-                  v-model="form.sales_pic_phone_number" 
-                  type="tel" 
-                  :disabled="!!form.sales_pic_name"
-                  class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-white focus:ring-0 placeholder-gray-400 font-medium disabled:cursor-not-allowed" 
-                  placeholder="+62 821..." 
-                />
+                <div class="text-sm font-medium text-gray-900 dark:text-white py-1">
+                  {{ form.sales_pic_phone_number || '-' }}
+                </div>
               </div>
         </div>
       </div>
@@ -364,6 +345,8 @@ import { CalendarIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import { db, ensureAuth } from '@/utils/firebase'
 import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore'
 import { useHead } from '@vueuse/head'
+import { useSessionStore } from '@/stores/session'
+import userData from '@/user.json'
 
 useHead({
   title: 'New RFP - SM Mobile App',
@@ -377,6 +360,7 @@ useHead({
 
 const route = useRoute()
 const router = useRouter()
+const sessionStore = useSessionStore()
 const isEditing = computed(() => !!route.params.id)
 
 const titleOptions = [
@@ -384,51 +368,6 @@ const titleOptions = [
   { value: 'Ms', label: 'Ms.' },
   { value: 'Ibu', label: 'Ibu' },
   { value: 'Bapak', label: 'Bapak' }
-]
-
-const salesContacts = [
-  {
-    name: 'Andi Krisnatha',
-    position: 'Asst. Director of Sales & Distribution',
-    email: 'andikrisnatha@theanvayabali.com',
-    phone: '62811389938'
-  },
-  {
-    name: 'Purnama',
-    position: 'Sales Executive',
-    email: 'purnama@theanvayabali.com',
-    phone: '6285179645546'
-  },
-  {
-    name: 'Linda Permata',
-    position: 'Sales Executive',
-    email: 'lindapermata@theanvayabali.com',
-    phone: '6281338353759'
-  },
-  {
-    name: 'Riska Chintya',
-    position: 'Assistant Sales Manager',
-    email: 'riskachintya@theanvayabali.com',
-    phone: '6281236362979'
-  },
-  {
-    name: 'Doni Dwi Artha',
-    position: 'Mice Coordinator',
-    email: 'micecoordinator@theanvayabali.com',
-    phone: '6282147598154'
-  },
-  {
-    name: 'Aprilia Krisdayani',
-    position: 'Ecommerce Executive',
-    email: 'ecommerce@theanvayabali.com',
-    phone: '6285738316631'
-  },
-  {
-    name: 'Putu Kerni',
-    position: 'Sales Executive',
-    email: 'putukerni@theanvayabali.com',
-    phone: '6285385814948'
-  }
 ]
 
 const roomTypeOptions = [
@@ -514,22 +453,22 @@ const isFormValid = computed(() => {
 
 const isOnlineReact = computed(() => navigator.onLine)
 
-const handleSalesContactChange = () => {
-  const selected = salesContacts.find(c => c.name === form.value.sales_pic_name)
-  if (selected) {
-    form.value.sales_pic_position = selected.position
-    form.value.sales_pic_email = selected.email
-    form.value.sales_pic_phone_number = selected.phone
-  }
-}
-
 const loadRFP = async () => {
-  if (!route.params.id) return
-  
+  if (!route.params.id) {
+    // New RFP - prefill sales contact from logged-in user
+    if (sessionStore.currentUser) {
+      form.value.sales_pic_name = sessionStore.currentUser.name
+      form.value.sales_pic_position = sessionStore.currentUser.position
+      form.value.sales_pic_email = sessionStore.currentUser.email
+      form.value.sales_pic_phone_number = sessionStore.currentUser.phone
+    }
+    return
+  }
+
   try {
     const docRef = doc(db, 'rfps', route.params.id as string)
     const docSnap = await getDoc(docRef)
-    
+
     if (docSnap.exists()) {
       const data = docSnap.data()
       // Merge with default form to ensure all fields exist

@@ -20,13 +20,26 @@
         :style="{ transitionDelay: `${index * 50}ms` }"
       >
         <span class="text-sm font-medium text-gray-700 dark:text-gray-200 mr-3">{{ item.name }}</span>
-        <div 
+        <div
           class="p-2 rounded-xl transition-colors"
           :class="isActive(item) ? 'bg-sm-primary text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 group-hover:text-sm-primary'"
         >
           <component :is="item.icon" class="w-5 h-5" />
         </div>
       </router-link>
+
+      <!-- Logout Button -->
+      <button
+        v-if="isOpen"
+        @click="handleLogout"
+        class="pointer-events-auto relative z-50 flex items-center bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 px-4 py-3 rounded-2xl shadow-lg shadow-black/5 hover:scale-105 active:scale-95 transition-all group"
+        style="transitionDelay: 350ms"
+      >
+        <span class="text-sm font-medium text-red-700 dark:text-red-300 mr-3">Logout</span>
+        <div class="p-2 rounded-xl bg-red-100 dark:bg-red-800/30 text-red-600 dark:text-red-400 transition-colors">
+          <ArrowRightOnRectangleIcon class="w-5 h-5" />
+        </div>
+      </button>
     </TransitionGroup>
 
     <!-- Main FAB Trigger -->
@@ -68,7 +81,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useSessionStore } from '@/stores/session'
 import {
   HomeIcon,
   ChatBubbleLeftRightIcon,
@@ -77,11 +91,20 @@ import {
   PlusIcon,
   Bars3Icon,
   XMarkIcon,
-  ClipboardDocumentIcon
+  ClipboardDocumentIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
+const router = useRouter()
+const sessionStore = useSessionStore()
 const isOpen = ref(false)
+
+const handleLogout = () => {
+  sessionStore.logout()
+  isOpen.value = false
+  router.push('/login')
+}
 
 const navItems = [
   {

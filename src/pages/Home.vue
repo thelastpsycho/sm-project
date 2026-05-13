@@ -15,7 +15,7 @@
       </div>
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white tracking-tight animate-fade-in-up">
         Good {{ timeOfDay }},<br />
-        <span class="text-sm-primary">Experience SM</span>
+        <span class="text-sm-primary">{{ sessionStore.currentUser?.name || 'Experience SM' }}</span>
       </h1>
     </div>
 
@@ -295,6 +295,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
+import { useSessionStore } from '@/stores/session'
 
 useHead({
   title: 'Home - SM Mobile App',
@@ -329,6 +330,7 @@ import SmPage from '@/components/ui/SmPage.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const router = useRouter()
+const sessionStore = useSessionStore()
 const searchQuery = ref('')
 
 // Menu expansion state
@@ -414,6 +416,7 @@ const searchableItems = computed(() => [
   { id: 'home', name: 'Home', type: 'Page', path: '/', icon: SwatchIcon, iconBg: 'bg-purple-500/10', iconColor: 'text-purple-500' },
   { id: 'chat', name: 'Chat Assistant', type: 'Page', path: '/chat', icon: ChatBubbleLeftRightIcon, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-500' },
   { id: 'contract', name: 'Submit Contract', type: 'Page', path: '/contract', icon: DocumentDuplicateIcon, iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-500' },
+  { id: 'tactical-offer', name: 'Tactical Offer', type: 'Page', path: '/tactical-offer', icon: PlusIcon, iconBg: 'bg-rose-500/10', iconColor: 'text-rose-500' },
   { id: 'rfp-history', name: 'RFP History', type: 'Page', path: '/rfp', icon: ClockIcon, iconBg: 'bg-orange-500/10', iconColor: 'text-orange-500' },
   { id: 'rfp-new', name: 'Create RFP', type: 'Page', path: '/rfp/new', icon: PlusIcon, iconBg: 'bg-green-500/10', iconColor: 'text-green-500' },
   { id: 'survey-admin', name: 'Survey Admin', type: 'Page', path: '/survey/admin', icon: ClipboardDocumentIcon, iconBg: 'bg-teal-500/10', iconColor: 'text-teal-500' },

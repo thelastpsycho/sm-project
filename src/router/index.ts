@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/pages/Home.vue'
 import Chat from '@/pages/Chat.vue'
 import Contract from '@/pages/Contract.vue'
+import TacticalOffer from '@/pages/TacticalOffer.vue'
 import Login from '@/pages/Login.vue'
 import RFP from '@/pages/RFP.vue'
 import RFPHistory from '@/pages/RFPHistory.vue'
@@ -29,6 +30,11 @@ const router = createRouter({
       path: '/contract',
       name: 'contract',
       component: Contract
+    },
+    {
+      path: '/tactical-offer',
+      name: 'tactical-offer',
+      component: TacticalOffer
     },
     {
       path: '/rfp',
