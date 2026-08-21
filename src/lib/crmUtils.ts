@@ -2,10 +2,30 @@
 
 import type { Deal } from '@/types/crm'
 
-// Users allowed to delete leads on the shared board (admin-only action).
-export const DELETE_ADMIN_EMAILS = ['andikrisnatha@theanvayabali.com']
+// Admin accounts: can edit any lead and are the only ones allowed to delete.
+export const ADMIN_EMAILS = ['andikrisnatha@theanvayabali.com']
+// Back-compat alias (delete was the original admin-only action).
+export const DELETE_ADMIN_EMAILS = ADMIN_EMAILS
+
+export function isAdmin(email?: string | null): boolean {
+  return !!email && ADMIN_EMAILS.includes(email)
+}
+
+/** Delete is admin-only. */
 export function canDeleteDeals(email?: string | null): boolean {
-  return !!email && DELETE_ADMIN_EMAILS.includes(email)
+  return isAdmin(email)
+}
+
+/**
+ * Edit rights on a lead:
+ *  - admin can edit anything;
+ *  - an unassigned lead (no owner) can be edited/claimed by anyone logged in;
+ *  - otherwise only the sales owner (matched by email) can edit their own lead.
+ */
+export function canEditDeal(email: string | null | undefined, deal: Pick<Deal, 'ownerId'>): boolean {
+  if (isAdmin(email)) return true
+  if (!deal.ownerId) return true
+  return !!email && deal.ownerId === email
 }
 
 /** Room Nights = No. of Rooms × Nights */

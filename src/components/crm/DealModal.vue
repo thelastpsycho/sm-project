@@ -23,9 +23,17 @@
         <div
           class="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between gap-3 bg-white/50 dark:bg-black/20 backdrop-blur-md"
         >
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate">
-            {{ deal ? 'Edit Deal' : 'New Deal' }}
-          </h3>
+          <div class="flex items-center gap-2 min-w-0">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate">
+              {{ deal ? (canEdit ? 'Edit Deal' : 'View Deal') : 'New Deal' }}
+            </h3>
+            <span
+              v-if="deal && !canEdit"
+              class="shrink-0 inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400"
+            >
+              <LockClosedIcon class="w-3 h-3" /> View only
+            </span>
+          </div>
 
           <div class="flex items-center gap-1.5 shrink-0">
             <!-- Delete (Andi only, edit mode) -->
@@ -53,6 +61,7 @@
 
             <!-- Save (submits the form via its id) -->
             <button
+              v-if="canEdit"
               form="deal-form"
               type="submit"
               :disabled="saving"
@@ -72,7 +81,7 @@
         <!-- Body: form + side comments -->
         <div class="flex-1 min-h-0 flex flex-col lg:flex-row">
           <div class="flex-1 overflow-y-auto p-6">
-            <DealForm :deal="deal" @submit="p => emit('submit', p)" />
+            <DealForm :deal="deal" :disabled="!canEdit" @submit="p => emit('submit', p)" />
           </div>
 
           <div
@@ -89,14 +98,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { XMarkIcon, TrashIcon, CheckIcon } from '@heroicons/vue/24/outline'
+import { XMarkIcon, TrashIcon, CheckIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
 import DealForm from './DealForm.vue'
 import DealComments from './DealComments.vue'
 import type { Deal, NewDeal } from '@/types/crm'
 import { useSessionStore } from '@/stores/session'
-import { canDeleteDeals } from '@/lib/crmUtils'
+import { canDeleteDeals, canEditDeal } from '@/lib/crmUtils'
 
-defineProps<{
+const props = defineProps<{
   isOpen: boolean
   deal?: Deal | null
   saving?: boolean
@@ -110,4 +119,6 @@ const emit = defineEmits<{
 
 const session = useSessionStore()
 const canDelete = computed(() => canDeleteDeals(session.currentUser?.email))
+// Creating a new deal is always allowed; editing an existing one is owner/admin-gated.
+const canEdit = computed(() => !props.deal || canEditDeal(session.currentUser?.email, props.deal))
 </script>

@@ -31,6 +31,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Function Chart / venue bookings - public access (PIN-based auth in app).
+    match /functions/{document=**} {
+      allow read, write: if true;
+    }
+
     // Allow read access to public collections
     match /{collection}/{document=**} {
       allow read: if true;

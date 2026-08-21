@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300..800;1,6..12,400..700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #F4F2EC; font-family: 'Nunito Sans', system-ui, sans-serif; }
+  * { box-sizing: border-box; font-family: 'Nunito Sans', system-ui, sans-serif; }
+  a { color: #0F5A50; }
+  a:hover { color: #C1662F; }
+  ::selection { background: #0F5A5022; }
+  .fc-scroll::-webkit-scrollbar { height: 12px; width: 12px; }
+  .fc-scroll::-webkit-scrollbar-thumb { background: #CFC9BB; border-radius: 8px; border: 3px solid #F4F2EC; }
+  .fc-scroll::-webkit-scrollbar-track { background: transparent; }
+</style>
+</helmet>
+<div class="flex h-screen flex-col overflow-hidden bg-[#F4F2EC] text-[#17211F]">
+
+  <header class="flex flex-none items-end justify-between gap-6 px-6 pt-[18px]">
+    <div class="flex flex-col gap-0.5">
+      <div class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8A8878]">The Anvaya Bali &middot; Sales &amp; Events</div>
+      <h1 class="m-0 text-[25px] font-extrabold tracking-[-0.02em]">Function Charting 2026</h1>
+    </div>
+    <div class="flex items-center gap-2.5 pb-1">
+      <div class="flex w-[260px] items-center gap-2 rounded-lg border border-[#E2DDD2] bg-white px-3 py-2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8878" stroke-width="2.2"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5 21 21"></path></svg>
+        <input value="{{ q }}" onChange="{{ onSearch }}" placeholder="Search function or PIC" class="w-full border-0 bg-transparent text-[13px] text-[#17211F] outline-none placeholder:text-[#A8A493]" />
+      </div>
+      <select value="{{ pic }}" onChange="{{ onPic }}" class="rounded-lg border border-[#E2DDD2] bg-white px-2.5 py-2 text-[13px] font-semibold text-[#17211F]">
+        <option value="ALL">All PIC</option>
+        <sc-for list="{{ pics }}" as="p" hint-placeholder-count="3">
+          <option value="{{ p }}">{{ p }}</option>
+        </sc-for>
+      </select>
+    </div>
+  </header>
+
+  <nav class="flex flex-none items-end gap-0.5 overflow-x-auto border-b border-[#E2DDD2] px-6 pt-3.5">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="12">
+      <button onClick="{{ t.onClick }}" class="{{ t.cls }}" style="{{ t.style }}">{{ t.label }}</button>
+    </sc-for>
+    <div class="flex-1"></div>
+    <div class="flex gap-[18px] whitespace-nowrap px-1 pb-2 text-[11px] font-semibold tracking-[0.04em] text-[#6E7A76]">
+      <span>{{ statFunctions }} functions</span>
+      <span>{{ statVenues }} venues booked</span>
+      <span>{{ statOccupancy }} slot use</span>
+    </div>
+  </nav>
+
+  <div class="flex min-h-0 flex-1">
+    <div class="fc-scroll relative flex-1 overflow-auto bg-[#F4F2EC]">
+      <div style="{{ gridStyle }}">
+
+        <div class="sticky left-0 top-0 z-30 flex items-end border-b border-r border-[#D8D2C4] bg-[#F4F2EC] px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#8A8878]" style="grid-row: 1; grid-column: 1">Function</div>
+        <sc-for list="{{ days }}" as="d" hint-placeholder-count="31">
+          <div class="sticky top-0 z-20 flex flex-col gap-px px-3 pb-[7px] pt-2" style="{{ d.headStyle }}">
+            <span class="text-[10px] font-bold uppercase tracking-[0.1em] text-[#8A8878]">{{ d.dow }}</span>
+            <span class="text-[17px] font-extrabold tracking-[-0.01em]">{{ d.num }}</span>
+          </div>
+        </sc-for>
+
+        <sc-for list="{{ lines }}" as="line" hint-placeholder-count="18">
+          <sc-if value="{{ line.isCat }}" hint-placeholder-val="{{ false }}">
+            <div class="sticky left-0 z-[12] flex h-[30px] items-center border-y border-[#DCD5C4] bg-[#EBE7DC] px-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#6E7A76]" style="{{ line.catStyle }}">{{ line.label }}</div>
+          </sc-if>
+          <sc-if value="{{ line.isVenue }}" hint-placeholder-val="{{ true }}">
+            <div class="sticky left-0 z-[14] flex items-center justify-between gap-2 border-b border-r border-b-[#EAE5D9] border-r-[#D8D2C4] bg-[#F4F2EC] px-3.5 text-[12.5px] font-bold tracking-[-0.005em] text-[#2C3735]" style="{{ line.nameStyle }}">
+              <span>{{ line.label }}</span>
+              <span class="text-[10px] font-semibold text-[#A8A493]">{{ line.count }}</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ line.isVenue }}" hint-placeholder-val="{{ true }}">
+            <div class="border-b border-[#EAE5D9]" style="{{ line.stripStyle }}"></div>
+          </sc-if>
+          <sc-for list="{{ line.blocks }}" as="b" hint-placeholder-count="0">
+            <div onClick="{{ b.onClick }}" class="m-[3px] flex cursor-pointer flex-col justify-center gap-0.5 overflow-hidden rounded-[7px] px-2.5 py-1.5 transition-all" style="{{ b.style }}" title="{{ b.text }}">
+              <div class="line-clamp-2 text-[12px] font-bold leading-[1.25]">{{ b.title }}</div>
+              <div class="flex items-center gap-1.5 text-[10px] font-semibold opacity-75">
+                <span>{{ b.pax }}</span>
+                <span>{{ b.pic }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </sc-for>
+
+      </div>
+    </div>
+
+    <sc-if value="{{ sel }}" hint-placeholder-val="{{ false }}">
+      <aside class="flex w-[340px] flex-none flex-col overflow-auto border-l border-[#E2DDD2] bg-white">
+        <div class="flex flex-col gap-2.5 border-b border-[#EFEBE1] px-[22px] py-5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-[#8A8878]">{{ sel.venue }}</div>
+            <button onClick="{{ onClose }}" class="cursor-pointer border-0 bg-transparent p-0 text-[18px] leading-none text-[#8A8878]">&times;</button>
+          </div>
+          <div class="text-[19px] font-extrabold leading-[1.25] tracking-[-0.01em] [text-wrap:pretty]">{{ sel.title }}</div>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="rounded-[5px] px-2 py-1 text-[11px] font-bold" style="{{ sel.picChipStyle }}">{{ sel.pic }}</span>
+            <span class="rounded-[5px] bg-[#F4F2EC] px-2 py-1 text-[11px] font-semibold text-[#6E7A76]">{{ sel.paxLabel }}</span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-4 px-[22px] py-[18px]">
+          <div class="flex flex-col gap-1">
+            <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A8A493]">Dates</div>
+            <div class="text-[14px]">{{ sel.dateLabel }}</div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A8A493]">Duration</div>
+            <div class="text-[14px]">{{ sel.durationLabel }}</div>
+          </div>
+          <sc-if value="{{ sel.note }}" hint-placeholder-val="{{ false }}">
+            <div class="flex flex-col gap-1.5">
+              <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A8A493]">Setup note</div>
+              <div class="whitespace-pre-wrap rounded-lg border border-[#EFEBE1] bg-[#FBF9F4] px-3 py-2.5 text-[13px] leading-[1.55] text-[#3C4744]">{{ sel.note }}</div>
+            </div>
+          </sc-if>
+          <div class="flex flex-col gap-1">
+            <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A8A493]">Cell source</div>
+            <div class="text-[12px] font-semibold text-[#6E7A76]">{{ sel.refLabel }}</div>
+          </div>
+          <div class="flex flex-col gap-1.5 pt-1">
+            <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-[#A8A493]">Same day, other venues</div>
+            <sc-for list="{{ sel.sameDay }}" as="s" hint-placeholder-count="2">
+              <div class="flex items-baseline gap-2 border-b border-[#F2EEE4] py-1.5 text-[12.5px]">
+                <span class="min-w-[92px] text-[10px] font-bold uppercase tracking-[0.06em] text-[#A8A493]">{{ s.venue }}</span>
+                <span class="text-[#3C4744] [text-wrap:pretty]">{{ s.title }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </aside>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+const PIC_COLORS = {
+  LINDA: ['#0F5A50', '#E6F0ED'], AMMA: ['#7A3E8C', '#F1E9F4'], RISKA: ['#B4531F', '#F7EBE1'],
+  KERNI: ['#1F4E8C', '#E7EEF7'], DONI: ['#2F6B2A', '#E9F2E7'], ANDI: ['#8C1F3E', '#F7E7EC'],
+  WINDA: ['#5A5320', '#F2F0E1'], TRIA: ['#1F6E7A', '#E4F0F1']
+};
+const FALLBACK = ['#4A5350', '#EDEBE4'];
+
+class Component extends DCLogic {
+  state = { data: null, mi: 7, q: '', pic: 'ALL', sel: null };
+
+  componentDidMount() {
+    fetch('chart-data.json').then(r => r.json()).then(data => this.setState({ data }));
+  }
+
+  parse(text) {
+    let title = text, pic = '', pax = '';
+    const dash = text.lastIndexOf(' - ');
+    if (dash > 0) {
+      const tail = text.slice(dash + 3).trim();
+      if (tail.length <= 22 && !/\d{2,}/.test(tail)) { pic = tail.toUpperCase(); title = text.slice(0, dash).trim(); }
+    }
+    const m = title.match(/(\d+)\s*(pax|kamar|rooms?|room)\b/i);
+    if (m) { pax = m[1] + ' ' + (/pax/i.test(m[2]) ? 'pax' : 'rooms'); }
+    return { title, pic, pax };
+  }
+
+  colorFor(pic) {
+    const key = Object.keys(PIC_COLORS).find(k => pic.indexOf(k) === 0);
+    return key ? PIC_COLORS[key] : FALLBACK;
+  }
+
+  buildMonth(month) {
+    const days = month.days;
+    const idx = {}; days.forEach((d, i) => { idx[d.col] = i; });
+    const lines = [];
+    month.rows.forEach((row, ri) => {
+      const rowNum = 7 + ri;
+      if (row.type === 'cat') { lines.push({ kind: 'cat', label: row.label }); return; }
+      const cols = Object.keys(row.cells).filter(c => idx[c] !== undefined).sort((a, b) => idx[a] - idx[b]);
+      const blocks = [];
+      let cur = null;
+      cols.forEach(col => {
+        const text = row.cells[col];
+        const norm = text.replace(/\s+/g, ' ').trim().toLowerCase();
+        if (cur && cur.norm === norm && idx[col] === cur.end + 1) { cur.end = idx[col]; cur.refs.push(col + rowNum); return; }
+        cur = { norm, text, start: idx[col], end: idx[col], refs: [col + rowNum] };
+        blocks.push(cur);
+      });
+      blocks.forEach(b => {
+        const p = this.parse(b.text);
+        b.title = p.title; b.pic = p.pic; b.pax = p.pax;
+        b.venue = row.label;
+        b.note = month.notes[b.refs[0]] || '';
+      });
+      lines.push({ kind: 'venue', label: row.label, blocks });
+    });
+    return { days, lines };
+  }
+
+  renderVals() {
+    const data = this.state.data;
+    const rowH = 44, colW = 158, nameW = 214;
+    const onSearch = e => this.setState({ q: e.target.value });
+    const onPic = e => this.setState({ pic: e.target.value });
+    const onClose = () => this.setState({ sel: null });
+
+    if (!data) {
+      return { loading: true, days: [], lines: [], tabs: [], pics: [], q: this.state.q, pic: this.state.pic,
+        onSearch, onPic, onClose, sel: null, gridStyle: 'padding:40px;color:#8A8878;font-size:13px',
+        statFunctions: '–', statVenues: '–', statOccupancy: '–' };
+    }
+
+    const month = data[this.state.mi];
+    const built = this.buildMonth(month);
+    const q = this.state.q.trim().toLowerCase();
+    const picF = this.state.pic;
+
+    const picSet = new Set();
+    data.forEach(m => this.buildMonth(m).lines.forEach(l => (l.blocks || []).forEach(b => { if (b.pic) picSet.add(b.pic); })));
+    const pics = [...picSet].sort();
+
+    const todayISO = new Date().toISOString().slice(0, 10);
+
+    const days = built.days.map(d => {
+      const we = d.dow.trim() === 'Saturday' || d.dow.trim() === 'Sunday';
+      const isToday = d.date === todayISO;
+      return { dow: d.dow.trim().slice(0, 3).toUpperCase(), num: String(+d.date.slice(8, 10)), date: d.date,
+        headStyle: 'grid-row:1;border-right:1px solid ' + (we ? '#DCD5C4' : '#E7E2D6') + ';border-bottom:1px solid #D8D2C4;'
+          + 'background:' + (isToday ? '#EAF2EF' : we ? '#EFECE3' : '#F8F6F1')
+          + (isToday ? ';box-shadow:inset 0 -2px 0 #0F5A50' : '') };
+    });
+
+    let matched = 0; const bookedVenues = new Set(); let slots = 0;
+    const lines = built.lines.map((l, li) => {
+      const gr = 'grid-row:' + (li + 2) + ';';
+      if (l.kind === 'cat') return { isCat: true, isVenue: false, label: l.label, blocks: [],
+        catStyle: 'grid-column:1/-1;' + gr };
+
+      const blocks = l.blocks.map(b => {
+        const hay = (b.text + ' ' + b.venue).toLowerCase();
+        const on = (!q || hay.indexOf(q) >= 0) && (picF === 'ALL' || b.pic === picF);
+        if (on) { matched++; bookedVenues.add(l.label); slots += b.end - b.start + 1; }
+        const [fg, bg] = this.colorFor(b.pic);
+        const isSel = this.state.sel && this.state.sel.key === li + ':' + b.refs[0];
+        return {
+          title: b.title, pax: b.pax, pic: b.pic, text: b.text,
+          onClick: () => this.setState({
+            sel: { key: li + ':' + b.refs[0], venue: b.venue, title: b.title, pic: b.pic || 'Unassigned',
+              paxLabel: b.pax || 'pax n/a', note: b.note, start: built.days[b.start].date, end: built.days[b.end].date,
+              span: b.end - b.start + 1, refs: b.refs, fg, bg, startIdx: b.start }
+          }),
+          style: 'grid-column:' + (b.start + 2) + '/span ' + (b.end - b.start + 1) + ';' + gr
+            + 'background:' + bg + ';border:1px solid ' + fg + '33;border-left:3px solid ' + fg + ';'
+            + 'color:' + fg + ';opacity:' + (on ? 1 : 0.16) + ';'
+            + (isSel ? 'box-shadow:0 0 0 2px #17211F;' : '')
+        };
+      });
+
+      const stripes = built.days.map((d, i) => {
+        const we = d.dow.trim() === 'Saturday' || d.dow.trim() === 'Sunday';
+        return (we ? '#EFECE3' : '#FCFBF8') + ' ' + (i * colW) + 'px ' + ((i + 1) * colW - 1) + 'px, #E7E2D6 ' + ((i + 1) * colW - 1) + 'px ' + ((i + 1) * colW) + 'px';
+      }).join(', ');
+
+      return { isCat: false, isVenue: true, label: l.label, count: l.blocks.length ? String(l.blocks.length) : '',
+        blocks,
+        nameStyle: gr + 'grid-column:1;min-height:' + rowH + 'px;height:100%',
+        stripStyle: 'grid-column:2/span ' + built.days.length + ';' + gr + 'min-height:' + rowH + 'px;height:100%;'
+          + 'background:linear-gradient(90deg,' + stripes + ')' };
+    });
+
+    const sel = this.state.sel ? (() => {
+      const s = this.state.sel;
+      const fmt = iso => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+      const sameDay = [];
+      built.lines.forEach(l => (l.blocks || []).forEach(b => {
+        if (b.start <= s.startIdx && b.end >= s.startIdx && !(b.venue === s.venue && b.title === s.title)) {
+          sameDay.push({ venue: b.venue, title: b.title });
+        }
+      }));
+      return { ...s, dateLabel: s.span > 1 ? fmt(s.start) + ' – ' + fmt(s.end) : fmt(s.start),
+        durationLabel: s.span > 1 ? s.span + ' consecutive days' : 'Single day',
+        refLabel: month.month.slice(0, 3) + '!' + s.refs.join(', '),
+        sameDay: sameDay.slice(0, 8),
+        picChipStyle: 'background:' + s.bg + ';color:' + s.fg };
+    })() : null;
+
+    return {
+      q: this.state.q, pic: this.state.pic, pics, onSearch, onPic, onClose, sel, days, lines,
+      gridStyle: 'display:grid;grid-template-columns:' + nameW + 'px repeat(' + built.days.length + ',' + colW + 'px);'
+        + 'grid-auto-rows:minmax(' + rowH + 'px,auto);align-items:stretch;width:max-content;min-width:100%;background:#FCFBF8',
+      statFunctions: String(matched),
+      statVenues: String(bookedVenues.size),
+      statOccupancy: Math.round(100 * slots / (built.days.length * built.lines.filter(l => l.kind === 'venue').length)) + '%',
+      tabs: data.map((m, i) => ({
+        label: m.month.slice(0, 3),
+        onClick: () => this.setState({ mi: i, sel: null }),
+        cls: 'cursor-pointer border-0 px-[15px] py-[9px] text-[12px] font-bold tracking-[0.04em] rounded-t-lg',
+        style: i === this.state.mi
+          ? 'background:#FCFBF8;color:#17211F;border:1px solid #E2DDD2;border-bottom:1px solid #FCFBF8;margin-bottom:-1px'
+          : 'background:transparent;color:#8A8878'
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

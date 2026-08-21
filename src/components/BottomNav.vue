@@ -94,6 +94,7 @@ import {
   ClipboardDocumentIcon,
   Squares2X2Icon,
   ChartBarIcon,
+  CalendarDaysIcon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
 
@@ -128,6 +129,11 @@ const navItems = [
     name: 'Pipeline Report',
     to: '/crm/report',
     icon: ChartBarIcon
+  },
+  {
+    name: 'Function Chart',
+    to: '/function-chart',
+    icon: CalendarDaysIcon
   },
   {
     name: 'Contract',

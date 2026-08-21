@@ -40,5 +40,6 @@ export const COLLECTIONS = {
   EVENTS: 'events',
   RESPONSES: 'responses',
   ADMIN_SETTINGS: 'adminSettings',
-  DEALS: 'deals'
+  DEALS: 'deals',
+  FUNCTIONS: 'functions'
 } as const

@@ -3,6 +3,7 @@
     type="button"
     @click="emit('open', deal)"
     class="w-full text-left bg-white dark:bg-sm-card-dark rounded-2xl border border-gray-100 dark:border-white/10 p-3 shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all"
+    :class="{ 'drag-locked cursor-pointer': locked }"
   >
     <div class="flex items-start justify-between gap-2">
       <h4 class="font-semibold text-sm text-gray-900 dark:text-white leading-snug line-clamp-2">
@@ -23,6 +24,7 @@
     </div>
 
     <div class="mt-2 flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+      <LockClosedIcon v-if="locked" class="w-3 h-3 shrink-0 text-gray-400" title="You can only edit your own leads" />
       <span class="truncate">{{ deal.ownerName || 'Unassigned' }}</span>
       <span v-if="deal.arrivalDate">· {{ formatDate(deal.arrivalDate) }}</span>
       <span
@@ -48,12 +50,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ClockIcon, ChatBubbleLeftRightIcon } from '@heroicons/vue/24/outline'
+import { ClockIcon, ChatBubbleLeftRightIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
 import type { Deal } from '@/types/crm'
 import { formatMoney, formatDate, isOverdue } from '@/lib/crmUtils'
 
-const props = withDefaults(defineProps<{ deal: Deal; badge?: 'stage' | 'status' }>(), {
-  badge: 'stage'
+const props = withDefaults(defineProps<{ deal: Deal; badge?: 'stage' | 'status'; locked?: boolean }>(), {
+  badge: 'stage',
+  locked: false
 })
 const emit = defineEmits<{ open: [deal: Deal] }>()
 

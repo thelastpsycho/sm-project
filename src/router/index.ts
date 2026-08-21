@@ -8,6 +8,7 @@ import RFP from '@/pages/RFP.vue'
 import RFPHistory from '@/pages/RFPHistory.vue'
 import CRM from '@/pages/CRM.vue'
 import PipelineReport from '@/pages/PipelineReport.vue'
+import FunctionChart from '@/pages/FunctionChart.vue'
 import Survey from '@/pages/Survey.vue'
 import SurveyThankYou from '@/pages/SurveyThankYou.vue'
 import SurveyAdminLogin from '@/pages/SurveyAdminLogin.vue'
@@ -62,6 +63,11 @@ const router = createRouter({
       path: '/crm/report',
       name: 'crm-report',
       component: PipelineReport
+    },
+    {
+      path: '/function-chart',
+      name: 'function-chart',
+      component: FunctionChart
     },
     {
       path: '/login',

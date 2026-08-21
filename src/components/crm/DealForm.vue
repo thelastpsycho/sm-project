@@ -1,5 +1,6 @@
 <template>
-  <form id="deal-form" class="space-y-5" @submit.prevent="onSubmit">
+  <form id="deal-form" @submit.prevent="onSubmit">
+    <fieldset :disabled="disabled" class="space-y-5 min-w-0 border-0 p-0 m-0 disabled:opacity-100">
     <!-- Client & contact -->
     <SmInput v-model="form.company" label="Company" placeholder="Company / account name" required />
 
@@ -100,6 +101,7 @@
     </div>
 
     <SmTextarea v-model="form.notes" label="Notes" :rows="3" placeholder="Free notes / context" />
+    </fieldset>
   </form>
 </template>
 
@@ -114,9 +116,13 @@ import { applyRevenueCalc } from '@/lib/crmUtils'
 import userData from '@/user.json'
 import { useSessionStore } from '@/stores/session'
 
-const props = defineProps<{
-  deal?: Deal | null
-}>()
+const props = withDefaults(
+  defineProps<{
+    deal?: Deal | null
+    disabled?: boolean
+  }>(),
+  { disabled: false }
+)
 
 const emit = defineEmits<{
   submit: [payload: NewDeal]

@@ -167,13 +167,20 @@
             :delay="140"
             :delay-on-touch-only="true"
             :touch-start-threshold="6"
+            filter=".drag-locked"
+            :prevent-on-filter="false"
             ghost-class="drag-ghost"
             drag-class="drag-active"
             class="space-y-2 min-h-[4rem] rounded-xl transition-colors"
             @change="onDragChange($event, col)"
           >
             <template #item="{ element }">
-              <DealCard :deal="element" :badge="groupBy === 'status' ? 'stage' : 'status'" @open="openEdit" />
+              <DealCard
+                :deal="element"
+                :badge="groupBy === 'status' ? 'stage' : 'status'"
+                :locked="!editable(element)"
+                @open="openEdit"
+              />
             </template>
           </draggable>
           <p
@@ -249,7 +256,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useCrmStore } from '@/stores/crm'
 import { DEAL_STATUSES, DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStatus, DealStage, NewDeal } from '@/types/crm'
-import { formatMoney, canDeleteDeals } from '@/lib/crmUtils'
+import { formatMoney, canDeleteDeals, canEditDeal } from '@/lib/crmUtils'
 import userData from '@/user.json'
 import { useSessionStore } from '@/stores/session'
 
@@ -300,10 +307,16 @@ function colDot(col: string): string {
     : stageDot[col as DealStage]
 }
 
+// Only a lead's owner (or an admin) may edit it — used to lock cards from dragging.
+function editable(deal: Deal): boolean {
+  return canEditDeal(session.currentUser?.email, deal)
+}
+
 // Persist the moved card's new column to the store (status or stage).
 function onDragChange(evt: { added?: { element: Deal } }, col: string) {
   const deal = evt.added?.element
   if (!deal) return
+  if (!editable(deal)) return // defensive: locked cards shouldn't reach here
   if (groupBy.value === 'status') {
     if (deal.status !== col) store.moveStatus(deal.id, col as DealStatus)
   } else if ((deal.stage ?? 'New') !== col) {
