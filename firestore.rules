@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write access to chat settings for everyone
+    match /settings/chat {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Allow read/write access to chat sessions
+    match /chatSessions/{sessionId} {
+      allow create: if request.auth != null || request.resource.data.roomNumber != null;
+      allow read, update: if request.auth != null ||
+        resource.data.roomNumber == request.resource.data.roomNumber;
+    }
+
+    // Survey collections - allow public access (PIN-based auth in app)
+    match /events/{document=**} {
+      allow read, write: if true;
+    }
+    match /responses/{document=**} {
+      allow read, write: if true;
+    }
+    match /adminSettings/{document=**} {
+      allow read, write: if true;
+    }
+
+    // CRM / Sales pipeline - public access (PIN-based auth in app).
+    // Recursive wildcard also covers the deals/{id}/comments subcollection.
+    match /deals/{document=**} {
+      allow read, write: if true;
+    }
+
+    // Allow read access to public collections
+    match /{collection}/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

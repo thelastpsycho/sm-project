@@ -6,6 +6,8 @@ import TacticalOffer from '@/pages/TacticalOffer.vue'
 import Login from '@/pages/Login.vue'
 import RFP from '@/pages/RFP.vue'
 import RFPHistory from '@/pages/RFPHistory.vue'
+import CRM from '@/pages/CRM.vue'
+import PipelineReport from '@/pages/PipelineReport.vue'
 import Survey from '@/pages/Survey.vue'
 import SurveyThankYou from '@/pages/SurveyThankYou.vue'
 import SurveyAdminLogin from '@/pages/SurveyAdminLogin.vue'
@@ -50,6 +52,16 @@ const router = createRouter({
       path: '/rfp/:id',
       name: 'rfp-edit',
       component: RFP
+    },
+    {
+      path: '/crm',
+      name: 'crm',
+      component: CRM
+    },
+    {
+      path: '/crm/report',
+      name: 'crm-report',
+      component: PipelineReport
     },
     {
       path: '/login',

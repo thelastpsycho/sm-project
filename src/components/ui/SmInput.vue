@@ -30,7 +30,7 @@ import { computed } from 'vue'
 interface Props {
   modelValue?: string | number
   label?: string
-  type?: 'text' | 'email' | 'tel' | 'password' | 'number' | 'url'
+  type?: 'text' | 'email' | 'tel' | 'password' | 'number' | 'url' | 'date'
   name?: string
   placeholder?: string
   disabled?: boolean
@@ -57,7 +57,7 @@ defineEmits<{
 const id = computed(() => `input-${Math.random().toString(36).substr(2, 9)}`)
 
 const inputClasses = computed(() => {
-  const baseClasses = 'block w-full border-0 rounded-lg bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-offset-0 transition-all duration-200'
+  const baseClasses = 'block w-full border-0 rounded-lg bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-offset-0 transition-all duration-200 [color-scheme:light] dark:[color-scheme:dark]'
 
   const sizeClasses = {
     sm: 'px-4 py-2 text-sm',

@@ -39,5 +39,6 @@ export { app, db }
 export const COLLECTIONS = {
   EVENTS: 'events',
   RESPONSES: 'responses',
-  ADMIN_SETTINGS: 'adminSettings'
+  ADMIN_SETTINGS: 'adminSettings',
+  DEALS: 'deals'
 } as const

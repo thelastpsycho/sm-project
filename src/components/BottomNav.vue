@@ -92,6 +92,8 @@ import {
   Bars3Icon,
   XMarkIcon,
   ClipboardDocumentIcon,
+  Squares2X2Icon,
+  ChartBarIcon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
 
@@ -116,6 +118,16 @@ const navItems = [
     name: 'Chat',
     to: '/chat',
     icon: ChatBubbleLeftRightIcon
+  },
+  {
+    name: 'Pipeline',
+    to: '/crm',
+    icon: Squares2X2Icon
+  },
+  {
+    name: 'Pipeline Report',
+    to: '/crm/report',
+    icon: ChartBarIcon
   },
   {
     name: 'Contract',
