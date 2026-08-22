@@ -37,6 +37,13 @@
           <SmSelect v-model="statusFilter" size="sm" :options="statusFilterOptions" />
         </div>
         <button
+          class="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
+          title="Share a date range as an image"
+          @click="shareOpen = true"
+        >
+          <ShareIcon class="w-4 h-4" /> Share
+        </button>
+        <button
           v-if="canCreate"
           class="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-sm-primary px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
           @click="openCreate()"
@@ -426,17 +433,21 @@
       @confirm="applyMove"
       @cancel="cancelMove"
     />
+
+    <!-- Share a date range as a WhatsApp-ready image -->
+    <ShareChartDialog :open="shareOpen" :functions="store.functions" @close="shareOpen = false" />
   </SmPage>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watchEffect } from 'vue'
-import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ExclamationTriangleIcon, ShareIcon } from '@heroicons/vue/24/outline'
 import SmPage from '@/components/ui/SmPage.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import FunctionForm from '@/components/functionchart/FunctionForm.vue'
+import ShareChartDialog from '@/components/functionchart/ShareChartDialog.vue'
 import { useFunctionChartStore } from '@/stores/functionChart'
 import { useSessionStore } from '@/stores/session'
 import { usePermissionsStore } from '@/stores/permissions'
@@ -462,6 +473,7 @@ const nameW = 214
 const monthIndex = ref(7) // August
 const q = ref('')
 const statusFilter = ref<string>('ALL')
+const shareOpen = ref(false)
 
 // Panel state
 const editing = ref<FunctionBooking | null>(null)

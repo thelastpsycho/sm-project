@@ -66,17 +66,17 @@
 
           <!-- Labels (Only for Range Mode) -->
           <template v-if="mode === 'range'">
-            <span 
-              v-if="isStart(day.dateString)" 
+            <span
+              v-if="isStart(day.dateString)"
               class="relative z-20 text-[8px] font-black uppercase tracking-tighter text-white/90 -mt-1"
             >
-              Arrival
+              {{ startLabel }}
             </span>
-            <span 
-              v-if="isEnd(day.dateString)" 
+            <span
+              v-if="isEnd(day.dateString)"
               class="relative z-20 text-[8px] font-black uppercase tracking-tighter text-white/90 -mt-1"
             >
-              Departure
+              {{ endLabel }}
             </span>
           </template>
         </div>
@@ -111,8 +111,12 @@ const props = withDefaults(defineProps<{
   initialStart?: string
   initialEnd?: string
   mode?: 'range' | 'single'
+  startLabel?: string
+  endLabel?: string
 }>(), {
-  mode: 'range'
+  mode: 'range',
+  startLabel: 'Arrival',
+  endLabel: 'Departure'
 })
 
 const emit = defineEmits(['select', 'close'])
