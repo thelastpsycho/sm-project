@@ -10,18 +10,49 @@ function init() {
   }
 }
 
+// Built-in role capabilities (mirror of src/lib/roles.ts, kept inline so this
+// serverless function has no client-bundle imports).
+const BUILTIN_CAPS: Record<string, string[]> = {
+  admin: ['deals:editAll', 'deals:delete'],
+  manager: ['deals:editAll'],
+  sales: [],
+  viewer: []
+}
+
+/** Resolve a role's action capabilities: built-ins inline, custom from Firestore. */
+async function capsForRole(
+  store: FirebaseFirestore.Firestore,
+  role: string
+): Promise<string[]> {
+  if (role in BUILTIN_CAPS) return BUILTIN_CAPS[role]
+  const snap = await store.collection('settings').doc('roles').get()
+  const list = (snap.exists ? (snap.data()?.list as any[]) : []) || []
+  const def = list.find(r => r && r.id === role)
+  return Array.isArray(def?.capabilities) ? def.capabilities : []
+}
+
 /**
  * Custom claims a role gets. These are what firestore.rules reads:
- *  - admin   → full access + delete + user management
- *  - manager → `editAll` (may edit any lead, but not delete or manage users)
- *  - sales/viewer → no claims (sales edits own leads via ownerId; viewer is read-only)
+ *  - admin            → full access + delete + user management
+ *  - `deals:editAll`  → `editAll` claim (may edit any lead)
+ *  - `deals:delete`   → `canDelete` claim (may delete leads)
  * Passing the full object to setCustomUserClaims REPLACES all claims, so downgrading
  * a role cleanly removes the previous claim.
  */
-function claimsFor(role: string): Record<string, boolean> {
+function claimsFromCaps(role: string, caps: string[]): Record<string, boolean> {
   if (role === 'admin') return { admin: true }
-  if (role === 'manager') return { editAll: true }
-  return {}
+  const claims: Record<string, boolean> = {}
+  if (caps.includes('deals:editAll')) claims.editAll = true
+  if (caps.includes('deals:delete')) claims.canDelete = true
+  return claims
+}
+
+/** Resolve the custom claims for a role, reading custom-role caps as needed. */
+async function claimsFor(
+  store: FirebaseFirestore.Firestore,
+  role: string
+): Promise<Record<string, boolean>> {
+  return claimsFromCaps(role, await capsForRole(store, role))
 }
 
 /**
@@ -55,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { name, email, position, phone, role, password } = body
       if (!email || !password) return res.status(400).json({ error: 'Email and password required' })
       const user = await auth.createUser({ email, password, displayName: name })
-      await auth.setCustomUserClaims(user.uid, claimsFor(role))
+      await auth.setCustomUserClaims(user.uid, await claimsFor(store, role))
       await store.collection('users').doc(user.uid).set({
         email,
         name: name || '',
@@ -70,10 +101,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'setRole') {
       const { uid, role } = body
       if (!uid) return res.status(400).json({ error: 'uid required' })
-      await auth.setCustomUserClaims(uid, claimsFor(role))
+      await auth.setCustomUserClaims(uid, await claimsFor(store, role))
       await store.collection('users').doc(uid).update({ role })
       await auth.revokeRefreshTokens(uid) // force token refresh so the new claim applies
       return res.status(200).json({ ok: true })
+    }
+
+    if (action === 'syncRole') {
+      // Re-apply claims to everyone holding a role (used after its capabilities
+      // change) and revoke their tokens so the new claims take effect on refresh.
+      const { role } = body
+      if (!role) return res.status(400).json({ error: 'role required' })
+      const claims = await claimsFor(store, role)
+      const snap = await store.collection('users').where('role', '==', role).get()
+      await Promise.all(
+        snap.docs.map(async d => {
+          await auth.setCustomUserClaims(d.id, claims)
+          await auth.revokeRefreshTokens(d.id)
+        })
+      )
+      return res.status(200).json({ ok: true, updated: snap.size })
     }
 
     if (action === 'setStatus') {

@@ -6,8 +6,6 @@
 // nav and router react to changes live. (Action permissions like editing/deleting
 // leads are role-inherent + server-enforced — see `crmUtils.ts` / `firestore.rules`.)
 
-import type { UserRole } from '@/types/user'
-
 export type RoutePermission =
   | 'home'
   | 'chat'
@@ -39,15 +37,17 @@ export const ROUTE_PERMISSIONS: PermissionDef[] = [
   { key: 'users', label: 'Team & Access', locked: true } // admin-only, not editable
 ]
 
-export type RoleMatrix = Record<UserRole, RoutePermission[]>
+// Keyed by role id (built-in or custom).
+export type RoleMatrix = Record<string, RoutePermission[]>
 
-const ALL_ROUTES: RoutePermission[] = ROUTE_PERMISSIONS.map(p => p.key)
+export const ALL_ROUTES: RoutePermission[] = ROUTE_PERMISSIONS.map(p => p.key)
 // Everything except the admin-only Team & Access screen.
 const NON_ADMIN: RoutePermission[] = ALL_ROUTES.filter(p => p !== 'users')
 
 /**
- * Defaults preserve today's behavior: every signed-in user can reach every route
- * except Team & Access. Admins then tune each role down from the editor.
+ * Per-role defaults for the BUILT-IN roles. These preserve today's behavior: every
+ * built-in signed-in user can reach every route except Team & Access. Custom roles
+ * have no default here — they start with no route access (admins tick what they need).
  */
 export const DEFAULT_ROLE_PERMISSIONS: RoleMatrix = {
   admin: [...ALL_ROUTES],
@@ -56,21 +56,34 @@ export const DEFAULT_ROLE_PERMISSIONS: RoleMatrix = {
   viewer: [...NON_ADMIN]
 }
 
-/** Deep copy of the defaults (so callers never mutate the shared constant). */
-export function cloneDefaultMatrix(): RoleMatrix {
-  return {
-    admin: [...DEFAULT_ROLE_PERMISSIONS.admin],
-    manager: [...DEFAULT_ROLE_PERMISSIONS.manager],
-    sales: [...DEFAULT_ROLE_PERMISSIONS.sales],
-    viewer: [...DEFAULT_ROLE_PERMISSIONS.viewer]
-  }
+/** The default route list for a given role id (empty for unknown/custom roles). */
+function defaultsFor(roleId: string): RoutePermission[] {
+  return DEFAULT_ROLE_PERMISSIONS[roleId] ? [...DEFAULT_ROLE_PERMISSIONS[roleId]] : []
 }
 
-/** Merge a partial matrix (e.g. from Firestore) onto the defaults. */
-export function mergeMatrix(partial: Partial<Record<string, unknown>> | null | undefined): RoleMatrix {
-  const base = cloneDefaultMatrix()
+/** A matrix seeded with defaults for each of the given role ids. */
+export function matrixFor(roleIds: string[]): RoleMatrix {
+  const m: RoleMatrix = {}
+  for (const id of roleIds) m[id] = defaultsFor(id)
+  return m
+}
+
+/** Deep copy of the built-in defaults (so callers never mutate the shared constant). */
+export function cloneDefaultMatrix(): RoleMatrix {
+  return matrixFor(Object.keys(DEFAULT_ROLE_PERMISSIONS))
+}
+
+/**
+ * Merge a partial matrix (e.g. from Firestore) onto the defaults for `roleIds`.
+ * Unknown route keys are dropped so a stale/foreign value can't leak access.
+ */
+export function mergeMatrix(
+  partial: Partial<Record<string, unknown>> | null | undefined,
+  roleIds: string[]
+): RoleMatrix {
+  const base = matrixFor(roleIds)
   if (!partial) return base
-  for (const role of Object.keys(base) as UserRole[]) {
+  for (const role of roleIds) {
     const val = partial[role]
     if (Array.isArray(val)) {
       base[role] = val.filter((p): p is RoutePermission => ALL_ROUTES.includes(p as RoutePermission))

@@ -1,6 +1,6 @@
 import { auth } from '@/lib/firebase'
 
-export type AdminAction = 'create' | 'setRole' | 'setStatus'
+export type AdminAction = 'create' | 'setRole' | 'setStatus' | 'syncRole'
 
 /**
  * Call the admin-only serverless endpoint (`/api/admin/users`) with the caller's

@@ -1,4 +1,7 @@
-export type UserRole = 'admin' | 'manager' | 'sales' | 'viewer'
+// Roles are now data, not a fixed enum: `admin`, `manager`, `sales`, `viewer` are
+// built-in (see `src/lib/roles.ts`), and admins can mint custom roles from the Team
+// & Access screen. A role is identified by its slug id — hence a plain string.
+export type UserRole = string
 export type UserStatus = 'active' | 'disabled'
 
 /**

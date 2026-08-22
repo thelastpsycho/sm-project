@@ -2,6 +2,7 @@
 
 import type { Deal } from '@/types/crm'
 import type { Capability, UserRole } from '@/types/user'
+import { capabilitiesForRole } from '@/lib/roles'
 
 // Admin allow-list — kept as a fallback so admin access still works before/if the
 // `users` collection role isn't populated yet (e.g. mid-migration).
@@ -12,30 +13,19 @@ export const DELETE_ADMIN_EMAILS = ADMIN_EMAILS
 // The minimal shape of the signed-in user these checks need.
 export type SessionUserLike = { email?: string | null; role?: string | null } | null | undefined
 
-/**
- * Action permissions per role (write-sensitive; mirrored server-side by claims).
- *  - admin   → edit any lead + delete
- *  - manager → edit any lead (server-enforced via the `editAll` claim)
- *  - sales   → none here; edits their OWN leads (special-cased in canEditDeal)
- *  - viewer  → none (read-only)
- */
-export const ROLE_CAPABILITIES: Record<UserRole, Capability[]> = {
-  admin: ['deals:editAll', 'deals:delete'],
-  manager: ['deals:editAll'],
-  sales: [],
-  viewer: []
-}
-
 /** Resolve the effective role, honoring the admin email allow-list fallback. */
 export function effectiveRole(user: SessionUserLike): UserRole {
   if (isAdmin(user)) return 'admin'
   return ((user?.role as UserRole) ?? 'sales')
 }
 
-/** True when the user's role grants the given capability. */
+/**
+ * True when the user's role grants the given capability. Capabilities come from the
+ * role registry (built-in roles + custom roles loaded from Firestore) — see
+ * `src/lib/roles.ts`. Both edit-all and delete are mirrored server-side by claims.
+ */
 export function can(user: SessionUserLike, capability: Capability): boolean {
-  const caps = ROLE_CAPABILITIES[effectiveRole(user)] ?? ROLE_CAPABILITIES.sales
-  return caps.includes(capability)
+  return capabilitiesForRole(effectiveRole(user)).includes(capability)
 }
 
 /** Admin = role 'admin' (from the users collection) or the email allow-list fallback. */
