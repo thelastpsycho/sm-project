@@ -1,8 +1,8 @@
 // Pipeline revenue calculations, permissions, and formatting helpers.
 
 import type { Deal } from '@/types/crm'
-import type { Capability, UserRole } from '@/types/user'
-import { capabilitiesForRole } from '@/lib/roles'
+import type { UserRole } from '@/types/user'
+import { roleHas } from '@/lib/roles'
 
 // Admin allow-list — kept as a fallback so admin access still works before/if the
 // `users` collection role isn't populated yet (e.g. mid-migration).
@@ -19,15 +19,6 @@ export function effectiveRole(user: SessionUserLike): UserRole {
   return ((user?.role as UserRole) ?? 'sales')
 }
 
-/**
- * True when the user's role grants the given capability. Capabilities come from the
- * role registry (built-in roles + custom roles loaded from Firestore) — see
- * `src/lib/roles.ts`. Both edit-all and delete are mirrored server-side by claims.
- */
-export function can(user: SessionUserLike, capability: Capability): boolean {
-  return capabilitiesForRole(effectiveRole(user)).includes(capability)
-}
-
 /** Admin = role 'admin' (from the users collection) or the email allow-list fallback. */
 export function isAdmin(user: SessionUserLike): boolean {
   if (!user) return false
@@ -35,19 +26,24 @@ export function isAdmin(user: SessionUserLike): boolean {
   return !!user.email && ADMIN_EMAILS.includes(user.email)
 }
 
-/** Delete is admin-only. */
+/** Whether the user's role may create leads (`pipeline:create`). */
+export function canCreateDeal(user: SessionUserLike): boolean {
+  return roleHas(effectiveRole(user), 'pipeline:create')
+}
+
+/** Whether the user's role may delete leads (`pipeline:delete`; server-enforced). */
 export function canDeleteDeals(user: SessionUserLike): boolean {
-  return can(user, 'deals:delete')
+  return roleHas(effectiveRole(user), 'pipeline:delete')
 }
 
 /**
  * Edit rights on a lead:
- *  - anyone with deals:editAll (admin) can edit anything;
+ *  - anyone with `pipeline:edit` can edit any lead (server-enforced via editAll claim);
  *  - an unassigned lead (no owner) can be edited/claimed by anyone logged in;
  *  - otherwise only the sales owner (matched by email) can edit their own lead.
  */
 export function canEditDeal(user: SessionUserLike, deal: Pick<Deal, 'ownerId'>): boolean {
-  if (can(user, 'deals:editAll')) return true
+  if (roleHas(effectiveRole(user), 'pipeline:edit')) return true
   if (!deal.ownerId) return true
   return !!user?.email && deal.ownerId === user.email
 }

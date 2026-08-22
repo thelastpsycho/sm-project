@@ -120,7 +120,7 @@ import {
 import NotificationPanel from '@/components/NotificationPanel.vue'
 import { useNotificationsStore } from '@/stores/notifications'
 import { usePermissionsStore } from '@/stores/permissions'
-import type { RoutePermission } from '@/lib/permissions'
+import type { Permission } from '@/lib/permissions'
 
 const route = useRoute()
 const router = useRouter()
@@ -140,7 +140,7 @@ interface NavItem {
   name: string
   to: string
   icon: unknown
-  permission?: RoutePermission // when set, only shown to roles granted this route
+  permission?: Permission // when set, only shown to roles granted this permission
 }
 
 const allNavItems: NavItem[] = [
@@ -148,68 +148,68 @@ const allNavItems: NavItem[] = [
     name: 'Home',
     to: '/',
     icon: HomeIcon,
-    permission: 'home'
+    permission: 'home:access'
   },
   {
     name: 'Chat',
     to: '/chat',
     icon: ChatBubbleLeftRightIcon,
-    permission: 'chat'
+    permission: 'chat:access'
   },
   {
     name: 'Pipeline',
     to: '/crm',
     icon: Squares2X2Icon,
-    permission: 'pipeline'
+    permission: 'pipeline:view'
   },
   {
     name: 'Pipeline Report',
     to: '/crm/report',
     icon: ChartBarIcon,
-    permission: 'pipeline-report'
+    permission: 'pipeline:report'
   },
   {
     name: 'Function Chart',
     to: '/function-chart',
     icon: CalendarDaysIcon,
-    permission: 'function-chart'
+    permission: 'function:view'
   },
   {
     name: 'Contract',
     to: '/contract',
     icon: DocumentTextIcon,
-    permission: 'contract'
+    permission: 'contract:access'
   },
   {
     name: 'New RFP',
     to: '/rfp/new',
     icon: PlusIcon,
-    permission: 'rfp'
+    permission: 'rfp:create'
   },
   {
     name: 'RFP History',
     to: '/rfp',
     icon: ClipboardDocumentListIcon,
-    permission: 'rfp'
+    permission: 'rfp:view'
   },
   {
     name: 'Survey Admin',
     to: '/survey/admin',
     icon: ClipboardDocumentIcon,
-    permission: 'survey-admin'
+    permission: 'survey:view'
   },
   {
     name: 'Team & Access',
     to: '/users',
     icon: UsersIcon,
-    permission: 'users'
+    permission: 'users:access'
   }
 ]
 
 // Hide entries the current user's role isn't granted (reactive to matrix edits).
 const navItems = computed(() =>
   allNavItems.filter(
-    item => !item.permission || permissions.canAccessRoute(sessionStore.currentUser, item.permission)
+    item => !item.permission || permissions.has(sessionStore.currentUser, item.permission)
   )
 )
 

@@ -7,6 +7,8 @@ import SmInput from '@/components/ui/SmInput.vue'
 import SmPage from '@/components/ui/SmPage.vue'
 import { useSurveyStore } from '@/stores/survey'
 import { useAdminStore } from '@/stores/admin'
+import { useSessionStore } from '@/stores/session'
+import { usePermissionsStore } from '@/stores/permissions'
 import { generateSurveyUrl, copyToClipboard, formatScore, getQuestionLabel, getRoleLabel } from '@/lib/surveyUtils'
 import { DEFAULT_REVIEW_THRESHOLD } from '@/lib/surveyConstants'
 import type { AdminTab, Event, UserRole } from '@/types/survey'
@@ -37,6 +39,15 @@ useHead({
 const router = useRouter()
 const surveyStore = useSurveyStore()
 const adminStore = useAdminStore()
+const session = useSessionStore()
+const permissions = usePermissionsStore()
+
+// Granular Survey permissions (client-side gating; the survey collections are public
+// in firestore.rules). A PIN-only guest with no app session resolves to the default
+// role, preserving the prior open behavior.
+const canCreate = computed(() => permissions.has(session.currentUser, 'survey:create'))
+const canEdit = computed(() => permissions.has(session.currentUser, 'survey:edit'))
+const canDelete = computed(() => permissions.has(session.currentUser, 'survey:delete'))
 
 const activeTab = ref<AdminTab>('dashboard')
 const copiedEventId = ref<string | null>(null)
@@ -111,6 +122,7 @@ onMounted(async () => {
     return
   }
   await surveyStore.loadAllData()
+  permissions.load() // hydrate the role matrix so survey action gating is accurate
   settings.value = {
     reviewThreshold: surveyStore.adminSettings.reviewThreshold,
     googleReviewUrl: surveyStore.adminSettings.googleReviewUrl,
@@ -124,6 +136,7 @@ function handleLogout() {
 }
 
 async function handleCreateEvent() {
+  if (!canCreate.value) return // defensive: create form is hidden without permission
   if (!newEvent.value.eventName || !newEvent.value.companyName) return
 
   try {
@@ -139,6 +152,7 @@ async function handleCreateEvent() {
 }
 
 async function handleDeleteEvent(eventId: string) {
+  if (!canDelete.value) return // defensive: delete button is hidden without permission
   if (!confirm('Are you sure you want to delete this event?')) return
   try {
     await surveyStore.deleteEvent(eventId)
@@ -166,6 +180,7 @@ function getQRCodeUrl(eventId: string): string {
 }
 
 async function handleSaveSettings() {
+  if (!canEdit.value) return // defensive: settings save is hidden without permission
   try {
     await surveyStore.updateAdminSettings(settings.value)
     alert('Settings saved successfully!')
@@ -366,7 +381,7 @@ function getScorePercentage(score: number): number {
             <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Event Management</h2>
 
             <!-- Create Event Form -->
-            <SmCard class="p-3 sm:p-4">
+            <SmCard v-if="canCreate" class="p-3 sm:p-4">
               <div class="mb-3 sm:mb-4">
                 <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">Create New Event</h3>
               </div>
@@ -466,6 +481,7 @@ function getScorePercentage(score: number): number {
                       <ClipboardDocumentIcon v-else class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600 dark:text-gray-400" />
                     </button>
                     <button
+                      v-if="canDelete"
                       @click="handleDeleteEvent(event.id)"
                       class="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-rose-600 hover:text-rose-700"
                       title="Delete event"
@@ -781,7 +797,7 @@ function getScorePercentage(score: number): number {
                 </div>
 
                 <!-- Save Button -->
-                <div class="flex justify-end">
+                <div v-if="canEdit" class="flex justify-end">
                   <SmButton type="submit" class="w-full sm:w-auto text-xs sm:text-sm py-2 sm:py-2.5">
                     Save Settings
                   </SmButton>

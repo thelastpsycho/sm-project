@@ -10,49 +10,49 @@ function init() {
   }
 }
 
-// Built-in role capabilities (mirror of src/lib/roles.ts, kept inline so this
-// serverless function has no client-bundle imports).
-const BUILTIN_CAPS: Record<string, string[]> = {
-  admin: ['deals:editAll', 'deals:delete'],
-  manager: ['deals:editAll'],
+// Built-in role permission fallbacks (used only if the matrix doc is missing).
+// The write-sensitive keys are all that matter here: pipeline edit/delete.
+const BUILTIN_PERMS: Record<string, string[]> = {
+  admin: ['pipeline:edit', 'pipeline:delete'],
+  manager: ['pipeline:edit'],
   sales: [],
   viewer: []
 }
 
-/** Resolve a role's action capabilities: built-ins inline, custom from Firestore. */
-async function capsForRole(
+/** Resolve a role's granted permission keys from the matrix doc. */
+async function permsForRole(
   store: FirebaseFirestore.Firestore,
   role: string
 ): Promise<string[]> {
-  if (role in BUILTIN_CAPS) return BUILTIN_CAPS[role]
-  const snap = await store.collection('settings').doc('roles').get()
-  const list = (snap.exists ? (snap.data()?.list as any[]) : []) || []
-  const def = list.find(r => r && r.id === role)
-  return Array.isArray(def?.capabilities) ? def.capabilities : []
+  const snap = await store.collection('settings').doc('rolePermissions').get()
+  const data = snap.exists ? (snap.data() as Record<string, any>) : null
+  const list = data?.[role]
+  if (Array.isArray(list)) return list
+  return BUILTIN_PERMS[role] ?? []
 }
 
 /**
  * Custom claims a role gets. These are what firestore.rules reads:
  *  - admin            → full access + delete + user management
- *  - `deals:editAll`  → `editAll` claim (may edit any lead)
- *  - `deals:delete`   → `canDelete` claim (may delete leads)
+ *  - `pipeline:edit`  → `editAll` claim (may edit any lead)
+ *  - `pipeline:delete`→ `canDelete` claim (may delete leads)
  * Passing the full object to setCustomUserClaims REPLACES all claims, so downgrading
  * a role cleanly removes the previous claim.
  */
-function claimsFromCaps(role: string, caps: string[]): Record<string, boolean> {
+function claimsFromPerms(role: string, perms: string[]): Record<string, boolean> {
   if (role === 'admin') return { admin: true }
   const claims: Record<string, boolean> = {}
-  if (caps.includes('deals:editAll')) claims.editAll = true
-  if (caps.includes('deals:delete')) claims.canDelete = true
+  if (perms.includes('pipeline:edit')) claims.editAll = true
+  if (perms.includes('pipeline:delete')) claims.canDelete = true
   return claims
 }
 
-/** Resolve the custom claims for a role, reading custom-role caps as needed. */
+/** Resolve the custom claims for a role from its granted permissions. */
 async function claimsFor(
   store: FirebaseFirestore.Firestore,
   role: string
 ): Promise<Record<string, boolean>> {
-  return claimsFromCaps(role, await capsForRole(store, role))
+  return claimsFromPerms(role, await permsForRole(store, role))
 }
 
 /**

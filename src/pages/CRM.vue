@@ -16,7 +16,7 @@
           <ChartBarIcon class="w-4 h-4" />
           <span class="hidden sm:inline">Report</span>
         </router-link>
-        <SmButton size="sm" @click="openCreate">
+        <SmButton v-if="canCreate" size="sm" @click="openCreate">
           <PlusIcon class="w-4 h-4 mr-1" /> New Deal
         </SmButton>
       </div>
@@ -257,7 +257,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useCrmStore } from '@/stores/crm'
 import { DEAL_STATUSES, DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStatus, DealStage, NewDeal } from '@/types/crm'
-import { formatMoney, canDeleteDeals, canEditDeal } from '@/lib/crmUtils'
+import { formatMoney, canDeleteDeals, canEditDeal, canCreateDeal } from '@/lib/crmUtils'
 import userData from '@/user.json'
 import { useSessionStore } from '@/stores/session'
 
@@ -312,6 +312,9 @@ function colDot(col: string): string {
 function editable(deal: Deal): boolean {
   return canEditDeal(session.currentUser, deal)
 }
+
+// Whether the current user may create leads (gates the New Deal button).
+const canCreate = computed(() => canCreateDeal(session.currentUser))
 
 // Persist the moved card's new column to the store (status or stage).
 function onDragChange(evt: { added?: { element: Deal } }, col: string) {
@@ -473,6 +476,7 @@ watch(
 
 // ---- Modal / CRUD ----
 function openCreate() {
+  if (!canCreate.value) return // defensive: button is hidden without pipeline:create
   editing.value = null
   modalOpen.value = true
 }

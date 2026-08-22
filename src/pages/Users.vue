@@ -74,13 +74,13 @@
 
     <p v-if="apiError" class="mt-3 text-xs text-red-500">{{ apiError }}</p>
 
-    <!-- Roles & Permissions: which screens & actions each role gets -->
+    <!-- Roles & Permissions: the granular per-role access grid -->
     <section class="mt-8">
       <div class="flex items-start justify-between gap-3 mb-3">
         <div>
           <h2 class="text-lg font-bold text-gray-900 dark:text-white">Roles &amp; Permissions</h2>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            Choose what each role can open and do. Admins always have full access.
+            Tick exactly what each role can do — per feature. Admins always have full access.
           </p>
         </div>
         <SmButton size="sm" variant="ghost" @click="openCreateRole">
@@ -100,7 +100,7 @@
               :class="roleBadgeClass(role.id)"
               >{{ role.label }}</span
             >
-            <span class="text-xs text-gray-400">{{ roleHint(role) }}</span>
+            <span class="text-xs text-gray-400">{{ grantedCount(role.id) }} permissions</span>
             <button
               v-if="!role.reserved"
               type="button"
@@ -113,53 +113,31 @@
             </button>
           </div>
 
-          <!-- Action capabilities (edit-all / delete). Fixed for built-in roles. -->
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">
-            Actions
-          </p>
-          <ul class="space-y-1 mb-3">
-            <li v-for="cap in CAPABILITY_DEFS" :key="cap.key">
+          <!-- One block per feature, its actions as checkboxes -->
+          <div v-for="group in PERMISSION_CATALOG" :key="group.resource" class="mb-3 last:mb-0">
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">
+              {{ group.label }}
+            </p>
+            <div class="flex flex-wrap gap-x-4 gap-y-1">
               <label
-                class="flex items-center gap-2 py-1 text-sm"
-                :class="role.reserved ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 dark:text-gray-200 cursor-pointer'"
+                v-for="action in group.actions"
+                :key="action.key"
+                class="flex items-center gap-1.5 text-sm"
+                :class="group.locked || group.adminOnly ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 dark:text-gray-200 cursor-pointer'"
               >
                 <input
                   type="checkbox"
                   class="w-4 h-4 rounded border-gray-300 text-sm-primary focus:ring-sm-primary disabled:opacity-50"
-                  :checked="role.capabilities.includes(cap.key)"
-                  :disabled="role.reserved || permissions.saving"
-                  @change="toggleCap(role, cap.key, ($event.target as HTMLInputElement).checked)"
+                  :checked="hasPerm(role.id, permKey(group.resource, action.key))"
+                  :disabled="group.locked || group.adminOnly || permissions.saving"
+                  @change="togglePerm(role.id, permKey(group.resource, action.key), ($event.target as HTMLInputElement).checked)"
                 />
-                <span>{{ cap.label }}</span>
-                <span class="text-[10px] text-gray-400">({{ cap.hint }})</span>
+                <span>{{ action.label }}</span>
               </label>
-            </li>
-          </ul>
-
-          <!-- Screen (route) access -->
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">
-            Screens
-          </p>
-          <ul class="space-y-1">
-            <li v-for="perm in ROUTE_PERMISSIONS" :key="perm.key">
-              <label
-                class="flex items-center gap-2 py-1.5 text-sm"
-                :class="perm.locked ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 dark:text-gray-200 cursor-pointer'"
-              >
-                <input
-                  type="checkbox"
-                  class="w-4 h-4 rounded border-gray-300 text-sm-primary focus:ring-sm-primary disabled:opacity-50"
-                  :checked="hasPerm(role.id, perm.key)"
-                  :disabled="perm.locked || permissions.saving"
-                  @change="togglePerm(role.id, perm.key, ($event.target as HTMLInputElement).checked)"
-                />
-                <span>{{ perm.label }}</span>
-                <span v-if="perm.locked" class="text-[10px] text-gray-400">
-                  ({{ perm.key === 'users' ? 'admin only' : 'always on' }})
-                </span>
-              </label>
-            </li>
-          </ul>
+              <span v-if="group.locked" class="text-[10px] text-gray-400 self-center">always on</span>
+              <span v-else-if="group.adminOnly" class="text-[10px] text-gray-400 self-center">admin only</span>
+            </div>
+          </div>
         </div>
       </div>
       <p v-if="permError" class="mt-2 text-xs text-red-500">{{ permError }}</p>
@@ -181,28 +159,10 @@
         >
           <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">New role</h3>
           <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-            Name it, then pick its actions. It starts with no screen access — tick the
-            screens on its card afterwards.
+            Name it — it starts with no access. Tick its permissions on the card afterwards.
           </p>
           <form class="space-y-4" @submit.prevent="onCreateRole">
             <SmInput v-model="roleForm.label" label="Role name" placeholder="e.g. Reservations" required />
-            <div>
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Actions</p>
-              <label
-                v-for="cap in CAPABILITY_DEFS"
-                :key="cap.key"
-                class="flex items-center gap-2 py-1 text-sm text-gray-700 dark:text-gray-200 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  class="w-4 h-4 rounded border-gray-300 text-sm-primary focus:ring-sm-primary"
-                  :checked="roleForm.capabilities.includes(cap.key)"
-                  @change="toggleNewRoleCap(cap.key, ($event.target as HTMLInputElement).checked)"
-                />
-                <span>{{ cap.label }}</span>
-                <span class="text-[10px] text-gray-400">({{ cap.hint }})</span>
-              </label>
-            </div>
             <p v-if="roleFormError" class="text-xs text-red-500">{{ roleFormError }}</p>
             <div class="flex justify-end gap-2 pt-1">
               <SmButton type="button" variant="ghost" @click="roleModalOpen = false">Cancel</SmButton>
@@ -290,76 +250,61 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useUsersStore } from '@/stores/users'
 import { usePermissionsStore } from '@/stores/permissions'
 import { adminApi } from '@/lib/adminApi'
-import { ROUTE_PERMISSIONS, type RoutePermission } from '@/lib/permissions'
-import { CAPABILITY_DEFS, type RoleDef } from '@/lib/roles'
-import type { User, UserRole, Capability } from '@/types/user'
+import {
+  PERMISSION_CATALOG,
+  isLockedPermission,
+  isAdminOnlyPermission,
+  permKey,
+  type Permission
+} from '@/lib/permissions'
+import type { RoleDef } from '@/lib/roles'
+import type { User, UserRole } from '@/types/user'
 
 const store = useUsersStore()
 const permissions = usePermissionsStore()
 
 // Role picker options, built from the live role registry (built-in + custom).
 const roleOptions = computed(() =>
-  permissions.roles.map(r => ({ value: r.id, label: roleOptionLabel(r) }))
+  permissions.roles.map(r => ({ value: r.id, label: r.label }))
 )
-function roleOptionLabel(r: RoleDef): string {
-  if (r.id === 'admin') return 'Admin (full access)'
-  const caps: string[] = []
-  if (r.capabilities.includes('deals:editAll')) caps.push('edit all leads')
-  if (r.capabilities.includes('deals:delete')) caps.push('delete leads')
-  if (r.id === 'sales') caps.unshift('edit own leads')
-  return caps.length ? `${r.label} (${caps.join(', ')})` : r.label
-}
 
 // ---- Roles & Permissions matrix ----
 // Every role except admin is editable (admin always has full access).
 const editableRoles = computed(() => permissions.roles.filter(r => r.id !== 'admin'))
 const permError = ref('')
 
-function roleHint(r: RoleDef): string {
-  if (r.id === 'sales') return 'edits own leads'
-  const caps: string[] = []
-  if (r.capabilities.includes('deals:editAll')) caps.push('edit all leads')
-  if (r.capabilities.includes('deals:delete')) caps.push('delete leads')
-  return caps.length ? `can ${caps.join(' + ')}` : 'view only'
+// Permission keys that also drive server-side claims — toggling them re-syncs members.
+const CLAIM_KEYS: Permission[] = ['pipeline:edit', 'pipeline:delete']
+
+/** Count of granted (non-locked) permissions, for the card summary. */
+function grantedCount(role: UserRole): number {
+  return (permissions.matrix[role] ?? []).length
 }
 
-/** Whether a role currently has a route permission (honoring locked ones). */
-function hasPerm(role: UserRole, key: RoutePermission): boolean {
-  if (key === 'home') return true // always on
-  if (key === 'users') return false // admin only
+/** Whether a role currently holds a permission key (honoring locked/admin-only). */
+function hasPerm(role: UserRole, key: Permission): boolean {
+  if (isLockedPermission(key)) return true
+  if (isAdminOnlyPermission(key)) return false
   return (permissions.matrix[role] ?? []).includes(key)
 }
 
-async function togglePerm(role: UserRole, key: RoutePermission, checked: boolean) {
+async function togglePerm(role: UserRole, key: Permission, checked: boolean) {
   permError.value = ''
-  const current = permissions.matrix[role] ?? []
-  const next = checked ? [...new Set([...current, key])] : current.filter(p => p !== key)
   try {
-    await permissions.setRolePermissions(role, next)
-  } catch (err: any) {
-    permError.value = err?.message ?? 'Could not save permissions.'
-  }
-}
-
-/** Toggle an action capability on a custom role. */
-async function toggleCap(r: RoleDef, cap: Capability, checked: boolean) {
-  permError.value = ''
-  const next = checked
-    ? [...new Set([...r.capabilities, cap])]
-    : r.capabilities.filter(c => c !== cap)
-  try {
-    await permissions.setRoleCapabilities(r.id, next)
-    // Re-issue server-side claims to existing members so edit/delete enforcement
-    // matches. Best-effort: needs the deployed/`vercel dev` server; the Firestore
-    // save above already updates client-side gating regardless.
-    try {
-      await adminApi('syncRole', { role: r.id })
-    } catch {
-      permError.value =
-        'Saved. Members will get the new actions on their next sign-in (session refresh needs the deployed server).'
+    await permissions.togglePermission(role, key, checked)
+    // Edit/delete map to Firebase claims — re-issue them to members so server-side
+    // enforcement matches. Best-effort: needs the deployed / `vercel dev` server;
+    // the Firestore save above already updates client-side gating regardless.
+    if (CLAIM_KEYS.includes(key)) {
+      try {
+        await adminApi('syncRole', { role })
+      } catch {
+        permError.value =
+          'Saved. Members get the updated edit/delete access on next sign-in (session refresh needs the deployed server).'
+      }
     }
   } catch (err: any) {
-    permError.value = err?.message ?? 'Could not save capabilities.'
+    permError.value = err?.message ?? 'Could not save permissions.'
   }
 }
 
@@ -388,27 +333,20 @@ function roleBadgeClass(role: string): string {
 // ---- Create custom role ----
 const roleModalOpen = ref(false)
 const roleSaving = ref(false)
-const roleForm = reactive({ label: '', capabilities: [] as Capability[] })
+const roleForm = reactive({ label: '' })
 const roleFormError = ref('')
 
 function openCreateRole() {
   roleForm.label = ''
-  roleForm.capabilities = []
   roleFormError.value = ''
   roleModalOpen.value = true
-}
-
-function toggleNewRoleCap(cap: Capability, checked: boolean) {
-  roleForm.capabilities = checked
-    ? [...new Set([...roleForm.capabilities, cap])]
-    : roleForm.capabilities.filter(c => c !== cap)
 }
 
 async function onCreateRole() {
   roleFormError.value = ''
   roleSaving.value = true
   try {
-    await permissions.createRole(roleForm.label, roleForm.capabilities)
+    await permissions.createRole(roleForm.label)
     roleModalOpen.value = false
   } catch (err: any) {
     roleFormError.value = err?.message ?? 'Could not create role.'

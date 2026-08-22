@@ -1,12 +1,11 @@
-// Runtime source of truth for roles & route/nav access.
+// Runtime source of truth for roles & the granular permission matrix.
 //
 // Loads two Firestore docs:
-//   - `settings/roles`          → custom (non-built-in) role definitions
-//   - `settings/rolePermissions`→ the role -> route-access matrix
-// It merges these onto the built-in defaults, populates the shared role registry
-// (`src/lib/roles.ts`) so the pure capability helpers see custom roles, and exposes
-// reactive `roles` + `matrix` used by the nav, router guard, and Team & Access editor.
-// Admins mutate everything here (create/update/delete roles, edit route access).
+//   - `settings/roles`          → custom (non-built-in) role definitions {id,label}
+//   - `settings/rolePermissions`→ role id -> granted permission keys (`resource:action`)
+// Merges them onto the built-in defaults, mirrors both into the shared registries
+// (`src/lib/roles.ts`) so pure helpers resolve names/permissions, and exposes reactive
+// `roles` + `matrix` used by the nav, router guard, per-page buttons, and the editor.
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
@@ -15,17 +14,20 @@ import { db } from '@/lib/firebase'
 import { effectiveRole, type SessionUserLike } from '@/lib/crmUtils'
 import {
   mergeMatrix,
+  isLockedPermission,
+  isAdminOnlyPermission,
   type RoleMatrix,
-  type RoutePermission
+  type Permission
 } from '@/lib/permissions'
 import {
   BUILTIN_ROLES,
   BUILTIN_ROLE_IDS,
   setRoleRegistry,
+  setPermissionRegistry,
   slugifyRole,
   type RoleDef
 } from '@/lib/roles'
-import type { Capability, UserRole } from '@/types/user'
+import type { UserRole } from '@/types/user'
 
 const SETTINGS_COLLECTION = 'settings'
 const ROLE_PERMISSIONS_DOC = 'rolePermissions'
@@ -37,19 +39,13 @@ function parseCustomRoles(data: unknown): RoleDef[] {
   if (!Array.isArray(list)) return []
   return list
     .filter((r): r is Record<string, any> => !!r && typeof r === 'object')
-    .map(r => ({
-      id: String(r.id ?? ''),
-      label: String(r.label ?? r.id ?? ''),
-      capabilities: Array.isArray(r.capabilities)
-        ? (r.capabilities.filter((c: unknown) => typeof c === 'string') as Capability[])
-        : []
-    }))
+    .map(r => ({ id: String(r.id ?? ''), label: String(r.label ?? r.id ?? '') }))
     .filter(r => r.id && !BUILTIN_ROLE_IDS.includes(r.id))
 }
 
 export const usePermissionsStore = defineStore('permissions', () => {
-  // Built-in + custom roles. Kept reactive for the UI; also mirrored into the
-  // module-level registry (setRoleRegistry) so pure helpers resolve capabilities.
+  // Built-in + custom roles. Reactive for the UI; also mirrored into the module-level
+  // registries (setRoleRegistry / setPermissionRegistry) for the pure helpers.
   const roles = ref<RoleDef[]>([...BUILTIN_ROLES])
   const matrix = ref<RoleMatrix>(mergeMatrix(null, BUILTIN_ROLE_IDS))
   const loaded = ref(false)
@@ -59,9 +55,10 @@ export const usePermissionsStore = defineStore('permissions', () => {
   const customRoles = computed(() => roles.value.filter(r => !r.reserved))
   const roleIds = computed(() => roles.value.map(r => r.id))
 
-  /** Push the current custom roles into the shared registry (for pure helpers). */
-  function syncRegistry() {
-    setRoleRegistry(roles.value.filter(r => !r.reserved))
+  /** Push current roles + matrix into the shared registries (for pure helpers). */
+  function syncRegistries() {
+    setRoleRegistry(customRoles.value)
+    setPermissionRegistry(matrix.value)
   }
 
   /** Load once and cache the promise so the router guard can await it cheaply. */
@@ -75,11 +72,11 @@ export const usePermissionsStore = defineStore('permissions', () => {
         ])
         const custom = parseCustomRoles(rolesSnap.exists() ? rolesSnap.data() : null)
         roles.value = [...BUILTIN_ROLES, ...custom]
-        syncRegistry()
         matrix.value = mergeMatrix(
           matrixSnap.exists() ? matrixSnap.data() : null,
           roleIds.value
         )
+        syncRegistries()
       } catch (err) {
         console.error('Failed to load roles/permissions; using defaults.', err)
       } finally {
@@ -90,27 +87,37 @@ export const usePermissionsStore = defineStore('permissions', () => {
   }
 
   /**
-   * Whether the user's role can reach a route. Admin always can; 'home' is always
-   * allowed (safe landing / no redirect loops); otherwise consult the matrix.
+   * Whether the user's role is granted a permission key. Admin always is; locked keys
+   * (Home) are always granted; admin-only keys (Team & Access) never for non-admins.
    */
-  function canAccessRoute(user: SessionUserLike, perm: RoutePermission): boolean {
-    if (perm === 'home') return true
+  function has(user: SessionUserLike, key: Permission): boolean {
+    if (isLockedPermission(key)) return true
     const role = effectiveRole(user)
     if (role === 'admin') return true
-    if (perm === 'users') return false // Team & Access is always admin-only
-    return (matrix.value[role] ?? []).includes(perm)
+    if (isAdminOnlyPermission(key)) return false
+    return (matrix.value[role] ?? []).includes(key)
   }
 
-  /** Replace one role's route list and persist the whole matrix (admin only). */
-  async function setRolePermissions(role: UserRole, perms: RoutePermission[]): Promise<void> {
+  /** Replace one role's permission list and persist the whole matrix (admin only). */
+  async function setRolePermissions(role: UserRole, perms: Permission[]): Promise<void> {
     saving.value = true
     const next: RoleMatrix = { ...matrix.value, [role]: perms }
     try {
       await setDoc(doc(db, SETTINGS_COLLECTION, ROLE_PERMISSIONS_DOC), next, { merge: true })
       matrix.value = next
+      syncRegistries()
     } finally {
       saving.value = false
     }
+  }
+
+  /** Toggle a single permission key for a role. */
+  async function togglePermission(role: UserRole, key: Permission, granted: boolean): Promise<void> {
+    const current = matrix.value[role] ?? []
+    const next = granted
+      ? [...new Set([...current, key])]
+      : current.filter(p => p !== key)
+    await setRolePermissions(role, next)
   }
 
   /** Persist the current custom-role definitions to `settings/roles`. */
@@ -119,27 +126,25 @@ export const usePermissionsStore = defineStore('permissions', () => {
   }
 
   /**
-   * Create a custom role. Returns its generated id. New roles start with no route
-   * access (admins tick screens after) and the capabilities passed in.
+   * Create a custom role. Returns its generated id. New roles start with no access
+   * (admins tick permissions on its card afterwards).
    */
-  async function createRole(label: string, capabilities: Capability[] = []): Promise<string> {
+  async function createRole(label: string): Promise<string> {
     const trimmed = label.trim()
     if (!trimmed) throw new Error('Role name is required.')
-    let id = slugifyRole(trimmed)
+    const id = slugifyRole(trimmed)
     if (!id) throw new Error('Role name must contain letters or numbers.')
     if (roles.value.some(r => r.id === id)) throw new Error('A role with that name already exists.')
 
-    const def: RoleDef = { id, label: trimmed, capabilities }
     saving.value = true
     try {
-      roles.value = [...roles.value, def]
-      syncRegistry()
+      roles.value = [...roles.value, { id, label: trimmed }]
       matrix.value = { ...matrix.value, [id]: [] }
+      syncRegistries()
       await persistRoles()
     } catch (err) {
-      // Roll back optimistic state on failure.
       roles.value = roles.value.filter(r => r.id !== id)
-      syncRegistry()
+      syncRegistries()
       throw err
     } finally {
       saving.value = false
@@ -147,31 +152,17 @@ export const usePermissionsStore = defineStore('permissions', () => {
     return id
   }
 
-  /** Update a custom role's capabilities (built-in roles are fixed). */
-  async function setRoleCapabilities(id: string, capabilities: Capability[]): Promise<void> {
-    const role = roles.value.find(r => r.id === id)
-    if (!role || role.reserved) throw new Error('That role cannot be edited.')
-    saving.value = true
-    try {
-      roles.value = roles.value.map(r => (r.id === id ? { ...r, capabilities } : r))
-      syncRegistry()
-      await persistRoles()
-    } finally {
-      saving.value = false
-    }
-  }
-
-  /** Delete a custom role (built-in roles cannot be removed). */
+  /** Delete a custom role and its permissions (built-in roles cannot be removed). */
   async function deleteRole(id: string): Promise<void> {
     const role = roles.value.find(r => r.id === id)
     if (!role || role.reserved) throw new Error('That role cannot be deleted.')
     saving.value = true
     try {
       roles.value = roles.value.filter(r => r.id !== id)
-      syncRegistry()
       const nextMatrix = { ...matrix.value }
       delete nextMatrix[id]
       matrix.value = nextMatrix
+      syncRegistries()
       await Promise.all([
         persistRoles(),
         setDoc(doc(db, SETTINGS_COLLECTION, ROLE_PERMISSIONS_DOC), nextMatrix)
@@ -188,10 +179,10 @@ export const usePermissionsStore = defineStore('permissions', () => {
     loaded,
     saving,
     load,
-    canAccessRoute,
+    has,
     setRolePermissions,
+    togglePermission,
     createRole,
-    setRoleCapabilities,
     deleteRole
   }
 })

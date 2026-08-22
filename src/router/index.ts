@@ -17,7 +17,7 @@ import SurveyAdmin from '@/pages/SurveyAdmin.vue'
 import { useSessionStore } from '@/stores/session'
 import { useAdminStore } from '@/stores/admin'
 import { usePermissionsStore } from '@/stores/permissions'
-import type { RoutePermission } from '@/lib/permissions'
+import type { Permission } from '@/lib/permissions'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,13 +31,13 @@ const router = createRouter({
       path: '/chat',
       name: 'chat',
       component: Chat,
-      meta: { requiresPermission: 'chat' }
+      meta: { requiresPermission: 'chat:access' }
     },
     {
       path: '/contract',
       name: 'contract',
       component: Contract,
-      meta: { requiresPermission: 'contract' }
+      meta: { requiresPermission: 'contract:access' }
     },
     {
       path: '/tactical-offer',
@@ -48,43 +48,43 @@ const router = createRouter({
       path: '/rfp',
       name: 'rfp-history',
       component: RFPHistory,
-      meta: { requiresPermission: 'rfp' }
+      meta: { requiresPermission: 'rfp:view' }
     },
     {
       path: '/rfp/new',
       name: 'rfp-new',
       component: RFP,
-      meta: { requiresPermission: 'rfp' }
+      meta: { requiresPermission: 'rfp:create' }
     },
     {
       path: '/rfp/:id',
       name: 'rfp-edit',
       component: RFP,
-      meta: { requiresPermission: 'rfp' }
+      meta: { requiresPermission: 'rfp:edit' }
     },
     {
       path: '/crm',
       name: 'crm',
       component: CRM,
-      meta: { requiresPermission: 'pipeline' }
+      meta: { requiresPermission: 'pipeline:view' }
     },
     {
       path: '/crm/report',
       name: 'crm-report',
       component: PipelineReport,
-      meta: { requiresPermission: 'pipeline-report' }
+      meta: { requiresPermission: 'pipeline:report' }
     },
     {
       path: '/users',
       name: 'users',
       component: Users,
-      meta: { requiresPermission: 'users' }
+      meta: { requiresPermission: 'users:access' }
     },
     {
       path: '/function-chart',
       name: 'function-chart',
       component: FunctionChart,
-      meta: { requiresPermission: 'function-chart' }
+      meta: { requiresPermission: 'function:view' }
     },
     {
       path: '/login',
@@ -154,11 +154,11 @@ router.beforeEach(async (to, from, next) => {
 
   // Route/permission gating (editable role->permission matrix). 'home' is always
   // allowed, so redirecting there can never loop.
-  const requiredPerm = to.meta.requiresPermission as RoutePermission | undefined
+  const requiredPerm = to.meta.requiresPermission as Permission | undefined
   if (requiredPerm) {
     const permissions = usePermissionsStore()
     await permissions.load()
-    if (!permissions.canAccessRoute(sessionStore.currentUser, requiredPerm)) {
+    if (!permissions.has(sessionStore.currentUser, requiredPerm)) {
       next({ name: 'home' })
       return
     }

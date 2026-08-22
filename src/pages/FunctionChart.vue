@@ -37,6 +37,7 @@
           <SmSelect v-model="statusFilter" size="sm" :options="statusFilterOptions" />
         </div>
         <button
+          v-if="canCreate"
           class="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-sm-primary px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
           @click="openCreate()"
         >
@@ -217,6 +218,7 @@
           <div class="mb-2 flex items-center justify-between">
             <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedDayLabel }}</div>
             <button
+              v-if="canCreate"
               type="button"
               class="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-sm-primary hover:bg-sm-primary/10"
               @click="openCreate({ startDate: selectedDay, endDate: selectedDay })"
@@ -268,7 +270,7 @@
           </div>
           <div class="flex shrink-0 items-center gap-1">
             <button
-              v-if="editing"
+              v-if="editing && canDelete"
               type="button"
               title="Delete"
               aria-label="Delete function"
@@ -340,11 +342,21 @@ import SmInput from '@/components/ui/SmInput.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import FunctionForm from '@/components/functionchart/FunctionForm.vue'
 import { useFunctionChartStore } from '@/stores/functionChart'
+import { useSessionStore } from '@/stores/session'
+import { usePermissionsStore } from '@/stores/permissions'
 import { VENUE_STRUCTURE, canonicalVenue, comboName } from '@/lib/functionChartVenues'
 import { FUNCTION_STATUSES, STATUS_META, STATUS_STYLE } from '@/types/functionChart'
 import type { FunctionBooking, NewFunctionBooking } from '@/types/functionChart'
 
 const store = useFunctionChartStore()
+const session = useSessionStore()
+const permissions = usePermissionsStore()
+
+// Granular Function Chart permissions (client-side gating; this collection is
+// PIN/public in firestore.rules, so these hide buttons rather than reject writes).
+const canCreate = computed(() => permissions.has(session.currentUser, 'function:create'))
+const canEdit = computed(() => permissions.has(session.currentUser, 'function:edit'))
+const canDelete = computed(() => permissions.has(session.currentUser, 'function:delete'))
 
 const year = ref(2026)
 const rowH = 44
@@ -597,6 +609,7 @@ const sameDay = computed(() => {
 
 // ---- Panel actions ----
 function openCreate(defaults?: Partial<NewFunctionBooking>) {
+  if (!canCreate.value) return // defensive: create controls are hidden without permission
   editing.value = null
   createDefaults.value = defaults ?? null
   creating.value = true
@@ -614,6 +627,8 @@ function closePanel() {
 }
 
 async function onSubmit(payload: NewFunctionBooking) {
+  // Enforce edit/create permission (the form may still render for viewers).
+  if (editing.value ? !canEdit.value : !canCreate.value) return
   saving.value = true
   try {
     if (editing.value) await store.updateFunction(editing.value.id, payload)
@@ -628,6 +643,7 @@ async function onSubmit(payload: NewFunctionBooking) {
 
 async function onDelete() {
   if (!editing.value) return
+  if (!canDelete.value) return // defensive: delete button is hidden without permission
   if (!window.confirm('Delete this function?')) return
   saving.value = true
   try {
