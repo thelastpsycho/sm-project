@@ -44,6 +44,7 @@ export const COLLECTIONS = {
   RESPONSES: 'responses',
   ADMIN_SETTINGS: 'adminSettings',
   DEALS: 'deals',
+  PIPELINE_EVENTS: 'pipelineEvents',
   USERS: 'users',
   FUNCTIONS: 'functions'
 } as const

@@ -25,17 +25,17 @@
     <!-- Summary strip -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
       <div
-        v-for="s in DEAL_STATUSES"
-        :key="s"
+        v-for="s in summaryTiles"
+        :key="s.key"
         class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark px-3 py-2"
       >
         <div class="flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full" :class="statusDot[s]"></span>
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ s }}</span>
-          <span class="ml-auto text-xs text-gray-400">{{ filteredByStatus[s].length }}</span>
+          <span class="w-2 h-2 rounded-full" :class="s.dot"></span>
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ s.label }}</span>
+          <span class="ml-auto text-xs text-gray-400">{{ s.count }}</span>
         </div>
         <p class="mt-1 text-xs font-semibold text-gray-900 dark:text-white truncate">
-          {{ formatMoney(statusValue(s)) }}
+          {{ formatMoney(s.value) }}
         </p>
       </div>
     </div>
@@ -86,7 +86,7 @@
       class="mb-4 rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-2.5 space-y-2 animate-fade-in-up"
     >
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5">
-        <SmSelect v-model="filters.status" :options="statusFilterOptions" size="sm" />
+        <SmSelect v-model="filters.outcome" :options="outcomeFilterOptions" size="sm" />
         <SmSelect v-model="filters.stage" :options="stageFilterOptions" size="sm" />
         <SmSelect v-model="filters.owner" :options="ownerFilterOptions" size="sm" />
         <SmSelect v-model="filters.segment" :options="segmentFilterOptions" size="sm" />
@@ -134,28 +134,12 @@
     <!-- Loading -->
     <div v-else-if="store.loading" class="text-center py-16 text-gray-400">Loading…</div>
 
-    <!-- Kanban board -->
+    <!-- Kanban board (single pipeline axis: stages) -->
     <template v-else-if="view === 'board'">
-      <!-- Group-by toggle -->
-      <div class="flex items-center gap-2 mb-3">
-        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Group by</span>
-        <div class="inline-flex rounded-xl bg-gray-100 dark:bg-white/5 p-1">
-          <button
-            v-for="g in (['status', 'stage'] as const)"
-            :key="g"
-            @click="groupBy = g"
-            class="px-3 py-1 rounded-lg text-xs font-medium capitalize transition-colors"
-            :class="groupBy === g ? 'bg-white dark:bg-sm-card-dark text-sm-primary shadow-sm' : 'text-gray-500 dark:text-gray-400'"
-          >
-            {{ g }}
-          </button>
-        </div>
-      </div>
-
       <div class="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 snap-x">
         <div v-for="col in boardColumns" :key="col" class="shrink-0 w-72 snap-start">
           <div class="flex items-center gap-2 mb-2 px-1">
-            <span class="w-2 h-2 rounded-full" :class="colDot(col)"></span>
+            <span class="w-2 h-2 rounded-full" :class="stageDot[col]"></span>
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">{{ col }}</h3>
             <span class="text-xs text-gray-400">{{ board[col]?.length ?? 0 }}</span>
           </div>
@@ -172,12 +156,14 @@
             ghost-class="drag-ghost"
             drag-class="drag-active"
             class="space-y-2 min-h-[4rem] rounded-xl transition-colors"
+            @start="dragging = true"
+            @end="onDragEnd"
             @change="onDragChange($event, col)"
           >
             <template #item="{ element }">
               <DealCard
                 :deal="element"
-                :badge="groupBy === 'status' ? 'stage' : 'status'"
+                :now="now"
                 :locked="!editable(element)"
                 @open="openEdit"
               />
@@ -203,15 +189,15 @@
           @click="openEdit(deal)"
           class="w-full text-left px-4 py-3 bg-white dark:bg-sm-card-dark hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center gap-3"
         >
-          <span class="w-2 h-2 rounded-full shrink-0" :class="statusDot[deal.status]"></span>
+          <span class="w-2 h-2 rounded-full shrink-0" :class="stageDot[deal.stage ?? 'New']"></span>
           <div class="min-w-0 flex-1">
             <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ deal.company }}</p>
             <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {{ deal.segment }} · {{ deal.ownerName || 'Unassigned' }}
+              {{ deal.stage ?? 'New' }} · {{ deal.segment }} · {{ deal.ownerName || 'Unassigned' }}
             </p>
           </div>
           <span class="text-xs font-medium text-gray-700 dark:text-gray-200 shrink-0">
-            {{ formatMoney(deal.totalRevenue, deal.currency) }}
+            {{ formatMoney(deal.actualRevenue ?? deal.totalRevenue, deal.currency) }}
           </span>
         </button>
         <div v-if="filteredDeals.length === 0" class="px-4 py-8 text-center text-sm text-gray-400">
@@ -229,6 +215,15 @@
       @delete="onDelete"
     />
 
+    <DealOutcomePrompt
+      :open="outcomePrompt.open"
+      :mode="outcomePrompt.mode"
+      :deal="outcomePrompt.deal"
+      :loading="outcomePrompt.loading"
+      @confirm="onOutcomeConfirm"
+      @cancel="onOutcomeCancel"
+    />
+
     <ConfirmDialog
       :open="confirmDialog.open"
       :title="confirmDialog.title"
@@ -243,7 +238,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import draggable from 'vuedraggable'
 import { PlusIcon, MagnifyingGlassIcon, FunnelIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
@@ -253,11 +248,12 @@ import SmSelect from '@/components/ui/SmSelect.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import DealCard from '@/components/crm/DealCard.vue'
 import DealModal from '@/components/crm/DealModal.vue'
+import DealOutcomePrompt from '@/components/crm/DealOutcomePrompt.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useCrmStore } from '@/stores/crm'
-import { DEAL_STATUSES, DEAL_STAGES } from '@/types/crm'
-import type { Deal, DealStatus, DealStage, NewDeal } from '@/types/crm'
-import { formatMoney, canDeleteDeals, canEditDeal, canCreateDeal } from '@/lib/crmUtils'
+import { DEAL_STAGES } from '@/types/crm'
+import type { Deal, DealStage, NewDeal } from '@/types/crm'
+import { formatMoney, canDeleteDeals, canEditDeal, canCreateDeal, dealOutcome, isDealIdle, wonRevenue } from '@/lib/crmUtils'
 import userData from '@/user.json'
 import { useSessionStore } from '@/stores/session'
 
@@ -265,48 +261,35 @@ const store = useCrmStore()
 const session = useSessionStore()
 
 const view = ref<'board' | 'list'>('board')
-const groupBy = ref<'status' | 'stage'>('status')
 const showFilters = ref(false)
 const modalOpen = ref(false)
 const editing = ref<Deal | null>(null)
 const saving = ref(false)
-
-const statusDot: Record<DealStatus, string> = {
-  Active: 'bg-blue-500',
-  Idle: 'bg-amber-500',
-  Win: 'bg-green-500',
-  Lost: 'bg-red-500'
-}
+// Shared "now" for card aging — one Date rather than one per card render.
+// Refreshed roughly hourly so stage-age colors stay current without a reload.
+const now = ref(new Date())
+const agingTick = setInterval(() => (now.value = new Date()), 3_600_000)
+onUnmounted(() => clearInterval(agingTick))
 
 const stageDot: Record<DealStage, string> = {
   New: 'bg-gray-400',
   Proposal: 'bg-blue-500',
   Negotiation: 'bg-amber-500',
   Contract: 'bg-purple-500',
-  Confirmed: 'bg-green-500'
+  Confirmed: 'bg-green-500',
+  Lost: 'bg-red-500'
 }
 
-// Board grouping — columns follow the selected dimension (status or stage).
-const boardColumns = computed<readonly string[]>(() =>
-  groupBy.value === 'status' ? DEAL_STATUSES : DEAL_STAGES
-)
-function groupKey(deal: Deal): string {
-  return groupBy.value === 'status' ? deal.status : deal.stage ?? 'New'
-}
+// Board is a single axis: the pipeline stages.
+const boardColumns = DEAL_STAGES
 const filteredByGroup = computed<Record<string, Deal[]>>(() => {
   const grouped: Record<string, Deal[]> = {}
-  for (const c of boardColumns.value) grouped[c] = []
-  const fallback = boardColumns.value[0]!
+  for (const c of boardColumns) grouped[c] = []
   for (const deal of filteredDeals.value) {
-    ;(grouped[groupKey(deal)] ?? grouped[fallback]!).push(deal)
+    ;(grouped[deal.stage ?? 'New'] ?? grouped.New!).push(deal)
   }
   return grouped
 })
-function colDot(col: string): string {
-  return groupBy.value === 'status'
-    ? statusDot[col as DealStatus]
-    : stageDot[col as DealStage]
-}
 
 // Only a lead's owner (or an admin) may edit it — used to lock cards from dragging.
 function editable(deal: Deal): boolean {
@@ -316,15 +299,28 @@ function editable(deal: Deal): boolean {
 // Whether the current user may create leads (gates the New Deal button).
 const canCreate = computed(() => canCreateDeal(session.currentUser))
 
-// Persist the moved card's new column to the store (status or stage).
+// ---- Drag → stage move. Terminal columns capture reason / booked value first. ----
+const dragging = ref(false)
+
+function onDragEnd() {
+  dragging.value = false
+  rebuildBoard() // reconcile against any snapshot that arrived mid-drag
+}
+
 function onDragChange(evt: { added?: { element: Deal } }, col: string) {
   const deal = evt.added?.element
   if (!deal) return
-  if (!editable(deal)) return // defensive: locked cards shouldn't reach here
-  if (groupBy.value === 'status') {
-    if (deal.status !== col) store.moveStatus(deal.id, col as DealStatus)
-  } else if ((deal.stage ?? 'New') !== col) {
-    store.moveStage(deal.id, col as DealStage)
+  const stage = col as DealStage
+  if (!editable(deal) || (deal.stage ?? 'New') === stage) {
+    rebuildBoard() // revert a locked/no-op drop
+    return
+  }
+  if (stage === 'Lost') {
+    openOutcomePrompt('lost', deal)
+  } else if (stage === 'Confirmed') {
+    openOutcomePrompt('won', deal)
+  } else {
+    store.moveStage(deal.id, stage)
   }
 }
 
@@ -332,7 +328,7 @@ function onDragChange(evt: { added?: { element: Deal } }, col: string) {
 type DateField = 'arrivalDate' | 'leadDate' | 'checkoutDate' | 'actionDueDate'
 const filters = reactive({
   search: '',
-  status: '',
+  outcome: '',
   stage: '',
   owner: '',
   segment: '',
@@ -347,7 +343,7 @@ const filters = reactive({
 
 function clearFilters() {
   filters.search = ''
-  filters.status = ''
+  filters.outcome = ''
   filters.stage = ''
   filters.owner = ''
   filters.segment = ''
@@ -363,7 +359,7 @@ function clearFilters() {
 const activeFilterCount = computed(() => {
   let n = 0
   if (filters.search.trim()) n++
-  if (filters.status) n++
+  if (filters.outcome) n++
   if (filters.stage) n++
   if (filters.owner) n++
   if (filters.segment) n++
@@ -384,9 +380,12 @@ function toNum(v: string): number | undefined {
 const distinct = (key: keyof Deal) =>
   Array.from(new Set(store.deals.map(d => (d[key] as string) || '').filter(Boolean))).sort()
 
-const statusFilterOptions = [
-  { value: '', label: 'All statuses' },
-  ...DEAL_STATUSES.map(s => ({ value: s, label: s }))
+const outcomeFilterOptions = [
+  { value: '', label: 'All outcomes' },
+  { value: 'open', label: 'Open' },
+  { value: 'idle', label: 'Idle (untouched)' },
+  { value: 'won', label: 'Won' },
+  { value: 'lost', label: 'Lost' }
 ]
 const stageFilterOptions = [
   { value: '', label: 'All stages' },
@@ -425,7 +424,11 @@ function matches(deal: Deal): boolean {
       .toLowerCase()
     if (!hay.includes(q)) return false
   }
-  if (filters.status && deal.status !== filters.status) return false
+  if (filters.outcome) {
+    if (filters.outcome === 'idle') {
+      if (!isDealIdle(deal, now.value)) return false
+    } else if (dealOutcome(deal) !== filters.outcome) return false
+  }
   if (filters.stage && (deal.stage ?? 'New') !== filters.stage) return false
   if (filters.owner && deal.ownerName !== filters.owner) return false
   if (filters.segment && deal.segment !== filters.segment) return false
@@ -448,28 +451,39 @@ function matches(deal: Deal): boolean {
 
 const filteredDeals = computed(() => store.deals.filter(matches))
 
-const filteredByStatus = computed<Record<DealStatus, Deal[]>>(() => {
-  const grouped = Object.fromEntries(DEAL_STATUSES.map(s => [s, [] as Deal[]])) as Record<DealStatus, Deal[]>
-  for (const deal of filteredDeals.value) {
-    ;(grouped[deal.status] ?? grouped.Active).push(deal)
+// Summary strip — derived outcome tiles (Open / Idle / Won / Lost) over the filtered set.
+// Idle is a subset of Open (untouched), shown for attention; its value overlaps Open.
+const summaryTiles = computed(() => {
+  const bucket = (pred: (d: Deal) => boolean, revenue: (d: Deal) => number) => {
+    const rows = filteredDeals.value.filter(pred)
+    return { count: rows.length, value: rows.reduce((s, d) => s + revenue(d), 0) }
   }
-  return grouped
+  const open = bucket(d => dealOutcome(d) === 'open', d => d.totalRevenue ?? 0)
+  const idle = bucket(d => isDealIdle(d, now.value), d => d.totalRevenue ?? 0)
+  const won = bucket(d => dealOutcome(d) === 'won', d => wonRevenue(d))
+  const lost = bucket(d => dealOutcome(d) === 'lost', d => d.totalRevenue ?? 0)
+  return [
+    { key: 'open', label: 'Open', dot: 'bg-blue-500', ...open },
+    { key: 'idle', label: 'Idle', dot: 'bg-amber-500', ...idle },
+    { key: 'won', label: 'Won', dot: 'bg-green-500', ...won },
+    { key: 'lost', label: 'Lost', dot: 'bg-red-500', ...lost }
+  ]
 })
 
-function statusValue(s: DealStatus): number {
-  return filteredByStatus.value[s].reduce((sum, d) => sum + (d.totalRevenue ?? 0), 0)
-}
-
-// Mutable per-column mirror that vuedraggable can splice during a drag.
-// Rebuilt whenever the filtered grouping or the group-by dimension changes.
-// (Declared after filteredDeals so the immediate watch can evaluate the grouping.)
+// Mutable per-column mirror that vuedraggable can splice during a drag. Rebuilt when
+// the filtered grouping changes — but NOT mid-drag, so an incoming real-time snapshot
+// never yanks a card out from under the user (reconciled on drag end instead).
 const board = ref<Record<string, Deal[]>>({})
+function rebuildBoard() {
+  const g = filteredByGroup.value
+  const next: Record<string, Deal[]> = {}
+  for (const col of boardColumns) next[col] = [...(g[col] ?? [])]
+  board.value = next
+}
 watch(
   filteredByGroup,
-  g => {
-    const next: Record<string, Deal[]> = {}
-    for (const col of boardColumns.value) next[col] = [...(g[col] ?? [])]
-    board.value = next
+  () => {
+    if (!dragging.value) rebuildBoard()
   },
   { immediate: true }
 )
@@ -569,15 +583,63 @@ async function runImport() {
   if (count === 0) alert('Pipeline already has deals — import skipped.')
 }
 
+// ---- Lost / Won drag prompt ----
+const outcomePrompt = reactive({
+  open: false,
+  mode: 'lost' as 'lost' | 'won',
+  deal: null as Deal | null,
+  loading: false
+})
+
+function openOutcomePrompt(mode: 'lost' | 'won', deal: Deal) {
+  outcomePrompt.mode = mode
+  outcomePrompt.deal = deal
+  outcomePrompt.loading = false
+  outcomePrompt.open = true
+}
+
+async function onOutcomeConfirm(payload: { reason?: string; note?: string; actualRevenue?: number }) {
+  const deal = outcomePrompt.deal
+  if (!deal) return
+  outcomePrompt.loading = true
+  try {
+    if (outcomePrompt.mode === 'lost') {
+      await store.moveToLost(deal.id, payload.reason ?? '', payload.note)
+    } else {
+      await store.moveToWon(deal.id, payload.actualRevenue)
+    }
+    outcomePrompt.open = false
+    outcomePrompt.deal = null
+  } finally {
+    outcomePrompt.loading = false
+    rebuildBoard() // reflect the committed move (and undo the optimistic drop layout)
+  }
+}
+
+function onOutcomeCancel() {
+  outcomePrompt.open = false
+  outcomePrompt.deal = null
+  rebuildBoard() // put the dragged card back where it was
+}
+
 const route = useRoute()
 
-onMounted(async () => {
-  await store.loadDeals()
-  // Deep-link from a notification: /crm?deal=<id> opens that deal.
+onMounted(() => {
+  store.subscribe()
+  // Deep-link from a notification: /crm?deal=<id> opens that deal once loaded.
   const dealId = route.query.deal
   if (typeof dealId === 'string') {
-    const target = store.deals.find(d => d.id === dealId)
-    if (target) openEdit(target)
+    const stop = watch(
+      () => store.deals,
+      deals => {
+        const target = deals.find(d => d.id === dealId)
+        if (target) {
+          openEdit(target)
+          stop()
+        }
+      },
+      { immediate: true }
+    )
   }
 })
 </script>

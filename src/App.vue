@@ -16,18 +16,21 @@ const route = useRoute()
 
 onMounted(() => {
   themeStore.applyTheme()
-  // Foreground push (app open): refresh deals so the bell badge updates live.
-  listenForegroundPush(() => crm.loadDeals())
+  // Foreground push (app open): the real-time listener keeps deals fresh, so just
+  // ensure we're subscribed when a push arrives.
+  listenForegroundPush(() => crm.subscribe())
 })
 
-// Keep deals loaded app-wide once signed in, so the notification bell badge is live
-// on every screen (not just /crm). Reloads when a user signs in.
+// Keep deals streaming app-wide once signed in, so the notification bell badge is live
+// on every screen (not just /crm). The listener is idempotent and self-syncing.
 watch(
   () => session.isAuthenticated,
   isAuth => {
     if (isAuth) {
-      crm.loadDeals()
+      crm.subscribe()
       permissions.load() // hydrate the role->permission matrix so nav reflects it
+    } else {
+      crm.unsubscribe()
     }
   },
   { immediate: true }

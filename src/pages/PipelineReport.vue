@@ -64,7 +64,7 @@
       <div class="space-y-4">
         <!-- Status split (donut + table) -->
         <section class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4">
-          <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Pipeline value by status</h2>
+          <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Pipeline value by outcome</h2>
           <div class="flex flex-col sm:flex-row items-center gap-5">
             <div class="relative shrink-0">
               <div class="w-36 h-36 rounded-full" :style="{ background: statusDonut }"></div>
@@ -74,12 +74,12 @@
               </div>
             </div>
             <div class="flex-1 w-full space-y-2">
-              <div v-for="r in byStatus" :key="r.key" class="flex items-center gap-2 text-xs">
-                <span class="w-2.5 h-2.5 rounded-full shrink-0" :class="statusClass(r.key)"></span>
-                <span class="font-medium text-gray-700 dark:text-gray-200 w-16">{{ r.key }}</span>
+              <div v-for="r in byOutcome" :key="r.key" class="flex items-center gap-2 text-xs">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" :class="outcomeClass(r.key)"></span>
+                <span class="font-medium text-gray-700 dark:text-gray-200 w-16">{{ outcomeLabel[r.key] ?? r.key }}</span>
                 <span class="text-gray-400 w-10 text-right">{{ r.count }}</span>
                 <div class="flex-1 h-2 rounded-full bg-gray-100 dark:bg-white/5 overflow-hidden">
-                  <div class="h-full rounded-full" :class="statusClass(r.key)" :style="{ width: pct(r.value, kpis.totalValue) + '%' }"></div>
+                  <div class="h-full rounded-full" :class="outcomeClass(r.key)" :style="{ width: pct(r.value, kpis.totalValue) + '%' }"></div>
                 </div>
                 <span class="text-gray-600 dark:text-gray-300 w-28 text-right tabular-nums">{{ formatMoney(r.value) }}</span>
               </div>
@@ -204,12 +204,12 @@
           <div class="divide-y divide-gray-50 dark:divide-white/5">
             <div v-for="(d, i) in topDeals" :key="d.id" class="flex items-center gap-3 py-2">
               <span class="text-xs text-gray-400 w-5 text-right">{{ i + 1 }}</span>
-              <span class="w-2 h-2 rounded-full shrink-0" :class="statusClass(d.status)"></span>
+              <span class="w-2 h-2 rounded-full shrink-0" :class="stageClass(d.stage ?? 'New')"></span>
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ d.company }}</p>
                 <p class="text-[11px] text-gray-400 truncate">{{ d.segment }} · {{ d.stage ?? 'New' }} · {{ d.ownerName || 'Unassigned' }}</p>
               </div>
-              <span class="text-xs font-semibold text-gray-800 dark:text-gray-100 tabular-nums shrink-0">{{ formatMoney(d.totalRevenue, d.currency) }}</span>
+              <span class="text-xs font-semibold text-gray-800 dark:text-gray-100 tabular-nums shrink-0">{{ formatMoney(d.actualRevenue ?? d.totalRevenue, d.currency) }}</span>
             </div>
           </div>
         </section>
@@ -258,9 +258,9 @@ import SmSelect from '@/components/ui/SmSelect.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmButton from '@/components/ui/SmButton.vue'
 import { useCrmStore } from '@/stores/crm'
-import { DEAL_STATUSES, DEAL_STAGES } from '@/types/crm'
+import { DEAL_OUTCOMES, DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStage } from '@/types/crm'
-import { formatMoney, formatDate, isOverdue } from '@/lib/crmUtils'
+import { formatMoney, formatDate, isOverdue, dealOutcome, wonRevenue } from '@/lib/crmUtils'
 import userData from '@/user.json'
 
 const store = useCrmStore()
@@ -335,8 +335,10 @@ const deals = computed<Deal[]>(() =>
 )
 
 // ---- Helpers ----
-const sum = (arr: Deal[]) => arr.reduce((s, d) => s + (d.totalRevenue ?? 0), 0)
-const isOpen = (d: Deal) => d.status === 'Active' || d.status === 'Idle'
+// A deal's counted value: actual booked amount once won, otherwise the estimate.
+const val = (d: Deal) => (dealOutcome(d) === 'won' ? wonRevenue(d) : d.totalRevenue ?? 0)
+const sum = (arr: Deal[]) => arr.reduce((s, d) => s + val(d), 0)
+const isOpen = (d: Deal) => dealOutcome(d) === 'open'
 function pct(v: number, max: number): number {
   return max > 0 ? Math.round((v / max) * 100) : 0
 }
@@ -349,21 +351,22 @@ function winRateColor(x: number): string {
   return 'text-red-500'
 }
 
-// Stage win-probability for the weighted forecast.
+// Stage win-probability for the weighted forecast (only open stages are weighted).
 const STAGE_PROB: Record<DealStage, number> = {
   New: 0.1,
   Proposal: 0.3,
   Negotiation: 0.5,
   Contract: 0.8,
-  Confirmed: 0.95
+  Confirmed: 1,
+  Lost: 0
 }
 
 // ---- KPIs ----
 const kpis = computed(() => {
   const all = deals.value
   const open = all.filter(isOpen)
-  const won = all.filter(d => d.status === 'Win')
-  const lost = all.filter(d => d.status === 'Lost')
+  const won = all.filter(d => dealOutcome(d) === 'won')
+  const lost = all.filter(d => dealOutcome(d) === 'lost')
   const wonValue = sum(won)
   const lostValue = sum(lost)
   const decided = won.length + lost.length
@@ -428,11 +431,12 @@ function breakdown(keyFn: (d: Deal) => string, order?: readonly string[]): Row[]
       map.set(k, r)
     }
     r.count++
-    r.value += d.totalRevenue ?? 0
-    if (d.status === 'Win') {
+    r.value += val(d)
+    const outcome = dealOutcome(d)
+    if (outcome === 'won') {
       r.won++
-      r.wonValue += d.totalRevenue ?? 0
-    } else if (d.status === 'Lost') {
+      r.wonValue += val(d)
+    } else if (outcome === 'lost') {
       r.lost++
       r.lostValue += d.totalRevenue ?? 0
     }
@@ -447,7 +451,7 @@ function breakdown(keyFn: (d: Deal) => string, order?: readonly string[]): Row[]
   return rows
 }
 
-const byStatus = computed(() => breakdown(d => d.status, DEAL_STATUSES))
+const byOutcome = computed(() => breakdown(d => dealOutcome(d), DEAL_OUTCOMES))
 const byStage = computed(() => breakdown(d => d.stage ?? 'New', DEAL_STAGES))
 const bySegment = computed(() => breakdown(d => d.segment))
 const bySource = computed(() => breakdown(d => d.leadSource))
@@ -458,7 +462,7 @@ const maxOwnerValue = computed(() => Math.max(1, ...byOwner.value.map(r => r.val
 
 const lostReasons = computed(() => {
   const map = new Map<string, { key: string; count: number; value: number }>()
-  for (const d of deals.value.filter(x => x.status === 'Lost')) {
+  for (const d of deals.value.filter(x => dealOutcome(x) === 'lost')) {
     const k = d.reasonWonLost || 'Unspecified'
     let r = map.get(k)
     if (!r) {
@@ -484,14 +488,14 @@ const byMonth = computed(() => {
       map.set(k, r)
     }
     r.count++
-    r.value += d.totalRevenue ?? 0
-    if (d.status === 'Win') r.won += d.totalRevenue ?? 0
+    r.value += val(d)
+    if (dealOutcome(d) === 'won') r.won += val(d)
   }
   return [...map.values()].sort((a, b) => a.key.localeCompare(b.key))
 })
 const maxMonthValue = computed(() => Math.max(1, ...byMonth.value.map(r => r.value)))
 
-const topDeals = computed(() => [...deals.value].sort((a, b) => (b.totalRevenue ?? 0) - (a.totalRevenue ?? 0)).slice(0, 10))
+const topDeals = computed(() => [...deals.value].sort((a, b) => val(b) - val(a)).slice(0, 10))
 
 const overdue = computed(() =>
   deals.value
@@ -512,30 +516,31 @@ const upcoming = computed(() => {
 })
 
 // ---- Colors ----
-const statusColor: Record<string, string> = {
-  Active: 'bg-blue-500',
-  Idle: 'bg-amber-500',
-  Win: 'bg-green-500',
-  Lost: 'bg-red-500'
+const outcomeColor: Record<string, string> = {
+  open: 'bg-blue-500',
+  won: 'bg-green-500',
+  lost: 'bg-red-500'
 }
+const outcomeLabel: Record<string, string> = { open: 'Open', won: 'Won', lost: 'Lost' }
 const stageColor: Record<string, string> = {
   New: 'bg-gray-400',
   Proposal: 'bg-blue-500',
   Negotiation: 'bg-amber-500',
   Contract: 'bg-purple-500',
-  Confirmed: 'bg-green-500'
+  Confirmed: 'bg-green-500',
+  Lost: 'bg-red-500'
 }
-function statusClass(k: string): string {
-  return statusColor[k] ?? 'bg-gray-400'
+function outcomeClass(k: string): string {
+  return outcomeColor[k] ?? 'bg-gray-400'
 }
 function stageClass(k: string): string {
   return stageColor[k] ?? 'bg-gray-400'
 }
 
 const statusDonut = computed(() => {
-  const rows = byStatus.value
+  const rows = byOutcome.value
   const total = rows.reduce((s, r) => s + r.value, 0) || 1
-  const hex: Record<string, string> = { Active: '#3b82f6', Idle: '#f59e0b', Win: '#22c55e', Lost: '#ef4444' }
+  const hex: Record<string, string> = { open: '#3b82f6', won: '#22c55e', lost: '#ef4444' }
   let acc = 0
   const stops = rows
     .filter(r => r.value > 0)
@@ -560,7 +565,7 @@ function printReport() {
 }
 
 onMounted(() => {
-  if (!store.deals.length && !store.loading) store.loadDeals()
+  store.subscribe()
 })
 </script>
 

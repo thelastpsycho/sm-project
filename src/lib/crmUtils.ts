@@ -1,8 +1,45 @@
 // Pipeline revenue calculations, permissions, and formatting helpers.
 
-import type { Deal } from '@/types/crm'
+import type { Deal, DealOutcome, DealStage } from '@/types/crm'
 import type { UserRole } from '@/types/user'
 import { roleHas } from '@/lib/roles'
+import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
+
+/**
+ * Derived outcome of a deal from its stage (the single pipeline axis).
+ * Confirmed → won, Lost → lost, everything else → open. Never stored.
+ */
+export function dealOutcome(deal: Pick<Deal, 'stage'>): DealOutcome {
+  const stage = (deal.stage ?? 'New') as DealStage
+  if (stage === 'Confirmed') return 'won'
+  if (stage === 'Lost') return 'lost'
+  return 'open'
+}
+
+/** True while the deal is still in play (not won/lost). */
+export function isDealOpen(deal: Pick<Deal, 'stage'>): boolean {
+  return dealOutcome(deal) === 'open'
+}
+
+/**
+ * A deal is "idle" when it's still open but hasn't been touched for `untouchedDays`.
+ * Replaces the old manually-set Idle status — now derived from `updatedAt`.
+ */
+export function isDealIdle(
+  deal: Pick<Deal, 'stage' | 'updatedAt'>,
+  now: Date = new Date(),
+  untouchedDays: number = DEFAULT_ALERT_CONFIG.untouchedDays
+): boolean {
+  if (!isDealOpen(deal)) return false
+  const updated = deal.updatedAt instanceof Date ? deal.updatedAt : new Date(deal.updatedAt as any)
+  if (isNaN(updated.getTime())) return false
+  return (now.getTime() - updated.getTime()) / 86_400_000 >= untouchedDays
+}
+
+/** Revenue to count for a won deal — the actual booked value, or the estimate as fallback. */
+export function wonRevenue(deal: Pick<Deal, 'actualRevenue' | 'totalRevenue'>): number {
+  return deal.actualRevenue ?? deal.totalRevenue ?? 0
+}
 
 // Admin allow-list — kept as a fallback so admin access still works before/if the
 // `users` collection role isn't populated yet (e.g. mid-migration).

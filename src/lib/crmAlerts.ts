@@ -46,9 +46,10 @@ function startOfDay(d: Date): Date {
   return c
 }
 
-// A deal is "closed" once it's Won/Lost — no nudges needed.
+// A deal is "closed" once it reaches a terminal stage (Confirmed = won, Lost) — no nudges needed.
 function isClosed(deal: Deal): boolean {
-  return deal.status === 'Win' || deal.status === 'Lost'
+  const stage = deal.stage ?? 'New'
+  return stage === 'Confirmed' || stage === 'Lost'
 }
 
 /** Compute all active alerts for a single deal at time `now`. */

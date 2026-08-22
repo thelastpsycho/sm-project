@@ -22,14 +22,14 @@
     />
 
     <div class="grid grid-cols-2 gap-3">
-      <SmSelect v-model="form.status" label="Status" :options="statusOptions" />
       <SmSelect v-model="form.stage" label="Stage" :options="stageOptions" />
-    </div>
-
-    <div class="grid grid-cols-2 gap-3">
       <SmSelect v-model="ownerChoice" label="Sales Owner" :options="ownerOptions" />
-      <SmInput v-model="form.groupName" label="Group Name" placeholder="Optional" />
     </div>
+    <p class="text-[11px] text-gray-400 -mt-3">
+      Confirmed = won · Lost = closed lost. The outcome follows the stage.
+    </p>
+
+    <SmInput v-model="form.groupName" label="Group Name" placeholder="Optional" />
 
     <!-- Dates -->
     <div class="grid grid-cols-3 gap-3">
@@ -83,8 +83,18 @@
       Auto-calculated from Rooms × Nights × ADR (+ F&B).
     </p>
 
-    <!-- Win/Lost reason -->
-    <template v-if="form.status === 'Lost' || form.status === 'Win'">
+    <!-- Actual booked value (won) -->
+    <SmInput
+      v-if="form.stage === 'Confirmed'"
+      :model-value="numStr(form.actualRevenue)"
+      label="Actual Booked Value"
+      type="number"
+      :placeholder="String(form.totalRevenue ?? '')"
+      @update:model-value="v => (form.actualRevenue = toNum(v))"
+    />
+
+    <!-- Won/Lost reason -->
+    <template v-if="form.stage === 'Lost' || form.stage === 'Confirmed'">
       <SmSelect v-model="reasonChoice" label="Reason Won / Lost" :options="reasonOptions" />
       <SmInput
         v-if="reasonChoice === '__other'"
@@ -110,7 +120,7 @@ import { reactive, ref, computed, watch } from 'vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import SmTextarea from '@/components/ui/SmTextarea.vue'
-import { DEAL_STATUSES, DEAL_STAGES, SEGMENTS, LEAD_SOURCES, LOST_REASONS } from '@/types/crm'
+import { DEAL_STAGES, SEGMENTS, LEAD_SOURCES, LOST_REASONS } from '@/types/crm'
 import type { Deal, NewDeal } from '@/types/crm'
 import { applyRevenueCalc } from '@/lib/crmUtils'
 import userData from '@/user.json'
@@ -136,7 +146,6 @@ function blank(): NewDeal {
     company: '',
     segment: 'MICE',
     leadSource: 'Whatsapp',
-    status: 'Active',
     ownerId: user?.email ?? '',
     ownerName: user?.name ?? '',
     stage: 'New',
@@ -153,7 +162,6 @@ function toPlain(d: Deal): NewDeal {
 }
 
 // ---- Select option lists ----
-const statusOptions = DEAL_STATUSES.map(s => ({ value: s, label: s }))
 const stageOptions = DEAL_STAGES.map(s => ({ value: s, label: s }))
 const segmentOptions = [...SEGMENTS.map(s => ({ value: s, label: s })), { value: '__other', label: 'Other…' }]
 const sourceOptions = [...LEAD_SOURCES.map(s => ({ value: s, label: s })), { value: '__other', label: 'Other…' }]

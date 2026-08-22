@@ -16,10 +16,15 @@
 
     <div class="mt-1 flex items-center justify-between gap-2">
       <p class="text-xs font-medium text-sm-primary">
-        {{ formatMoney(deal.totalRevenue, deal.currency) }}
+        {{ formatMoney(deal.actualRevenue ?? deal.totalRevenue, deal.currency) }}
       </p>
-      <span :class="badgeClass" class="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full">
-        {{ badgeText }}
+      <span
+        v-if="aging"
+        :class="aging.class"
+        class="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full"
+        :title="aging.title"
+      >
+        {{ aging.label }}
       </span>
     </div>
 
@@ -51,39 +56,40 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { ClockIcon, ChatBubbleLeftRightIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
-import type { Deal } from '@/types/crm'
-import { formatMoney, formatDate, isOverdue } from '@/lib/crmUtils'
+import type { Deal, DealStage } from '@/types/crm'
+import { formatMoney, formatDate, isOverdue, dealOutcome } from '@/lib/crmUtils'
+import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
 
-const props = withDefaults(defineProps<{ deal: Deal; badge?: 'stage' | 'status'; locked?: boolean }>(), {
-  badge: 'stage',
+const props = withDefaults(defineProps<{ deal: Deal; now?: Date; locked?: boolean }>(), {
   locked: false
 })
 const emit = defineEmits<{ open: [deal: Deal] }>()
 
 const overdue = computed(() => isOverdue(props.deal.actionDueDate))
 
-// The corner badge is context-aware: show stage when the board is grouped by
-// status, and status when grouped by stage (avoids showing a redundant badge).
-const badgeText = computed(() =>
-  props.badge === 'status' ? props.deal.status : props.deal.stage ?? 'New'
-)
-const badgeClass = computed(() =>
-  props.badge === 'status' ? statusBadgeClass.value : stageBadgeClass.value
-)
+// Corner chip: for open deals show time-in-stage colored by the stage SLA (mirrors
+// the "stuck" alert severity); for terminal deals show the Won/Lost outcome.
+const aging = computed<{ label: string; class: string; title: string } | null>(() => {
+  const outcome = dealOutcome(props.deal)
+  if (outcome === 'won')
+    return { label: 'Won', class: 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300', title: 'Confirmed / won' }
+  if (outcome === 'lost')
+    return { label: 'Lost', class: 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300', title: props.deal.reasonWonLost || 'Lost' }
 
-const statusBadgeClass = computed(() => {
-  switch (props.deal.status) {
-    case 'Active':
-      return 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300'
-    case 'Idle':
-      return 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300'
-    case 'Win':
-      return 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300'
-    case 'Lost':
-      return 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300'
-    default:
-      return 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400'
+  const enteredIso = props.deal.stageEnteredAt ?? props.deal.createdAt
+  const entered = enteredIso instanceof Date ? enteredIso : new Date(enteredIso)
+  if (isNaN(entered.getTime())) return null
+  const now = props.now ?? new Date()
+  const days = Math.floor((now.getTime() - entered.getTime()) / 86_400_000)
+  const stage = (props.deal.stage ?? 'New') as DealStage
+  const sla = DEFAULT_ALERT_CONFIG.stageSlaDays[stage]
+  let cls = 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400'
+  if (sla != null) {
+    if (days >= sla * 2) cls = 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300'
+    else if (days >= sla) cls = 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300'
+    else cls = 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300'
   }
+  return { label: `${days}d in ${stage}`, class: cls, title: `In ${stage} for ${days} day${days === 1 ? '' : 's'}` }
 })
 
 const segmentBadgeClass = computed(() => {
@@ -96,21 +102,6 @@ const segmentBadgeClass = computed(() => {
       return 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300'
     default:
       return 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300'
-  }
-})
-
-const stageBadgeClass = computed(() => {
-  switch (props.deal.stage) {
-    case 'Proposal':
-      return 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300'
-    case 'Negotiation':
-      return 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300'
-    case 'Contract':
-      return 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300'
-    case 'Confirmed':
-      return 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300'
-    default: // 'New' or absent
-      return 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400'
   }
 })
 </script>
