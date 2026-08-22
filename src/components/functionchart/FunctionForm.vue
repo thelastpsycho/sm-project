@@ -72,21 +72,51 @@
         />
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <SmInput v-model="form.startDate" label="Start Date" type="date" required />
-        <SmInput v-model="form.endDate" label="End Date" type="date" required />
+      <div>
+        <label class="mb-2 block text-xs font-normal text-gray-600 dark:text-gray-400">
+          Event Dates <span class="text-red-500 ml-1">*</span>
+        </label>
+        <button type="button" :class="fieldBtnClass" @click="showDatePicker = true">
+          <span class="flex min-w-0 items-center gap-2">
+            <CalendarIcon class="h-4 w-4 shrink-0 text-sm-primary" />
+            <span v-if="dateLabel" class="truncate font-medium text-gray-900 dark:text-white">{{ dateLabel }}</span>
+            <span v-else class="text-gray-400">Select dates</span>
+          </span>
+          <ChevronRightIcon class="h-4 w-4 shrink-0 text-gray-300" />
+        </button>
       </div>
 
       <SmTextarea v-model="form.note" label="Setup Note" :rows="3" placeholder="Optional setup / context" />
     </fieldset>
   </form>
+
+  <!-- Event-dates calendar range picker (above the function panel) -->
+  <Teleport to="body">
+    <div v-if="showDatePicker" class="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4">
+      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="showDatePicker = false"></div>
+      <div class="relative w-full max-w-md">
+        <DateRangePicker
+          :initial-start="form.startDate"
+          :initial-end="form.endDate"
+          mode="range"
+          start-label="Start"
+          end-label="End"
+          allow-past
+          @select="onDatesSelect"
+          @close="showDatePicker = false"
+        />
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { reactive, computed } from 'vue'
+import { reactive, ref, computed } from 'vue'
+import { CalendarIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import SmTextarea from '@/components/ui/SmTextarea.vue'
+import DateRangePicker from '@/components/DateRangePicker.vue'
 import { FUNCTION_STATUSES, STATUS_META } from '@/types/functionChart'
 import type { FunctionBooking, NewFunctionBooking } from '@/types/functionChart'
 import { VENUE_LIST, comboGroupOf, comboName } from '@/lib/functionChartVenues'
@@ -179,6 +209,32 @@ function numStr(n?: number): string | number {
 function toNum(v: string): number {
   const n = Number(v)
   return v === '' || isNaN(n) ? 0 : n
+}
+
+// ---- Event dates (calendar range picker; single-day = same start & end) ----
+const fieldBtnClass =
+  'flex w-full items-center justify-between rounded-lg bg-gray-50 px-4 py-3 text-left text-sm ring-1 ring-gray-200 transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700'
+const showDatePicker = ref(false)
+
+function fmtShort(d?: string): string {
+  if (!d) return ''
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+function fmtFull(d?: string): string {
+  if (!d) return ''
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+const dateLabel = computed(() => {
+  const s = form.startDate
+  const e = form.endDate
+  if (!s) return ''
+  return !e || e === s ? fmtFull(s) : `${fmtShort(s)} – ${fmtShort(e)}`
+})
+
+function onDatesSelect(range: { start: string; end?: string }) {
+  form.startDate = range.start
+  form.endDate = range.end ?? range.start
+  showDatePicker.value = false
 }
 
 // ---- Venue selection (single room, or a contiguous run of adjacent rooms) ----

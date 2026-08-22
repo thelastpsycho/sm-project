@@ -32,10 +32,29 @@
     <SmInput v-model="form.groupName" label="Group Name" placeholder="Optional" />
 
     <!-- Dates -->
-    <div class="grid grid-cols-3 gap-3">
-      <SmInput v-model="form.leadDate" label="Lead Date" type="date" />
-      <SmInput v-model="form.arrivalDate" label="Arrival" type="date" />
-      <SmInput v-model="form.checkoutDate" label="Check-out" type="date" />
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="mb-2 block text-xs font-normal text-gray-600 dark:text-gray-400">Lead Date</label>
+        <button type="button" :class="fieldBtnClass" @click="openLead">
+          <span class="flex min-w-0 items-center gap-2">
+            <CalendarIcon class="h-4 w-4 shrink-0 text-sm-primary" />
+            <span v-if="form.leadDate" class="truncate font-medium text-gray-900 dark:text-white">{{ fmtFull(form.leadDate) }}</span>
+            <span v-else class="text-gray-400">Select date</span>
+          </span>
+          <ChevronRightIcon class="h-4 w-4 shrink-0 text-gray-300" />
+        </button>
+      </div>
+      <div>
+        <label class="mb-2 block text-xs font-normal text-gray-600 dark:text-gray-400">Arrival – Departure</label>
+        <button type="button" :class="fieldBtnClass" @click="openStay">
+          <span class="flex min-w-0 items-center gap-2">
+            <CalendarIcon class="h-4 w-4 shrink-0 text-sm-primary" />
+            <span v-if="stayLabel" class="truncate font-medium text-gray-900 dark:text-white">{{ stayLabel }}</span>
+            <span v-else class="text-gray-400">Select dates</span>
+          </span>
+          <ChevronRightIcon class="h-4 w-4 shrink-0 text-gray-300" />
+        </button>
+      </div>
     </div>
 
     <!-- Volume -->
@@ -107,19 +126,51 @@
     <!-- Follow-up -->
     <div class="grid grid-cols-2 gap-3">
       <SmInput v-model="form.nextAction" label="Next Action" placeholder="e.g. send reminder" />
-      <SmInput v-model="form.actionDueDate" label="Action Due Date" type="date" />
+      <div>
+        <label class="mb-2 block text-xs font-normal text-gray-600 dark:text-gray-400">Action Due Date</label>
+        <button type="button" :class="fieldBtnClass" @click="openActionDue">
+          <span class="flex min-w-0 items-center gap-2">
+            <CalendarIcon class="h-4 w-4 shrink-0 text-sm-primary" />
+            <span v-if="form.actionDueDate" class="truncate font-medium text-gray-900 dark:text-white">{{ fmtFull(form.actionDueDate) }}</span>
+            <span v-else class="text-gray-400">Select date</span>
+          </span>
+          <ChevronRightIcon class="h-4 w-4 shrink-0 text-gray-300" />
+        </button>
+      </div>
     </div>
 
     <SmTextarea v-model="form.notes" label="Notes" :rows="3" placeholder="Free notes / context" />
     </fieldset>
   </form>
+
+  <!-- Calendar picker for any date field (above the deal modal) -->
+  <Teleport to="body">
+    <div v-if="picker" class="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4">
+      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="picker = null"></div>
+      <div class="relative w-full max-w-md">
+        <DateRangePicker
+          :key="picker.key"
+          :initial-start="picker.start"
+          :initial-end="picker.end"
+          :mode="picker.mode"
+          :start-label="picker.startLabel"
+          :end-label="picker.endLabel"
+          :allow-past="picker.allowPast"
+          @select="onPickerSelect"
+          @close="picker = null"
+        />
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref, computed, watch } from 'vue'
+import { CalendarIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import SmTextarea from '@/components/ui/SmTextarea.vue'
+import DateRangePicker from '@/components/DateRangePicker.vue'
 import { DEAL_STAGES, SEGMENTS, LEAD_SOURCES, LOST_REASONS } from '@/types/crm'
 import type { Deal, NewDeal } from '@/types/crm'
 import { applyRevenueCalc } from '@/lib/crmUtils'
@@ -139,6 +190,59 @@ const emit = defineEmits<{
 }>()
 
 const session = useSessionStore()
+
+// ---- Calendar date fields (lead date · stay range · action due) ----
+// A single reusable picker modal, configured per field it's opened for.
+const fieldBtnClass =
+  'flex w-full items-center justify-between rounded-lg bg-gray-50 px-4 py-3 text-left text-sm ring-1 ring-gray-200 transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700'
+
+interface PickerCfg {
+  key: string
+  mode: 'single' | 'range'
+  start?: string
+  end?: string
+  startLabel?: string
+  endLabel?: string
+  allowPast?: boolean
+  apply: (r: { start: string; end?: string }) => void
+}
+const picker = ref<PickerCfg | null>(null)
+
+function fmtShort(d?: string): string {
+  if (!d) return ''
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+function fmtFull(d?: string): string {
+  if (!d) return ''
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+const stayLabel = computed(() => [form.arrivalDate, form.checkoutDate].filter(Boolean).map(fmtShort).join(' – '))
+
+function openLead() {
+  // Lead date is typically today or earlier, so past dates are allowed here.
+  picker.value = { key: 'lead', mode: 'single', start: form.leadDate, allowPast: true, apply: r => (form.leadDate = r.start) }
+}
+function openStay() {
+  picker.value = {
+    key: 'stay',
+    mode: 'range',
+    start: form.arrivalDate,
+    end: form.checkoutDate,
+    startLabel: 'Arrival',
+    endLabel: 'Departure',
+    apply: r => {
+      form.arrivalDate = r.start
+      form.checkoutDate = r.end
+    }
+  }
+}
+function openActionDue() {
+  picker.value = { key: 'due', mode: 'single', start: form.actionDueDate, apply: r => (form.actionDueDate = r.start) }
+}
+function onPickerSelect(r: { start: string; end?: string }) {
+  picker.value?.apply(r)
+  picker.value = null
+}
 
 function blank(): NewDeal {
   const user = session.currentUser

@@ -90,7 +90,7 @@
           <span class="font-bold text-gray-600 dark:text-gray-300">{{ formatDate(start) }}</span>
           <span v-if="mode === 'range' && end"> - <span class="font-bold text-gray-600 dark:text-gray-300">{{ formatDate(end) }}</span></span>
         </div>
-        <div v-else>Select {{ mode === 'range' ? 'arrival & departure' : 'date' }}</div>
+        <div v-else>Select {{ mode === 'range' ? `${startLabel} & ${endLabel}` : 'date' }}</div>
       </div>
       <button 
         @click="confirm"
@@ -113,10 +113,12 @@ const props = withDefaults(defineProps<{
   mode?: 'range' | 'single'
   startLabel?: string
   endLabel?: string
+  allowPast?: boolean
 }>(), {
   mode: 'range',
   startLabel: 'Arrival',
-  endLabel: 'Departure'
+  endLabel: 'Departure',
+  allowPast: false
 })
 
 const emit = defineEmits(['select', 'close'])
@@ -126,7 +128,8 @@ const monthNames = [
   "July", "August", "September", "October", "November", "December"
 ]
 
-const currentDate = ref(new Date())
+// Open on the month of the already-selected date, else the current month.
+const currentDate = ref(props.initialStart ? new Date(props.initialStart + 'T00:00:00') : new Date())
 const start = ref<string>(props.initialStart || '')
 const end = ref<string>(props.initialEnd || '')
 
@@ -190,6 +193,7 @@ const isToday = (dateString: string) => {
 }
 
 const isPast = (dateString: string) => {
+  if (props.allowPast) return false
   const today = new Date()
   today.setHours(0,0,0,0)
   return new Date(dateString) < today
