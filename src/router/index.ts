@@ -16,6 +16,8 @@ import SurveyAdminLogin from '@/pages/SurveyAdminLogin.vue'
 import SurveyAdmin from '@/pages/SurveyAdmin.vue'
 import { useSessionStore } from '@/stores/session'
 import { useAdminStore } from '@/stores/admin'
+import { usePermissionsStore } from '@/stores/permissions'
+import type { RoutePermission } from '@/lib/permissions'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,12 +30,14 @@ const router = createRouter({
     {
       path: '/chat',
       name: 'chat',
-      component: Chat
+      component: Chat,
+      meta: { requiresPermission: 'chat' }
     },
     {
       path: '/contract',
       name: 'contract',
-      component: Contract
+      component: Contract,
+      meta: { requiresPermission: 'contract' }
     },
     {
       path: '/tactical-offer',
@@ -43,38 +47,44 @@ const router = createRouter({
     {
       path: '/rfp',
       name: 'rfp-history',
-      component: RFPHistory
+      component: RFPHistory,
+      meta: { requiresPermission: 'rfp' }
     },
     {
       path: '/rfp/new',
       name: 'rfp-new',
-      component: RFP
+      component: RFP,
+      meta: { requiresPermission: 'rfp' }
     },
     {
       path: '/rfp/:id',
       name: 'rfp-edit',
-      component: RFP
+      component: RFP,
+      meta: { requiresPermission: 'rfp' }
     },
     {
       path: '/crm',
       name: 'crm',
-      component: CRM
+      component: CRM,
+      meta: { requiresPermission: 'pipeline' }
     },
     {
       path: '/crm/report',
       name: 'crm-report',
-      component: PipelineReport
+      component: PipelineReport,
+      meta: { requiresPermission: 'pipeline-report' }
     },
     {
       path: '/users',
       name: 'users',
       component: Users,
-      meta: { requiresAdmin: true }
+      meta: { requiresPermission: 'users' }
     },
     {
       path: '/function-chart',
       name: 'function-chart',
-      component: FunctionChart
+      component: FunctionChart,
+      meta: { requiresPermission: 'function-chart' }
     },
     {
       path: '/login',
@@ -132,19 +142,29 @@ router.beforeEach(async (to, from, next) => {
   sessionStore.ensureSession()
   await sessionStore.authReady
 
-  // Admin-only routes (e.g. user management)
-  if (to.meta.requiresAdmin && sessionStore.currentUser?.role !== 'admin') {
-    next({ name: sessionStore.isAuthenticated ? 'home' : 'login' })
+  // Not signed in → always to login (before any permission checks).
+  if (!sessionStore.isAuthenticated && to.name !== 'login') {
+    next({ name: 'login' })
+    return
+  }
+  if (sessionStore.isAuthenticated && to.name === 'login') {
+    next({ name: 'home' })
     return
   }
 
-  if (!sessionStore.isAuthenticated && to.name !== 'login') {
-    next({ name: 'login' })
-  } else if (sessionStore.isAuthenticated && to.name === 'login') {
-    next({ name: 'home' })
-  } else {
-    next()
+  // Route/permission gating (editable role->permission matrix). 'home' is always
+  // allowed, so redirecting there can never loop.
+  const requiredPerm = to.meta.requiresPermission as RoutePermission | undefined
+  if (requiredPerm) {
+    const permissions = usePermissionsStore()
+    await permissions.load()
+    if (!permissions.canAccessRoute(sessionStore.currentUser, requiredPerm)) {
+      next({ name: 'home' })
+      return
+    }
   }
+
+  next()
 })
 
 export default router

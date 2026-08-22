@@ -7,6 +7,13 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
+    // Role -> route permission matrix. Any signed-in user reads it (to render their
+    // nav); only an admin (custom claim) may change it.
+    match /settings/rolePermissions {
+      allow read:  if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
     // Allow read/write access to chat sessions
     match /chatSessions/{sessionId} {
       allow create: if request.auth != null || request.resource.data.roomNumber != null;
@@ -29,9 +36,11 @@ service cloud.firestore {
     match /deals/{id} {
       allow read:   if request.auth != null;
       allow create: if request.auth != null;
-      // Owner (matched by email) or admin (custom claim) may edit; unassigned = anyone.
+      // Owner (matched by email), admin, or manager (editAll claim) may edit;
+      // unassigned = anyone signed in.
       allow update: if request.auth != null && (
                        request.auth.token.admin == true
+                       || request.auth.token.editAll == true
                        || resource.data.ownerId == ''
                        || resource.data.ownerId == request.auth.token.email);
       allow delete: if request.auth != null && request.auth.token.admin == true;

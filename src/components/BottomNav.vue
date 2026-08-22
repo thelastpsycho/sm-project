@@ -119,11 +119,14 @@ import {
 } from '@heroicons/vue/24/outline'
 import NotificationPanel from '@/components/NotificationPanel.vue'
 import { useNotificationsStore } from '@/stores/notifications'
+import { usePermissionsStore } from '@/stores/permissions'
+import type { RoutePermission } from '@/lib/permissions'
 
 const route = useRoute()
 const router = useRouter()
 const sessionStore = useSessionStore()
 const notifications = useNotificationsStore()
+const permissions = usePermissionsStore()
 const isOpen = ref(false)
 const showNotifications = ref(false)
 
@@ -137,66 +140,77 @@ interface NavItem {
   name: string
   to: string
   icon: unknown
-  adminOnly?: boolean
+  permission?: RoutePermission // when set, only shown to roles granted this route
 }
 
 const allNavItems: NavItem[] = [
   {
     name: 'Home',
     to: '/',
-    icon: HomeIcon
+    icon: HomeIcon,
+    permission: 'home'
   },
   {
     name: 'Chat',
     to: '/chat',
-    icon: ChatBubbleLeftRightIcon
+    icon: ChatBubbleLeftRightIcon,
+    permission: 'chat'
   },
   {
     name: 'Pipeline',
     to: '/crm',
-    icon: Squares2X2Icon
+    icon: Squares2X2Icon,
+    permission: 'pipeline'
   },
   {
     name: 'Pipeline Report',
     to: '/crm/report',
-    icon: ChartBarIcon
+    icon: ChartBarIcon,
+    permission: 'pipeline-report'
   },
   {
     name: 'Function Chart',
     to: '/function-chart',
-    icon: CalendarDaysIcon
+    icon: CalendarDaysIcon,
+    permission: 'function-chart'
   },
   {
     name: 'Contract',
     to: '/contract',
-    icon: DocumentTextIcon
+    icon: DocumentTextIcon,
+    permission: 'contract'
   },
   {
     name: 'New RFP',
     to: '/rfp/new',
-    icon: PlusIcon
+    icon: PlusIcon,
+    permission: 'rfp'
   },
   {
     name: 'RFP History',
     to: '/rfp',
-    icon: ClipboardDocumentListIcon
+    icon: ClipboardDocumentListIcon,
+    permission: 'rfp'
   },
   {
     name: 'Survey Admin',
     to: '/survey/admin',
-    icon: ClipboardDocumentIcon
+    icon: ClipboardDocumentIcon,
+    permission: 'survey-admin'
   },
   {
     name: 'Team & Access',
     to: '/users',
     icon: UsersIcon,
-    adminOnly: true
+    permission: 'users'
   }
 ]
 
-// Hide admin-only entries from non-admins.
+// Hide entries the current user's role isn't granted (reactive to matrix edits).
 const navItems = computed(() =>
-  allNavItems.filter(item => !item.adminOnly || sessionStore.currentUser?.role === 'admin')
+  allNavItems.filter(
+    item => !item.permission || permissions.canAccessRoute(sessionStore.currentUser, item.permission)
+  )
 )
 
 const isActive = (item: { to: string }) => {

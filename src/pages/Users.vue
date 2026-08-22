@@ -28,9 +28,10 @@
           <div class="flex items-center gap-2">
             <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ u.name }}</p>
             <span
-              v-if="u.role === 'admin'"
-              class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300"
-              >ADMIN</span
+              v-if="u.role && u.role !== 'sales'"
+              class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase"
+              :class="roleBadgeClass(u.role)"
+              >{{ u.role }}</span
             >
             <span
               class="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
@@ -72,6 +73,55 @@
     </div>
 
     <p v-if="apiError" class="mt-3 text-xs text-red-500">{{ apiError }}</p>
+
+    <!-- Roles & Permissions: which screens each role can open -->
+    <section class="mt-8">
+      <div class="mb-3">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Roles &amp; Permissions</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Choose which screens each role can open. Admins always have full access.
+        </p>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div
+          v-for="role in editableRoles"
+          :key="role"
+          class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4"
+        >
+          <div class="flex items-center gap-2 mb-3">
+            <span
+              class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase"
+              :class="roleBadgeClass(role)"
+              >{{ role }}</span
+            >
+            <span class="text-xs text-gray-400">{{ roleHint(role) }}</span>
+          </div>
+
+          <ul class="space-y-1">
+            <li v-for="perm in ROUTE_PERMISSIONS" :key="perm.key">
+              <label
+                class="flex items-center gap-2 py-1.5 text-sm"
+                :class="perm.locked ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 dark:text-gray-200 cursor-pointer'"
+              >
+                <input
+                  type="checkbox"
+                  class="w-4 h-4 rounded border-gray-300 text-sm-primary focus:ring-sm-primary disabled:opacity-50"
+                  :checked="hasPerm(role, perm.key)"
+                  :disabled="perm.locked || permissions.saving"
+                  @change="togglePerm(role, perm.key, ($event.target as HTMLInputElement).checked)"
+                />
+                <span>{{ perm.label }}</span>
+                <span v-if="perm.locked" class="text-[10px] text-gray-400">
+                  ({{ perm.key === 'users' ? 'admin only' : 'always on' }})
+                </span>
+              </label>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <p v-if="permError" class="mt-2 text-xs text-red-500">{{ permError }}</p>
+    </section>
 
     <!-- Edit / create modal -->
     <Transition
@@ -147,15 +197,64 @@ import SmInput from '@/components/ui/SmInput.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useUsersStore } from '@/stores/users'
+import { usePermissionsStore } from '@/stores/permissions'
 import { adminApi } from '@/lib/adminApi'
+import { ROUTE_PERMISSIONS, type RoutePermission } from '@/lib/permissions'
 import type { User, UserRole } from '@/types/user'
 
 const store = useUsersStore()
+const permissions = usePermissionsStore()
 
 const roleOptions = [
-  { value: 'sales', label: 'Sales' },
-  { value: 'admin', label: 'Admin' }
+  { value: 'sales', label: 'Sales (edit own leads)' },
+  { value: 'manager', label: 'Manager (edit all leads)' },
+  { value: 'viewer', label: 'Viewer (read-only)' },
+  { value: 'admin', label: 'Admin (full access)' }
 ]
+
+// ---- Roles & Permissions matrix ----
+const editableRoles: UserRole[] = ['manager', 'sales', 'viewer']
+const permError = ref('')
+
+const roleHints: Record<string, string> = {
+  manager: 'can edit all leads',
+  sales: 'edits own leads',
+  viewer: 'read-only'
+}
+function roleHint(role: string): string {
+  return roleHints[role] ?? ''
+}
+
+/** Whether a role currently has a route permission (honoring locked ones). */
+function hasPerm(role: UserRole, key: RoutePermission): boolean {
+  if (key === 'home') return true // always on
+  if (key === 'users') return false // admin only
+  return (permissions.matrix[role] ?? []).includes(key)
+}
+
+async function togglePerm(role: UserRole, key: RoutePermission, checked: boolean) {
+  permError.value = ''
+  const current = permissions.matrix[role] ?? []
+  const next = checked ? [...new Set([...current, key])] : current.filter(p => p !== key)
+  try {
+    await permissions.setRolePermissions(role, next)
+  } catch (err: any) {
+    permError.value = err?.message ?? 'Could not save permissions.'
+  }
+}
+
+function roleBadgeClass(role: string): string {
+  switch (role) {
+    case 'admin':
+      return 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300'
+    case 'manager':
+      return 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300'
+    case 'viewer':
+      return 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300'
+    default:
+      return 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400'
+  }
+}
 
 const modalOpen = ref(false)
 const editing = ref<User | null>(null)
@@ -262,5 +361,8 @@ function askToggle(u: User) {
   confirm.open = true
 }
 
-onMounted(() => store.loadUsers())
+onMounted(() => {
+  store.loadUsers()
+  permissions.load()
+})
 </script>

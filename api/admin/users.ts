@@ -11,6 +11,20 @@ function init() {
 }
 
 /**
+ * Custom claims a role gets. These are what firestore.rules reads:
+ *  - admin   → full access + delete + user management
+ *  - manager → `editAll` (may edit any lead, but not delete or manage users)
+ *  - sales/viewer → no claims (sales edits own leads via ownerId; viewer is read-only)
+ * Passing the full object to setCustomUserClaims REPLACES all claims, so downgrading
+ * a role cleanly removes the previous claim.
+ */
+function claimsFor(role: string): Record<string, boolean> {
+  if (role === 'admin') return { admin: true }
+  if (role === 'manager') return { editAll: true }
+  return {}
+}
+
+/**
  * Admin-only user management: create users, change role (custom claim + doc), and
  * activate/deactivate (Auth `disabled` flag + `users/{uid}.status`). The caller must
  * present a valid Firebase ID token carrying the `admin` custom claim.
@@ -41,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { name, email, position, phone, role, password } = body
       if (!email || !password) return res.status(400).json({ error: 'Email and password required' })
       const user = await auth.createUser({ email, password, displayName: name })
-      if (role === 'admin') await auth.setCustomUserClaims(user.uid, { admin: true })
+      await auth.setCustomUserClaims(user.uid, claimsFor(role))
       await store.collection('users').doc(user.uid).set({
         email,
         name: name || '',
@@ -56,8 +70,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'setRole') {
       const { uid, role } = body
       if (!uid) return res.status(400).json({ error: 'uid required' })
-      await auth.setCustomUserClaims(uid, { admin: role === 'admin' })
+      await auth.setCustomUserClaims(uid, claimsFor(role))
       await store.collection('users').doc(uid).update({ role })
+      await auth.revokeRefreshTokens(uid) // force token refresh so the new claim applies
       return res.status(200).json({ ok: true })
     }
 

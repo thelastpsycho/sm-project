@@ -1,6 +1,7 @@
-// Pipeline revenue calculations and formatting helpers.
+// Pipeline revenue calculations, permissions, and formatting helpers.
 
 import type { Deal } from '@/types/crm'
+import type { Capability, UserRole } from '@/types/user'
 
 // Admin allow-list — kept as a fallback so admin access still works before/if the
 // `users` collection role isn't populated yet (e.g. mid-migration).
@@ -11,6 +12,32 @@ export const DELETE_ADMIN_EMAILS = ADMIN_EMAILS
 // The minimal shape of the signed-in user these checks need.
 export type SessionUserLike = { email?: string | null; role?: string | null } | null | undefined
 
+/**
+ * Action permissions per role (write-sensitive; mirrored server-side by claims).
+ *  - admin   → edit any lead + delete
+ *  - manager → edit any lead (server-enforced via the `editAll` claim)
+ *  - sales   → none here; edits their OWN leads (special-cased in canEditDeal)
+ *  - viewer  → none (read-only)
+ */
+export const ROLE_CAPABILITIES: Record<UserRole, Capability[]> = {
+  admin: ['deals:editAll', 'deals:delete'],
+  manager: ['deals:editAll'],
+  sales: [],
+  viewer: []
+}
+
+/** Resolve the effective role, honoring the admin email allow-list fallback. */
+export function effectiveRole(user: SessionUserLike): UserRole {
+  if (isAdmin(user)) return 'admin'
+  return ((user?.role as UserRole) ?? 'sales')
+}
+
+/** True when the user's role grants the given capability. */
+export function can(user: SessionUserLike, capability: Capability): boolean {
+  const caps = ROLE_CAPABILITIES[effectiveRole(user)] ?? ROLE_CAPABILITIES.sales
+  return caps.includes(capability)
+}
+
 /** Admin = role 'admin' (from the users collection) or the email allow-list fallback. */
 export function isAdmin(user: SessionUserLike): boolean {
   if (!user) return false
@@ -20,17 +47,17 @@ export function isAdmin(user: SessionUserLike): boolean {
 
 /** Delete is admin-only. */
 export function canDeleteDeals(user: SessionUserLike): boolean {
-  return isAdmin(user)
+  return can(user, 'deals:delete')
 }
 
 /**
  * Edit rights on a lead:
- *  - admin can edit anything;
+ *  - anyone with deals:editAll (admin) can edit anything;
  *  - an unassigned lead (no owner) can be edited/claimed by anyone logged in;
  *  - otherwise only the sales owner (matched by email) can edit their own lead.
  */
 export function canEditDeal(user: SessionUserLike, deal: Pick<Deal, 'ownerId'>): boolean {
-  if (isAdmin(user)) return true
+  if (can(user, 'deals:editAll')) return true
   if (!deal.ownerId) return true
   return !!user?.email && deal.ownerId === user.email
 }

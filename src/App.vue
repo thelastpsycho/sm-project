@@ -5,11 +5,13 @@ import BottomNav from '@/components/BottomNav.vue'
 import { useThemeStore } from '@/stores/theme'
 import { useSessionStore } from '@/stores/session'
 import { useCrmStore } from '@/stores/crm'
+import { usePermissionsStore } from '@/stores/permissions'
 import { listenForegroundPush } from '@/lib/push'
 
 const themeStore = useThemeStore()
 const session = useSessionStore()
 const crm = useCrmStore()
+const permissions = usePermissionsStore()
 const route = useRoute()
 
 onMounted(() => {
@@ -23,7 +25,10 @@ onMounted(() => {
 watch(
   () => session.isAuthenticated,
   isAuth => {
-    if (isAuth) crm.loadDeals()
+    if (isAuth) {
+      crm.loadDeals()
+      permissions.load() // hydrate the role->permission matrix so nav reflects it
+    }
   },
   { immediate: true }
 )
