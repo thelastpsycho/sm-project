@@ -166,6 +166,7 @@
                 :now="now"
                 :locked="!editable(element)"
                 @open="openEdit"
+                @move="onQuickMove"
               />
             </template>
           </draggable>
@@ -315,6 +316,19 @@ function onDragChange(evt: { added?: { element: Deal } }, col: string) {
     rebuildBoard() // revert a locked/no-op drop
     return
   }
+  if (stage === 'Lost') {
+    openOutcomePrompt('lost', deal)
+  } else if (stage === 'Confirmed') {
+    openOutcomePrompt('won', deal)
+  } else {
+    store.moveStage(deal.id, stage)
+  }
+}
+
+// Quick stage change from a card's badge menu (no drag). Same routing as a drop:
+// terminal stages capture reason / booked value first.
+function onQuickMove({ deal, stage }: { deal: Deal; stage: DealStage }) {
+  if (!editable(deal) || (deal.stage ?? 'New') === stage) return
   if (stage === 'Lost') {
     openOutcomePrompt('lost', deal)
   } else if (stage === 'Confirmed') {

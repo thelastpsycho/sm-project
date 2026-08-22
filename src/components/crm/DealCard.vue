@@ -20,11 +20,15 @@
       </p>
       <span
         v-if="aging"
-        :class="aging.class"
-        class="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full"
-        :title="aging.title"
+        ref="stageChip"
+        :class="[aging.class, locked ? '' : 'cursor-pointer hover:ring-1 hover:ring-inset hover:ring-current/40']"
+        class="shrink-0 inline-flex items-center gap-0.5 text-[10px] font-medium px-2 py-0.5 rounded-full select-none transition-shadow"
+        :title="locked ? aging.title : 'Change stage'"
+        role="button"
+        @click.stop.prevent="toggleMenu"
       >
         {{ aging.label }}
+        <ChevronUpDownIcon v-if="!locked" class="w-3 h-3 -mr-0.5 opacity-60" />
       </span>
     </div>
 
@@ -50,12 +54,43 @@
       <span class="truncate">{{ deal.nextAction }}</span>
       <span v-if="deal.actionDueDate">· {{ formatDate(deal.actionDueDate) }}</span>
     </div>
+
+    <!-- Quick stage picker (teleported so the board's horizontal scroll can't clip it) -->
+    <Teleport to="body">
+      <template v-if="menuOpen">
+        <div class="fixed inset-0 z-40" @click.stop="closeMenu" @contextmenu.prevent="closeMenu"></div>
+        <div
+          class="fixed z-50 w-40 rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark shadow-lg py-1"
+          :style="menuStyle"
+        >
+          <button
+            v-for="s in DEAL_STAGES"
+            :key="s"
+            type="button"
+            @click.stop="pick(s)"
+            class="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+            :class="s === currentStage ? 'font-semibold text-sm-primary' : 'text-gray-700 dark:text-gray-200'"
+          >
+            <span class="w-2 h-2 rounded-full shrink-0" :class="stageDot[s]"></span>
+            {{ s }}
+            <CheckIcon v-if="s === currentStage" class="w-3.5 h-3.5 ml-auto shrink-0" />
+          </button>
+        </div>
+      </template>
+    </Teleport>
   </button>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { ClockIcon, ChatBubbleLeftRightIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
+import { computed, ref, watch, onUnmounted } from 'vue'
+import {
+  ClockIcon,
+  ChatBubbleLeftRightIcon,
+  LockClosedIcon,
+  ChevronUpDownIcon,
+  CheckIcon
+} from '@heroicons/vue/24/outline'
+import { DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStage } from '@/types/crm'
 import { formatMoney, formatDate, isOverdue, dealOutcome } from '@/lib/crmUtils'
 import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
@@ -63,9 +98,66 @@ import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
 const props = withDefaults(defineProps<{ deal: Deal; now?: Date; locked?: boolean }>(), {
   locked: false
 })
-const emit = defineEmits<{ open: [deal: Deal] }>()
+const emit = defineEmits<{ open: [deal: Deal]; move: [payload: { deal: Deal; stage: DealStage }] }>()
 
 const overdue = computed(() => isOverdue(props.deal.actionDueDate))
+const currentStage = computed<DealStage>(() => (props.deal.stage ?? 'New') as DealStage)
+
+// Column dots, mirrored from the board so the picker reads the same as the columns.
+const stageDot: Record<DealStage, string> = {
+  New: 'bg-gray-400',
+  Proposal: 'bg-blue-500',
+  Negotiation: 'bg-amber-500',
+  Contract: 'bg-purple-500',
+  Confirmed: 'bg-green-500',
+  Lost: 'bg-red-500'
+}
+
+// ---- Quick stage picker ----
+const stageChip = ref<HTMLElement>()
+const menuOpen = ref(false)
+const menuStyle = ref<Record<string, string>>({})
+
+function closeMenu() {
+  menuOpen.value = false
+}
+
+function toggleMenu() {
+  if (props.locked) return
+  if (menuOpen.value) return closeMenu()
+  const el = stageChip.value
+  if (!el) return
+  const r = el.getBoundingClientRect()
+  const width = 160
+  const height = DEAL_STAGES.length * 32 + 8
+  // Right-align to the chip; flip above when there isn't room below.
+  const left = Math.min(Math.max(8, r.right - width), window.innerWidth - width - 8)
+  const top = r.bottom + height + 8 > window.innerHeight ? r.top - height - 4 : r.bottom + 4
+  menuStyle.value = { left: `${left}px`, top: `${Math.max(8, top)}px` }
+  menuOpen.value = true
+}
+
+function pick(stage: DealStage) {
+  closeMenu()
+  if (stage === currentStage.value) return
+  emit('move', { deal: props.deal, stage })
+}
+
+// The menu is fixed-positioned, so dismiss it if the viewport shifts underneath it.
+function onKey(e: KeyboardEvent) {
+  if (e.key === 'Escape') closeMenu()
+}
+watch(menuOpen, open => {
+  const fn = open ? 'addEventListener' : 'removeEventListener'
+  document[fn]('keydown', onKey as EventListener)
+  window[fn]('scroll', closeMenu, true)
+  window[fn]('resize', closeMenu)
+})
+onUnmounted(() => {
+  document.removeEventListener('keydown', onKey as EventListener)
+  window.removeEventListener('scroll', closeMenu, true)
+  window.removeEventListener('resize', closeMenu)
+})
 
 // Corner chip: for open deals show time-in-stage colored by the stage SLA (mirrors
 // the "stuck" alert severity); for terminal deals show the Won/Lost outcome.
