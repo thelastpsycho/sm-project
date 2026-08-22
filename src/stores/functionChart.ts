@@ -116,6 +116,50 @@ export const useFunctionChartStore = defineStore('functionChart', () => {
   }
 
   /**
+   * One-time cleanup: remove exact-duplicate bookings left behind by a double
+   * import. Two docs are "the same" when every business field matches (event,
+   * company, owner, pax, venues, start/end). Keeps the first of each group and
+   * deletes the rest. Idempotent — no-ops once the collection is clean. Returns
+   * the number of redundant docs removed.
+   */
+  async function dedupeFunctions(): Promise<number> {
+    try {
+      const snapshot = await getDocs(collection(db, COLLECTIONS.FUNCTIONS))
+      const seen = new Set<string>()
+      const toDelete: string[] = []
+      for (const d of snapshot.docs) {
+        const data = d.data()
+        const venues = Array.isArray(data.venues) ? data.venues : data.venue ? [data.venue] : []
+        const sig = [
+          data.eventName ?? '',
+          data.company ?? '',
+          data.salesOwner ?? '',
+          data.pax ?? 0,
+          venues.join('|'),
+          data.startDate ?? '',
+          data.endDate ?? data.startDate ?? ''
+        ].join('§')
+        if (seen.has(sig)) toDelete.push(d.id)
+        else seen.add(sig)
+      }
+      if (toDelete.length === 0) return 0
+
+      for (let i = 0; i < toDelete.length; i += 400) {
+        const batch = writeBatch(db)
+        for (const id of toDelete.slice(i, i + 400)) batch.delete(doc(db, COLLECTIONS.FUNCTIONS, id))
+        await batch.commit()
+      }
+      const removed = new Set(toDelete)
+      functions.value = functions.value.filter((f) => !removed.has(f.id))
+      return toDelete.length
+    } catch (err) {
+      error.value = 'Failed to remove duplicate functions'
+      console.error('Error deduping functions:', err)
+      throw err
+    }
+  }
+
+  /**
    * One-time normalization: rewrite legacy docs that still carry a single `venue`
    * string into the new `venues` array (and drop the old field). Idempotent and
    * cheap — only docs missing a `venues` array are touched, so it no-ops once run.
@@ -194,6 +238,7 @@ export const useFunctionChartStore = defineStore('functionChart', () => {
     updateFunction,
     moveStatus,
     deleteFunction,
+    dedupeFunctions,
     importSeedFunctions,
     normalizeVenues
   }

@@ -75,6 +75,12 @@
         <span class="h-3 w-3 rounded-sm" :class="s.dot"></span>
         <span class="text-[11px] font-semibold text-sm-secondary">{{ s.label }}</span>
       </div>
+      <div v-if="conflictIds.size" class="flex items-center gap-1.5">
+        <ExclamationTriangleIcon class="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+        <span class="text-[11px] font-semibold text-red-600 dark:text-red-400"
+          >{{ conflictIds.size }} double-booked</span
+        >
+      </div>
     </div>
 
     <!-- Loading -->
@@ -133,14 +139,19 @@
                 <span v-if="line.count" class="text-[10px] font-semibold text-sm-secondary">{{ line.count }}</span>
               </div>
 
-              <!-- Background day cells (click to create) -->
+              <!-- Background day cells (click to create · drop target to reschedule) -->
               <div
                 v-for="(d, i) in days"
                 :key="line.key + 'bg' + i"
                 class="cursor-pointer border-b border-r border-gray-100 hover:bg-sm-primary/5 dark:border-white/5"
-                :class="d.isWeekend ? 'bg-gray-50 dark:bg-white/[0.03]' : ''"
+                :class="[
+                  d.isWeekend ? 'bg-gray-50 dark:bg-white/[0.03]' : '',
+                  dragOverKey === line.key + '|' + d.date ? 'ring-2 ring-inset ring-sm-primary bg-sm-primary/10' : ''
+                ]"
                 :style="{ gridColumn: i + 2, gridRow: line.row, minHeight: rowH + 'px' }"
                 @click="openCreate({ venues: [line.label], startDate: d.date, endDate: d.date })"
+                @dragover.prevent="onCellDragOver(line, d)"
+                @drop.prevent="onCellDrop(line, d)"
               ></div>
             </template>
           </template>
@@ -149,19 +160,60 @@
           <div
             v-for="b in bookingBlocks"
             :key="b.key"
+            :draggable="canEdit"
             @click="openEdit(b.booking)"
-            :title="b.title"
-            class="z-10 m-[3px] flex cursor-pointer flex-col justify-center gap-0.5 overflow-hidden rounded-[7px] border-l-[3px] px-2.5 py-1.5 transition-all"
-            :class="[b.blockClass, b.on ? '' : 'opacity-30', selectedId === b.key ? 'ring-2 ring-gray-900 dark:ring-white' : '']"
+            @dragstart="onBlockDragStart($event, b)"
+            @dragend="onBlockDragEnd"
+            :title="canEdit ? b.title + ' — drag to reschedule' : b.title"
+            class="relative z-10 m-[3px] flex flex-col justify-center gap-0.5 overflow-hidden rounded-[7px] border-l-[3px] px-2.5 py-1.5 transition-all"
+            :class="[
+              b.blockClass,
+              b.on ? '' : 'opacity-30',
+              selectedId === b.key
+                ? 'ring-2 ring-gray-900 dark:ring-white'
+                : b.conflict
+                  ? 'ring-2 ring-red-500 dark:ring-red-400'
+                  : '',
+              canEdit ? 'cursor-move' : 'cursor-pointer',
+              // Let cells beneath OTHER blocks receive the drop, but never disable
+              // pointer-events on the drag source itself — Chrome aborts the drag if
+              // the dragged element becomes pointer-events:none mid-drag.
+              draggingId && draggingId !== b.key ? 'pointer-events-none' : '',
+              draggingId === b.key ? 'opacity-50' : ''
+            ]"
             :style="{
               gridColumn: b.colStart + ' / span ' + b.colSpan,
               gridRow: b.rowStart + ' / span ' + b.rowSpan
             }"
           >
-            <div class="line-clamp-2 text-[12px] font-bold leading-[1.25]">{{ b.title }}</div>
+            <div class="line-clamp-2 text-[12px] font-bold leading-[1.25]" :class="canEdit || b.conflict ? 'pr-5' : ''">
+              {{ b.title }}
+            </div>
             <div class="flex items-center gap-1.5 text-[10px] font-semibold opacity-75">
               <span v-if="b.pax">{{ b.pax }} pax</span>
               <span v-if="b.owner">{{ b.owner }}</span>
+            </div>
+
+            <!-- Corner controls: conflict flag + quick status change -->
+            <div class="absolute right-1 top-1 flex items-center gap-1">
+              <ExclamationTriangleIcon
+                v-if="b.conflict"
+                class="h-3.5 w-3.5 text-red-600 dark:text-red-400"
+                title="Double-booked: another function shares this venue on overlapping dates"
+              />
+              <button
+                v-if="canEdit"
+                type="button"
+                draggable="false"
+                aria-label="Change status"
+                title="Change status"
+                class="flex items-center gap-[2px] rounded px-0.5 py-1 text-gray-400/70 transition-colors hover:text-gray-600 dark:text-gray-300/60 dark:hover:text-white"
+                @click.stop="openStatusMenu($event, b)"
+              >
+                <span class="h-1 w-1 rounded-full bg-current"></span>
+                <span class="h-1 w-1 rounded-full bg-current"></span>
+                <span class="h-1 w-1 rounded-full bg-current"></span>
+              </button>
             </div>
           </div>
         </div>
@@ -233,11 +285,17 @@
               :key="b.id"
               type="button"
               class="flex flex-col gap-1 rounded-xl border border-l-[3px] px-3.5 py-3 text-left"
-              :class="STATUS_STYLE[b.status].block"
+              :class="[STATUS_STYLE[b.status].block, conflictIds.has(b.id) ? 'ring-2 ring-red-500 dark:ring-red-400' : '']"
               @click="openEdit(b)"
             >
               <div class="flex items-start justify-between gap-2">
-                <div class="text-[14px] font-semibold leading-tight">{{ b.eventName || '(untitled)' }}</div>
+                <div class="flex min-w-0 items-center gap-1.5">
+                  <ExclamationTriangleIcon
+                    v-if="conflictIds.has(b.id)"
+                    class="h-4 w-4 shrink-0 text-red-600 dark:text-red-400"
+                  />
+                  <div class="text-[14px] font-semibold leading-tight">{{ b.eventName || '(untitled)' }}</div>
+                </div>
                 <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium" :class="STATUS_STYLE[b.status].chip">{{
                   STATUS_META[b.status].label
                 }}</span>
@@ -331,22 +389,60 @@
 
       </aside>
     </div>
+
+    <!-- Quick status picker (teleported so the grid's overflow can't clip it) -->
+    <Teleport to="body">
+      <div v-if="statusMenu" class="fixed inset-0 z-[60]" @click="statusMenu = null" @contextmenu.prevent="statusMenu = null">
+        <div
+          class="fixed z-[61] min-w-[150px] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-sm-card-dark"
+          :style="{ left: statusMenu.x + 'px', top: statusMenu.y + 'px', transform: 'translateX(-100%)' }"
+          @click.stop
+        >
+          <div class="px-3 pb-1 pt-0.5 text-[10px] font-bold uppercase tracking-widest text-sm-secondary">Set status</div>
+          <button
+            v-for="s in statuses"
+            :key="s.value"
+            type="button"
+            class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] font-medium text-gray-800 transition-colors hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-white/5"
+            @click="setStatus(s.value)"
+          >
+            <span class="h-2.5 w-2.5 shrink-0 rounded-full" :class="s.dot"></span>
+            <span class="flex-1">{{ s.label }}</span>
+            <CheckIcon v-if="currentStatusOf(statusMenu.id) === s.value" class="h-4 w-4 text-sm-primary" />
+          </button>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Reschedule confirmation (also warns on venue/date conflicts) -->
+    <ConfirmDialog
+      :open="pendingMove !== null"
+      :title="pendingMove?.conflicts.length ? 'Scheduling conflict' : 'Move function?'"
+      :message="pendingMove?.message"
+      :confirm-text="pendingMove?.conflicts.length ? 'Move anyway' : 'Move'"
+      cancel-text="Cancel"
+      :danger="!!pendingMove?.conflicts.length"
+      :loading="moveSaving"
+      @confirm="applyMove"
+      @cancel="cancelMove"
+    />
   </SmPage>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watchEffect } from 'vue'
-import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import SmPage from '@/components/ui/SmPage.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import FunctionForm from '@/components/functionchart/FunctionForm.vue'
 import { useFunctionChartStore } from '@/stores/functionChart'
 import { useSessionStore } from '@/stores/session'
 import { usePermissionsStore } from '@/stores/permissions'
-import { VENUE_STRUCTURE, canonicalVenue, comboName } from '@/lib/functionChartVenues'
+import { VENUE_STRUCTURE, canonicalVenue, comboName, isValidVenueSelection } from '@/lib/functionChartVenues'
 import { FUNCTION_STATUSES, STATUS_META, STATUS_STYLE } from '@/types/functionChart'
-import type { FunctionBooking, NewFunctionBooking } from '@/types/functionChart'
+import type { FunctionBooking, FunctionStatus, NewFunctionBooking } from '@/types/functionChart'
 
 const store = useFunctionChartStore()
 const session = useSessionStore()
@@ -442,10 +538,41 @@ function dayNum(dateStr: string): number {
   return parseInt(dateStr.slice(8, 10), 10) - 1
 }
 
+// Ids of bookings that clash with another booking: same room (canonical venue) AND
+// overlapping date range. Computed across ALL functions (a conflict can span months),
+// so the marker is stable regardless of which month is in view.
+const conflictIds = computed(() => {
+  const byRoom = new Map<string, { id: string; start: string; end: string }[]>()
+  for (const f of store.functions) {
+    for (const raw of f.venues) {
+      const v = canonicalVenue(raw) ?? raw
+      const arr = byRoom.get(v) ?? byRoom.set(v, []).get(v)!
+      arr.push({ id: f.id, start: f.startDate, end: f.endDate })
+    }
+  }
+  const set = new Set<string>()
+  for (const arr of byRoom.values()) {
+    for (let i = 0; i < arr.length; i++) {
+      for (let j = i + 1; j < arr.length; j++) {
+        // Two ranges overlap when each starts on/before the other ends.
+        if (arr[i]!.start <= arr[j]!.end && arr[j]!.start <= arr[i]!.end) {
+          set.add(arr[i]!.id)
+          set.add(arr[j]!.id)
+        }
+      }
+    }
+  }
+  return set
+})
+
 // Grid row number for each venue (matches its position in VENUE_STRUCTURE + header offset).
 const rowByVenue = new Map<string, number>()
+const venueByRow = new Map<number, string>() // inverse: grid row -> venue label (skips category rows)
 VENUE_STRUCTURE.forEach((row, li) => {
-  if (row.type === 'venue') rowByVenue.set(row.label, li + 2)
+  if (row.type === 'venue') {
+    rowByVenue.set(row.label, li + 2)
+    venueByRow.set(li + 2, row.label)
+  }
 })
 
 // Row scaffolding: category headers + venue name cells (+ per-venue booking count).
@@ -487,7 +614,9 @@ const bookingBlocks = computed(() => {
       pax: f.pax || 0,
       owner: f.salesOwner,
       blockClass: STATUS_STYLE[f.status].block,
+      status: f.status,
       on: matches(f),
+      conflict: conflictIds.value.has(f.id),
       colStart: start + 2,
       colSpan: end - start + 1,
       rowStart,
@@ -606,6 +735,164 @@ const sameDay = computed(() => {
   }
   return out.slice(0, 12)
 })
+
+// ---- Drag & drop rescheduling (desktop grid) ----
+// Dragging a booking block onto a day/venue cell shifts the whole booking there,
+// preserving its duration (day span) and room shape (number/adjacency of rooms).
+// Gated behind `function:edit` — moving a booking is an edit.
+const draggingId = ref('')
+const dragOverKey = ref('')
+let grabDayOffset = 0 // which day column within the block the pointer grabbed (0-based)
+let grabRowOffset = 0 // which room row within the block the pointer grabbed (0-based)
+
+function shiftISO(iso: string, days: number): string {
+  return new Date(Date.parse(iso + 'T00:00:00Z') + days * 86400000).toISOString().slice(0, 10)
+}
+function diffDays(a: string, b: string): number {
+  return Math.round((Date.parse(a + 'T00:00:00Z') - Date.parse(b + 'T00:00:00Z')) / 86400000)
+}
+
+// Shift every room of a booking by `rowDelta` grid rows. Returns null if any room
+// would land out of bounds or on a category header row (keeps bookings on real venues).
+function venuesForRowShift(f: FunctionBooking, rowDelta: number): string[] | null {
+  if (rowDelta === 0) return [...f.venues]
+  const out: string[] = []
+  for (const v of f.venues) {
+    const cur = rowByVenue.get(canonicalVenue(v) ?? v)
+    if (cur == null) return null
+    const label = venueByRow.get(cur + rowDelta)
+    if (!label) return null
+    out.push(label)
+  }
+  return out
+}
+
+function onBlockDragStart(e: DragEvent, b: { key: string; colSpan: number; rowSpan: number }) {
+  if (!canEdit.value) {
+    e.preventDefault()
+    return
+  }
+  draggingId.value = b.key
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  grabDayOffset = Math.min(b.colSpan - 1, Math.max(0, Math.floor((e.clientX - rect.left) / colW)))
+  grabRowOffset = Math.min(b.rowSpan - 1, Math.max(0, Math.floor((e.clientY - rect.top) / rowH)))
+  if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+}
+function onBlockDragEnd() {
+  draggingId.value = ''
+  dragOverKey.value = ''
+}
+function onCellDragOver(line: { key: string }, d: { date: string }) {
+  if (!draggingId.value) return
+  dragOverKey.value = line.key + '|' + d.date
+}
+// A pending move stages the proposed change so it can be confirmed (and any
+// conflicts surfaced) before writing — the block doesn't move until confirmed.
+const pendingMove = ref<{
+  id: string
+  patch: { startDate: string; endDate: string; venues: string[] }
+  message: string
+  conflicts: FunctionBooking[]
+} | null>(null)
+const moveSaving = ref(false)
+
+// Other bookings that share a venue AND overlap the proposed date range.
+function findConflicts(id: string, venues: string[], start: string, end: string): FunctionBooking[] {
+  const canon = new Set(venues.map((v) => canonicalVenue(v) ?? v))
+  return store.functions.filter(
+    (f) =>
+      f.id !== id &&
+      f.startDate <= end &&
+      f.endDate >= start &&
+      f.venues.some((v) => canon.has(canonicalVenue(v) ?? v))
+  )
+}
+
+function onCellDrop(line: { row: number }, d: { date: string }) {
+  const id = draggingId.value
+  draggingId.value = ''
+  dragOverKey.value = ''
+  if (!id || !canEdit.value) return
+  const f = store.functions.find((x) => x.id === id)
+  if (!f) return
+
+  const rows = f.venues
+    .map((v) => rowByVenue.get(canonicalVenue(v) ?? v))
+    .filter((r): r is number => r != null)
+  if (!rows.length) return
+  const rowStart = Math.min(...rows)
+
+  // Map the grabbed cell of the block onto the drop cell.
+  const newStart = shiftISO(d.date, -grabDayOffset)
+  const dateDelta = diffDays(newStart, f.startDate)
+  const rowDelta = line.row - (rowStart + grabRowOffset)
+  if (dateDelta === 0 && rowDelta === 0) return
+
+  const newVenues = venuesForRowShift(f, rowDelta)
+  if (!newVenues) return // out of bounds or crosses a category header row
+  if (newVenues.length > 1 && !isValidVenueSelection(newVenues)) return // broke a combo run
+
+  const patch = {
+    startDate: shiftISO(f.startDate, dateDelta),
+    endDate: shiftISO(f.endDate, dateDelta),
+    venues: newVenues
+  }
+  const conflicts = findConflicts(id, patch.venues, patch.startDate, patch.endDate)
+
+  const venueLabel = comboName(patch.venues)
+  const dateLabel = patch.startDate === patch.endDate ? fmt(patch.startDate) : `${fmt(patch.startDate)} – ${fmt(patch.endDate)}`
+  let message = `Move “${f.eventName || '(untitled)'}” to ${venueLabel} on ${dateLabel}?`
+  if (conflicts.length) {
+    const names = conflicts
+      .slice(0, 3)
+      .map((c) => `${c.eventName || '(untitled)'} (${comboName(c.venues)})`)
+      .join(', ')
+    message =
+      `${venueLabel} already has ${conflicts.length} booking${conflicts.length > 1 ? 's' : ''} on ${dateLabel}: ` +
+      `${names}${conflicts.length > 3 ? '…' : ''}. Move here anyway?`
+  }
+
+  pendingMove.value = { id, patch, message, conflicts }
+}
+
+async function applyMove() {
+  const move = pendingMove.value
+  if (!move || !canEdit.value) return
+  moveSaving.value = true
+  try {
+    await store.updateFunction(move.id, move.patch)
+    pendingMove.value = null
+  } catch {
+    // store surfaces the error; keep the dialog open for retry
+  } finally {
+    moveSaving.value = false
+  }
+}
+
+function cancelMove() {
+  pendingMove.value = null // booking stays put — nothing was written
+}
+
+// ---- Quick status change (corner badge on each block) ----
+// Anchored to the badge's screen position and teleported to <body>, so it escapes
+// the grid scroller's overflow. Changing status is an edit → gated behind canEdit.
+const statusMenu = ref<{ id: string; x: number; y: number } | null>(null)
+
+function openStatusMenu(e: MouseEvent, b: { key: string }) {
+  if (!canEdit.value) return
+  const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  statusMenu.value = { id: b.key, x: r.right, y: r.bottom + 4 }
+}
+function currentStatusOf(id: string): FunctionStatus | undefined {
+  return store.functions.find((f) => f.id === id)?.status
+}
+async function setStatus(status: FunctionStatus) {
+  const m = statusMenu.value
+  statusMenu.value = null
+  if (!m || !canEdit.value) return
+  if (currentStatusOf(m.id) === status) return
+  await store.moveStatus(m.id, status) // optimistic; reverts on failure
+}
 
 // ---- Panel actions ----
 function openCreate(defaults?: Partial<NewFunctionBooking>) {

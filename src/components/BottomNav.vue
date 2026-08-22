@@ -18,9 +18,9 @@
   <NotificationPanel :open="showNotifications" @close="showNotifications = false" />
 
   <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
-    
-    <!-- Navigation Menu items -->
-    <TransitionGroup
+
+    <!-- Navigation Menu — compact app-drawer grid -->
+    <Transition
       enter-active-class="transition duration-300 ease-out"
       enter-from-class="transform translate-y-4 opacity-0 scale-95"
       enter-to-class="transform translate-y-0 opacity-100 scale-100"
@@ -28,37 +28,38 @@
       leave-from-class="transform translate-y-0 opacity-100 scale-100"
       leave-to-class="transform translate-y-4 opacity-0 scale-95"
     >
-      <router-link
+      <div
         v-if="isOpen"
-        v-for="(item, index) in navItems"
-        :key="item.name"
-        :to="item.to"
-        @click="isOpen = false"
-        class="pointer-events-auto relative z-50 flex items-center bg-white dark:bg-sm-card-dark border border-gray-100 dark:border-white/10 px-4 py-3 rounded-2xl shadow-lg shadow-black/5 hover:scale-105 active:scale-95 transition-all group"
-        :style="{ transitionDelay: `${index * 50}ms` }"
+        class="pointer-events-auto relative z-50 grid grid-cols-3 gap-2 p-3 w-[19rem] max-w-[calc(100vw-3rem)] bg-white dark:bg-sm-card-dark border border-gray-100 dark:border-white/10 rounded-3xl shadow-xl shadow-black/10 origin-bottom-right"
       >
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-200 mr-3">{{ item.name }}</span>
-        <div
-          class="p-2 rounded-xl transition-colors"
-          :class="isActive(item) ? 'bg-sm-primary text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 group-hover:text-sm-primary'"
+        <router-link
+          v-for="item in navItems"
+          :key="item.name"
+          :to="item.to"
+          @click="isOpen = false"
+          class="flex flex-col items-center justify-start gap-1.5 p-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/5 active:scale-95 transition-all group"
         >
-          <component :is="item.icon" class="w-5 h-5" />
-        </div>
-      </router-link>
+          <div
+            class="p-2.5 rounded-xl transition-colors"
+            :class="isActive(item) ? 'bg-sm-primary text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 group-hover:text-sm-primary'"
+          >
+            <component :is="item.icon" class="w-5 h-5" />
+          </div>
+          <span class="text-[11px] leading-tight text-center font-medium text-gray-700 dark:text-gray-200 line-clamp-2">{{ item.name }}</span>
+        </router-link>
 
-      <!-- Logout Button -->
-      <button
-        v-if="isOpen"
-        @click="handleLogout"
-        class="pointer-events-auto relative z-50 flex items-center bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 px-4 py-3 rounded-2xl shadow-lg shadow-black/5 hover:scale-105 active:scale-95 transition-all group"
-        style="transitionDelay: 350ms"
-      >
-        <span class="text-sm font-medium text-red-700 dark:text-red-300 mr-3">Logout</span>
-        <div class="p-2 rounded-xl bg-red-100 dark:bg-red-800/30 text-red-600 dark:text-red-400 transition-colors">
-          <ArrowRightOnRectangleIcon class="w-5 h-5" />
-        </div>
-      </button>
-    </TransitionGroup>
+        <!-- Logout -->
+        <button
+          @click="handleLogout"
+          class="flex flex-col items-center justify-start gap-1.5 p-2 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 active:scale-95 transition-all group"
+        >
+          <div class="p-2.5 rounded-xl bg-red-100 dark:bg-red-800/30 text-red-600 dark:text-red-400 transition-colors">
+            <ArrowRightOnRectangleIcon class="w-5 h-5" />
+          </div>
+          <span class="text-[11px] leading-tight text-center font-medium text-red-600 dark:text-red-400">Logout</span>
+        </button>
+      </div>
+    </Transition>
 
     <!-- Main FAB Trigger -->
     <button
