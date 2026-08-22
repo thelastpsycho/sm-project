@@ -79,6 +79,9 @@ export interface ComboGroup {
 }
 
 export const COMBO_GROUPS: ComboGroup[] = [
+  { rooms: ['KEMIRI', 'KESUNA'] },
+  { rooms: ['KELAPA', 'KEMANGI'] },
+  { rooms: ['JEPUN', 'PUCUK'] },
   { rooms: ['CELAGI', 'CEMARA', 'CEPAKA'] },
   { rooms: ['ANVAYA 1', 'ANVAYA 2', 'ANVAYA 3'], comboLabel: 'GRAND BALLROOM' }
 ]

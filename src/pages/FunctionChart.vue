@@ -6,15 +6,34 @@
         <div class="text-[11px] font-semibold uppercase tracking-[0.14em] text-sm-secondary">
           The Anvaya Bali · Sales &amp; Events
         </div>
-        <h1 class="m-0 text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-          Function Charting {{ year }}
-        </h1>
+        <div class="flex items-center gap-2">
+          <h1 class="m-0 text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white">Function Charting</h1>
+          <div class="flex items-center gap-1">
+            <button
+              type="button"
+              aria-label="Previous year"
+              class="rounded-md p-1 text-sm-secondary transition-colors hover:bg-gray-100 dark:hover:bg-white/5"
+              @click="year--"
+            >
+              <ChevronLeftIcon class="h-5 w-5" />
+            </button>
+            <span class="min-w-[3.5ch] text-center text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white">{{ year }}</span>
+            <button
+              type="button"
+              aria-label="Next year"
+              class="rounded-md p-1 text-sm-secondary transition-colors hover:bg-gray-100 dark:hover:bg-white/5"
+              @click="year++"
+            >
+              <ChevronRightIcon class="h-5 w-5" />
+            </button>
+          </div>
+        </div>
       </div>
       <div class="flex items-center gap-2.5">
-        <div class="w-52">
+        <div class="flex-1 sm:w-52 sm:flex-none">
           <SmInput v-model="q" size="sm" placeholder="Search event, company or owner" />
         </div>
-        <div class="w-36">
+        <div class="w-32 shrink-0 sm:w-36">
           <SmSelect v-model="statusFilter" size="sm" :options="statusFilterOptions" />
         </div>
         <button
@@ -62,10 +81,10 @@
       {{ store.seeding ? 'Importing existing bookings…' : 'Loading…' }}
     </div>
 
-    <div v-else class="flex min-h-0 gap-4">
-      <!-- Scrollable grid -->
+    <div v-else class="md:flex md:min-h-0 md:gap-4">
+      <!-- Scrollable grid (desktop) -->
       <div
-        class="flex-1 overflow-auto rounded-2xl border border-gray-200 bg-sm-card dark:border-white/10 dark:bg-sm-card-dark"
+        class="hidden flex-1 overflow-auto rounded-2xl border border-gray-200 bg-sm-card dark:border-white/10 dark:bg-sm-card-dark md:block"
         style="max-height: calc(100vh - 240px)"
       >
         <div :style="gridStyle">
@@ -147,11 +166,101 @@
         </div>
       </div>
 
-      <!-- Editable side panel -->
+      <!-- Mobile calendar (iOS-style month grid + day agenda) -->
+      <div class="md:hidden">
+        <!-- Weekday header -->
+        <div class="grid grid-cols-7">
+          <div
+            v-for="(w, i) in weekdayLabels"
+            :key="'wd' + i"
+            class="py-1.5 text-center text-[10px] font-medium uppercase tracking-wider text-sm-secondary"
+          >
+            {{ w }}
+          </div>
+        </div>
+
+        <!-- Month grid -->
+        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-sm-card dark:border-white/10 dark:bg-sm-card-dark">
+          <div v-for="(week, wi) in mobileWeeks" :key="'wk' + wi" class="grid grid-cols-7">
+            <button
+              v-for="(cell, ci) in week"
+              :key="'c' + wi + '-' + ci"
+              type="button"
+              :disabled="!cell"
+              class="flex aspect-square flex-col items-center gap-1 border-b border-r border-gray-100 pt-1.5 dark:border-white/5"
+              :class="cell && cell.isWeekend ? 'bg-gray-50 dark:bg-white/[0.03]' : ''"
+              @click="cell && (selectedDay = cell.date)"
+            >
+              <template v-if="cell">
+                <span
+                  class="flex h-7 w-7 items-center justify-center rounded-full text-[13px] font-normal"
+                  :class="
+                    cell.date === selectedDay
+                      ? 'bg-sm-primary text-white'
+                      : cell.isToday
+                        ? 'text-sm-primary'
+                        : 'text-gray-900 dark:text-white'
+                  "
+                >
+                  {{ cell.num }}
+                </span>
+                <div class="flex gap-0.5">
+                  <span v-for="(dot, di) in cell.dots" :key="di" class="h-1.5 w-1.5 rounded-full" :class="dot"></span>
+                </div>
+              </template>
+            </button>
+          </div>
+        </div>
+
+        <!-- Selected day agenda -->
+        <div class="mt-4">
+          <div class="mb-2 flex items-center justify-between">
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedDayLabel }}</div>
+            <button
+              type="button"
+              class="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-sm-primary hover:bg-sm-primary/10"
+              @click="openCreate({ startDate: selectedDay, endDate: selectedDay })"
+            >
+              <PlusIcon class="h-4 w-4" /> New
+            </button>
+          </div>
+
+          <div v-if="selectedDayBookings.length" class="flex flex-col gap-2">
+            <button
+              v-for="b in selectedDayBookings"
+              :key="b.id"
+              type="button"
+              class="flex flex-col gap-1 rounded-xl border border-l-[3px] px-3.5 py-3 text-left"
+              :class="STATUS_STYLE[b.status].block"
+              @click="openEdit(b)"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <div class="text-[14px] font-semibold leading-tight">{{ b.eventName || '(untitled)' }}</div>
+                <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium" :class="STATUS_STYLE[b.status].chip">{{
+                  STATUS_META[b.status].label
+                }}</span>
+              </div>
+              <div class="text-[12px] font-medium uppercase tracking-wide opacity-80">{{ comboName(b.venues) }}</div>
+              <div class="flex items-center gap-1.5 text-[11px] font-normal opacity-70">
+                <span v-if="b.pax">{{ b.pax }} pax</span>
+                <span v-if="b.pax && b.salesOwner">·</span>
+                <span v-if="b.salesOwner">{{ b.salesOwner }}</span>
+              </div>
+            </button>
+          </div>
+          <div
+            v-else
+            class="rounded-2xl border border-dashed border-gray-200 py-10 text-center text-sm text-sm-secondary dark:border-white/10"
+          >
+            No functions this day
+          </div>
+        </div>
+      </div>
+
+      <!-- Editable panel: side panel on desktop, full-screen sheet on mobile -->
       <aside
         v-if="panelOpen"
-        class="flex w-[400px] flex-none flex-col overflow-auto rounded-2xl border border-gray-200 bg-sm-card dark:border-white/10 dark:bg-sm-card-dark"
-        style="max-height: calc(100vh - 240px)"
+        class="fixed inset-0 z-50 flex w-full flex-col overflow-auto bg-sm-card dark:bg-sm-card-dark md:static md:z-auto md:max-h-[calc(100vh-240px)] md:w-[400px] md:flex-none md:rounded-2xl md:border md:border-gray-200 md:dark:border-white/10"
       >
         <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-white/5">
           <div class="min-w-0 truncate text-[10px] font-bold uppercase tracking-widest text-sm-secondary">
@@ -224,8 +333,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon } from '@heroicons/vue/24/outline'
+import { ref, computed, onMounted, watchEffect } from 'vue'
+import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import SmPage from '@/components/ui/SmPage.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
@@ -237,7 +346,7 @@ import type { FunctionBooking, NewFunctionBooking } from '@/types/functionChart'
 
 const store = useFunctionChartStore()
 
-const year = 2026
+const year = ref(2026)
 const rowH = 44
 const colW = 158
 const nameW = 214
@@ -276,12 +385,12 @@ const todayISO = new Date().toISOString().slice(0, 10)
 
 const days = computed(() => {
   const m = monthIndex.value
-  const count = new Date(year, m + 1, 0).getDate()
+  const count = new Date(year.value, m + 1, 0).getDate()
   const mm = String(m + 1).padStart(2, '0')
   const out = []
   for (let day = 1; day <= count; day++) {
-    const date = `${year}-${mm}-${String(day).padStart(2, '0')}`
-    const dow = new Date(year, m, day).getDay()
+    const date = `${year.value}-${mm}-${String(day).padStart(2, '0')}`
+    const dow = new Date(year.value, m, day).getDay()
     out.push({ date, num: String(day), dow: DOW[dow], isWeekend: dow === 0 || dow === 6, isToday: date === todayISO })
   }
   return out
@@ -376,6 +485,61 @@ const bookingBlocks = computed(() => {
   }
   return out
 })
+
+// ---- Mobile calendar (iOS-style month grid + day agenda) ----
+const weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+
+// Matching bookings that touch each day of the visible month.
+const dayBookings = computed(() => {
+  const map = new Map<string, FunctionBooking[]>()
+  for (const d of days.value) map.set(d.date, [])
+  for (const f of store.functions) {
+    if (f.endDate < monthStart.value || f.startDate > monthEnd.value) continue
+    if (!matches(f)) continue
+    for (const d of days.value) {
+      if (f.startDate <= d.date && f.endDate >= d.date) map.get(d.date)!.push(f)
+    }
+  }
+  return map
+})
+
+type MobileCell = { date: string; num: string; isToday: boolean; isWeekend: boolean; count: number; dots: string[] }
+
+// Weeks of the month, padded with nulls so each row has 7 cells (Sun–Sat).
+const mobileWeeks = computed(() => {
+  const startDow = new Date(year.value, monthIndex.value, 1).getDay()
+  const cells: (MobileCell | null)[] = []
+  for (let i = 0; i < startDow; i++) cells.push(null)
+  for (const d of days.value) {
+    const bks = dayBookings.value.get(d.date) ?? []
+    const dots = [...new Set(bks.map((b) => b.status))].slice(0, 3).map((s) => STATUS_STYLE[s].dot)
+    cells.push({ date: d.date, num: d.num, isToday: d.isToday, isWeekend: d.isWeekend, count: bks.length, dots })
+  }
+  while (cells.length % 7 !== 0) cells.push(null)
+  const weeks: (MobileCell | null)[][] = []
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7))
+  return weeks
+})
+
+const selectedDay = ref('')
+// Keep the selected day inside the visible month (defaults to today, else the 1st).
+watchEffect(() => {
+  if (selectedDay.value.slice(0, 7) !== monthStart.value.slice(0, 7)) {
+    selectedDay.value = days.value.find((d) => d.isToday)?.date ?? monthStart.value
+  }
+})
+
+const selectedDayBookings = computed(() => dayBookings.value.get(selectedDay.value) ?? [])
+const selectedDayLabel = computed(() =>
+  selectedDay.value
+    ? new Date(selectedDay.value + 'T00:00:00Z').toLocaleDateString('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        timeZone: 'UTC'
+      })
+    : ''
+)
 
 const stats = computed(() => {
   let slots = 0

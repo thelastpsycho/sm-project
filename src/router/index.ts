@@ -8,6 +8,7 @@ import RFP from '@/pages/RFP.vue'
 import RFPHistory from '@/pages/RFPHistory.vue'
 import CRM from '@/pages/CRM.vue'
 import PipelineReport from '@/pages/PipelineReport.vue'
+import Users from '@/pages/Users.vue'
 import FunctionChart from '@/pages/FunctionChart.vue'
 import Survey from '@/pages/Survey.vue'
 import SurveyThankYou from '@/pages/SurveyThankYou.vue'
@@ -65,6 +66,12 @@ const router = createRouter({
       component: PipelineReport
     },
     {
+      path: '/users',
+      name: 'users',
+      component: Users,
+      meta: { requiresAdmin: true }
+    },
+    {
       path: '/function-chart',
       name: 'function-chart',
       component: FunctionChart
@@ -100,7 +107,7 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const sessionStore = useSessionStore()
 
   // Check for admin auth on survey admin routes
@@ -120,8 +127,16 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  // Ensure session is initialized for app routes
+  // Ensure device/chat session id exists, then wait for Firebase Auth to resolve
+  // (restores the session on refresh before we decide whether to redirect).
   sessionStore.ensureSession()
+  await sessionStore.authReady
+
+  // Admin-only routes (e.g. user management)
+  if (to.meta.requiresAdmin && sessionStore.currentUser?.role !== 'admin') {
+    next({ name: sessionStore.isAuthenticated ? 'home' : 'login' })
+    return
+  }
 
   if (!sessionStore.isAuthenticated && to.name !== 'login') {
     next({ name: 'login' })

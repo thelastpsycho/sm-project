@@ -1,7 +1,9 @@
 import { initializeApp, getApps } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
+import { getAuth } from 'firebase/auth'
 import type { FirebaseApp } from 'firebase/app'
 import type { Firestore } from 'firebase/firestore'
+import type { Auth } from 'firebase/auth'
 
 // TODO: Replace with your Firebase config
 // Get this from Firebase Console → Project Settings → General → Your Apps
@@ -17,23 +19,24 @@ const firebaseConfig = {
 // Initialize Firebase (only once)
 let app: FirebaseApp
 let db: Firestore
+let auth: Auth
 
 try {
   // Check if Firebase app already exists
   const existingApps = getApps()
   if (existingApps.length > 0) {
     app = existingApps[0]!
-    db = getFirestore(app)
   } else {
     app = initializeApp(firebaseConfig)
-    db = getFirestore(app)
   }
+  db = getFirestore(app)
+  auth = getAuth(app)
 } catch (error) {
   console.error('Error initializing Firebase:', error)
   throw error
 }
 
-export { app, db }
+export { app, db, auth }
 
 // Collection names
 export const COLLECTIONS = {
@@ -41,5 +44,6 @@ export const COLLECTIONS = {
   RESPONSES: 'responses',
   ADMIN_SETTINGS: 'adminSettings',
   DEALS: 'deals',
+  USERS: 'users',
   FUNCTIONS: 'functions'
 } as const

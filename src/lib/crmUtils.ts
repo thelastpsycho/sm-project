@@ -2,18 +2,25 @@
 
 import type { Deal } from '@/types/crm'
 
-// Admin accounts: can edit any lead and are the only ones allowed to delete.
+// Admin allow-list — kept as a fallback so admin access still works before/if the
+// `users` collection role isn't populated yet (e.g. mid-migration).
 export const ADMIN_EMAILS = ['andikrisnatha@theanvayabali.com']
 // Back-compat alias (delete was the original admin-only action).
 export const DELETE_ADMIN_EMAILS = ADMIN_EMAILS
 
-export function isAdmin(email?: string | null): boolean {
-  return !!email && ADMIN_EMAILS.includes(email)
+// The minimal shape of the signed-in user these checks need.
+export type SessionUserLike = { email?: string | null; role?: string | null } | null | undefined
+
+/** Admin = role 'admin' (from the users collection) or the email allow-list fallback. */
+export function isAdmin(user: SessionUserLike): boolean {
+  if (!user) return false
+  if (user.role === 'admin') return true
+  return !!user.email && ADMIN_EMAILS.includes(user.email)
 }
 
 /** Delete is admin-only. */
-export function canDeleteDeals(email?: string | null): boolean {
-  return isAdmin(email)
+export function canDeleteDeals(user: SessionUserLike): boolean {
+  return isAdmin(user)
 }
 
 /**
@@ -22,10 +29,10 @@ export function canDeleteDeals(email?: string | null): boolean {
  *  - an unassigned lead (no owner) can be edited/claimed by anyone logged in;
  *  - otherwise only the sales owner (matched by email) can edit their own lead.
  */
-export function canEditDeal(email: string | null | undefined, deal: Pick<Deal, 'ownerId'>): boolean {
-  if (isAdmin(email)) return true
+export function canEditDeal(user: SessionUserLike, deal: Pick<Deal, 'ownerId'>): boolean {
+  if (isAdmin(user)) return true
   if (!deal.ownerId) return true
-  return !!email && deal.ownerId === email
+  return !!user?.email && deal.ownerId === user.email
 }
 
 /** Room Nights = No. of Rooms × Nights */

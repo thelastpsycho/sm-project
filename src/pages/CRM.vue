@@ -244,6 +244,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import draggable from 'vuedraggable'
 import { PlusIcon, MagnifyingGlassIcon, FunnelIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
 import SmPage from '@/components/ui/SmPage.vue'
@@ -309,7 +310,7 @@ function colDot(col: string): string {
 
 // Only a lead's owner (or an admin) may edit it — used to lock cards from dragging.
 function editable(deal: Deal): boolean {
-  return canEditDeal(session.currentUser?.email, deal)
+  return canEditDeal(session.currentUser, deal)
 }
 
 // Persist the moved card's new column to the store (status or stage).
@@ -546,7 +547,7 @@ function onSubmit(payload: NewDeal) {
 function onDelete() {
   const editingDeal = editing.value
   if (!editingDeal) return
-  if (!canDeleteDeals(session.currentUser?.email)) return
+  if (!canDeleteDeals(session.currentUser)) return
   askConfirm({
     title: 'Delete this lead?',
     message: `"${editingDeal.company}" will be permanently removed. This can't be undone.`,
@@ -564,8 +565,16 @@ async function runImport() {
   if (count === 0) alert('Pipeline already has deals — import skipped.')
 }
 
-onMounted(() => {
-  store.loadDeals()
+const route = useRoute()
+
+onMounted(async () => {
+  await store.loadDeals()
+  // Deep-link from a notification: /crm?deal=<id> opens that deal.
+  const dealId = route.query.deal
+  if (typeof dealId === 'string') {
+    const target = store.deals.find(d => d.id === dealId)
+    if (target) openEdit(target)
+  }
 })
 </script>
 

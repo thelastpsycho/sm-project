@@ -118,7 +118,7 @@ const emit = defineEmits<{
 }>()
 
 const session = useSessionStore()
-const canDelete = computed(() => canDeleteDeals(session.currentUser?.email))
+const canDelete = computed(() => canDeleteDeals(session.currentUser))
 // Creating a new deal is always allowed; editing an existing one is owner/admin-gated.
-const canEdit = computed(() => !props.deal || canEditDeal(session.currentUser?.email, props.deal))
+const canEdit = computed(() => !props.deal || canEditDeal(session.currentUser, props.deal))
 </script>

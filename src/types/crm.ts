@@ -23,9 +23,11 @@ export interface Deal {
   segment: string // preset (SEGMENTS) or free text
   leadSource: string // preset (LEAD_SOURCES) or free text
   status: DealStatus
+  statusEnteredAt?: string // ISO — when the deal last entered its current status
   ownerId: string // app user email; empty when unassigned
   ownerName: string // display name
   stage?: DealStage // sales-funnel stage; absent = 'New'
+  stageEnteredAt?: string // ISO — when the deal last entered its current stage
   groupName?: string
   leadDate?: string // ISO date (yyyy-mm-dd)
   arrivalDate?: string

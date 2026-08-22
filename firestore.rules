@@ -25,10 +25,35 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
-    // CRM / Sales pipeline - public access (PIN-based auth in app).
-    // Recursive wildcard also covers the deals/{id}/comments subcollection.
-    match /deals/{document=**} {
-      allow read, write: if true;
+    // CRM / Sales pipeline — now gated by Firebase Auth (email/password).
+    match /deals/{id} {
+      allow read:   if request.auth != null;
+      allow create: if request.auth != null;
+      // Owner (matched by email) or admin (custom claim) may edit; unassigned = anyone.
+      allow update: if request.auth != null && (
+                       request.auth.token.admin == true
+                       || resource.data.ownerId == ''
+                       || resource.data.ownerId == request.auth.token.email);
+      allow delete: if request.auth != null && request.auth.token.admin == true;
+
+      // Everyone signed in can read/add comments; edit/delete own (or admin).
+      match /comments/{c} {
+        allow read, create: if request.auth != null;
+        allow update, delete: if request.auth != null && (
+                                 request.auth.token.admin == true
+                                 || resource.data.authorId == request.auth.token.email);
+      }
+    }
+
+    // Team roster. Read by any signed-in user; a user may update only their own doc
+    // (fcmTokens / notificationsSeenAt); create/delete + role/status are admin-only.
+    match /users/{uid} {
+      allow read:   if request.auth != null;
+      // A user may update their own doc (fcmTokens / notificationsSeenAt); an admin
+      // may update any user's metadata. Role/status also propagate via the admin API.
+      allow update: if request.auth != null &&
+                       (request.auth.uid == uid || request.auth.token.admin == true);
+      allow create, delete: if request.auth != null && request.auth.token.admin == true;
     }
 
     // Function Chart / venue bookings - public access (PIN-based auth in app).

@@ -83,8 +83,11 @@ export const useCrmStore = defineStore('crm', () => {
   async function createDeal(payload: NewDeal) {
     try {
       const now = new Date()
+      const nowIso = now.toISOString()
       await addDoc(collection(db, COLLECTIONS.DEALS), {
         ...applyRevenueCalc(payload),
+        statusEnteredAt: nowIso,
+        stageEnteredAt: nowIso,
         createdAt: now,
         updatedAt: now
       })
@@ -99,7 +102,12 @@ export const useCrmStore = defineStore('crm', () => {
   async function updateDeal(id: string, patch: Partial<Deal>) {
     try {
       const { id: _omit, createdAt: _c, ...rest } = patch
-      const data = applyRevenueCalc(rest)
+      const data: Record<string, any> = applyRevenueCalc(rest)
+      // Stamp entered-at when the status/stage actually changes vs. the current value.
+      const current = deals.value.find(d => d.id === id)
+      const nowIso = new Date().toISOString()
+      if (patch.status != null && patch.status !== current?.status) data.statusEnteredAt = nowIso
+      if (patch.stage != null && patch.stage !== (current?.stage ?? 'New')) data.stageEnteredAt = nowIso
       await updateDoc(doc(db, COLLECTIONS.DEALS, id), { ...data, updatedAt: new Date() })
       await loadDeals()
     } catch (err) {
@@ -117,11 +125,23 @@ export const useCrmStore = defineStore('crm', () => {
   async function moveStatus(id: string, status: DealStatus) {
     const local = deals.value.find(d => d.id === id)
     const prev = local?.status
-    if (local) local.status = status
+    const prevEntered = local?.statusEnteredAt
+    const nowIso = new Date().toISOString()
+    if (local) {
+      local.status = status
+      local.statusEnteredAt = nowIso
+    }
     try {
-      await updateDoc(doc(db, COLLECTIONS.DEALS, id), { status, updatedAt: new Date() })
+      await updateDoc(doc(db, COLLECTIONS.DEALS, id), {
+        status,
+        statusEnteredAt: nowIso,
+        updatedAt: new Date()
+      })
     } catch (err) {
-      if (local && prev) local.status = prev // revert on failure
+      if (local && prev) {
+        local.status = prev // revert on failure
+        local.statusEnteredAt = prevEntered
+      }
       error.value = 'Failed to move deal'
       console.error('Error moving status:', err)
       throw err
@@ -132,11 +152,23 @@ export const useCrmStore = defineStore('crm', () => {
   async function moveStage(id: string, stage: DealStage) {
     const local = deals.value.find(d => d.id === id)
     const prev = local?.stage
-    if (local) local.stage = stage
+    const prevEntered = local?.stageEnteredAt
+    const nowIso = new Date().toISOString()
+    if (local) {
+      local.stage = stage
+      local.stageEnteredAt = nowIso
+    }
     try {
-      await updateDoc(doc(db, COLLECTIONS.DEALS, id), { stage, updatedAt: new Date() })
+      await updateDoc(doc(db, COLLECTIONS.DEALS, id), {
+        stage,
+        stageEnteredAt: nowIso,
+        updatedAt: new Date()
+      })
     } catch (err) {
-      if (local) local.stage = prev // revert on failure
+      if (local) {
+        local.stage = prev // revert on failure
+        local.stageEnteredAt = prevEntered
+      }
       error.value = 'Failed to move deal'
       console.error('Error moving stage:', err)
       throw err

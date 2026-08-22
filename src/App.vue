@@ -1,15 +1,32 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import BottomNav from '@/components/BottomNav.vue'
 import { useThemeStore } from '@/stores/theme'
+import { useSessionStore } from '@/stores/session'
+import { useCrmStore } from '@/stores/crm'
+import { listenForegroundPush } from '@/lib/push'
 
 const themeStore = useThemeStore()
+const session = useSessionStore()
+const crm = useCrmStore()
 const route = useRoute()
 
 onMounted(() => {
   themeStore.applyTheme()
+  // Foreground push (app open): refresh deals so the bell badge updates live.
+  listenForegroundPush(() => crm.loadDeals())
 })
+
+// Keep deals loaded app-wide once signed in, so the notification bell badge is live
+// on every screen (not just /crm). Reloads when a user signs in.
+watch(
+  () => session.isAuthenticated,
+  isAuth => {
+    if (isAuth) crm.loadDeals()
+  },
+  { immediate: true }
+)
 
 const showNav = computed(() => !['login', 'survey'].includes(route.name as string))
 </script>

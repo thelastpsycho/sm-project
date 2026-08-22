@@ -1,4 +1,22 @@
 <template>
+  <!-- Notification bell (bottom-left, opposite the nav FAB) -->
+  <button
+    type="button"
+    class="fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full bg-white dark:bg-sm-card-dark border border-gray-100 dark:border-white/10 shadow-lg shadow-black/5 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:scale-105 active:scale-95 transition-all"
+    aria-label="Notifications"
+    @click="showNotifications = true"
+  >
+    <BellIcon class="w-5 h-5" />
+    <span
+      v-if="notifications.unreadCount"
+      class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center"
+    >
+      {{ notifications.unreadCount > 9 ? '9+' : notifications.unreadCount }}
+    </span>
+  </button>
+
+  <NotificationPanel :open="showNotifications" @close="showNotifications = false" />
+
   <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
     
     <!-- Navigation Menu items -->
@@ -95,21 +113,34 @@ import {
   Squares2X2Icon,
   ChartBarIcon,
   CalendarDaysIcon,
+  UsersIcon,
+  BellIcon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
+import NotificationPanel from '@/components/NotificationPanel.vue'
+import { useNotificationsStore } from '@/stores/notifications'
 
 const route = useRoute()
 const router = useRouter()
 const sessionStore = useSessionStore()
+const notifications = useNotificationsStore()
 const isOpen = ref(false)
+const showNotifications = ref(false)
 
-const handleLogout = () => {
-  sessionStore.logout()
+const handleLogout = async () => {
+  await sessionStore.logout()
   isOpen.value = false
   router.push('/login')
 }
 
-const navItems = [
+interface NavItem {
+  name: string
+  to: string
+  icon: unknown
+  adminOnly?: boolean
+}
+
+const allNavItems: NavItem[] = [
   {
     name: 'Home',
     to: '/',
@@ -154,11 +185,22 @@ const navItems = [
     name: 'Survey Admin',
     to: '/survey/admin',
     icon: ClipboardDocumentIcon
+  },
+  {
+    name: 'Team & Access',
+    to: '/users',
+    icon: UsersIcon,
+    adminOnly: true
   }
 ]
 
-const isActive = (item: typeof navItems[0]) => {
-  return item.to === '/' 
+// Hide admin-only entries from non-admins.
+const navItems = computed(() =>
+  allNavItems.filter(item => !item.adminOnly || sessionStore.currentUser?.role === 'admin')
+)
+
+const isActive = (item: { to: string }) => {
+  return item.to === '/'
     ? route.path === '/'
     : route.path.startsWith(item.to)
 }
