@@ -1,33 +1,23 @@
-import { initializeApp } from 'firebase/app'
-import { getFirestore } from 'firebase/firestore'
-import { getAnalytics } from 'firebase/analytics'
-import { getAuth, signInAnonymously } from 'firebase/auth'
+// Legacy helpers. Reuse the single Firebase app/db/auth from '@/lib/firebase' —
+// initializing a second app here caused `app/duplicate-app`.
+import { db, auth } from '@/lib/firebase'
+import { signInAnonymously } from 'firebase/auth'
 
-const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
-}
-
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
-const analytics = getAnalytics(app)
-const auth = getAuth(app)
-
+/**
+ * Ensure there is *some* auth context (used by guest-facing RFP flows). If a real
+ * user is already signed in (the normal in-app case), this is a no-op; otherwise it
+ * falls back to anonymous sign-in.
+ */
 export const ensureAuth = async () => {
-    if (!auth.currentUser) {
-        try {
-            await signInAnonymously(auth)
-        } catch (error) {
-            console.error("Error signing in anonymously:", error)
-            throw error
-        }
+  if (!auth.currentUser) {
+    try {
+      await signInAnonymously(auth)
+    } catch (error) {
+      console.error('Error signing in anonymously:', error)
+      throw error
     }
-    return auth.currentUser
+  }
+  return auth.currentUser
 }
 
-export { db, analytics, auth }
+export { db, auth }
