@@ -1,56 +1,58 @@
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-sm-bg-dark transition-colors duration-300 px-4">
+  <div class="min-h-screen bg-white dark:bg-sm-bg-dark transition-colors duration-300 flex justify-center">
     <div
-      class="max-w-sm w-full mx-auto p-8 flex flex-col items-center"
+      class="w-full max-w-[420px] min-h-screen flex flex-col justify-between px-8 pt-14 pb-10"
       :class="{ 'animate-shake': error }"
     >
-      <div class="text-center mb-8">
-        <img src="/logo-theanvaya.svg" alt="The Anvaya" class="h-12 mx-auto mb-4" />
-        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white mb-2 tracking-tight">
-          Welcome Back
-        </h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Sign in to continue</p>
+      <img src="/logo-theanvaya.svg" alt="The Anvaya" class="h-[34px] w-auto self-start dark:invert dark:brightness-0" />
+
+      <div>
+        <h1 class="sm-display text-[34px] leading-[1.05] mb-10">Sales<br />Management</h1>
+
+        <form class="space-y-7" @submit.prevent="onSubmit">
+          <SmInput
+            v-model="email"
+            type="email"
+            label="Email"
+            name="email"
+            placeholder="you@theanvayabali.com"
+            size="lg"
+            :disabled="loading"
+            required
+          />
+          <SmInput
+            v-model="password"
+            type="password"
+            label="Password"
+            name="password"
+            placeholder="••••••••"
+            size="lg"
+            :disabled="loading"
+            required
+          />
+
+          <p v-if="error" class="text-sm-bad text-[13px] font-semibold">
+            {{ error }}
+          </p>
+          <p v-if="resetSent" class="text-sm-won text-[13px] font-semibold">
+            Password reset link sent — check your email.
+          </p>
+          <!-- Keeps Enter-to-submit working now that the visible button lives in the footer. -->
+          <button type="submit" class="hidden" aria-hidden="true" tabindex="-1"></button>
+        </form>
       </div>
 
-      <form class="w-full space-y-4" @submit.prevent="onSubmit">
-        <SmInput
-          v-model="email"
-          type="email"
-          label="Email"
-          name="email"
-          placeholder="you@theanvayabali.com"
+      <div class="space-y-4">
+        <SmButton type="submit" size="lg" :loading="loading" class="w-full" @click="onSubmit">Sign in</SmButton>
+        <button
+          type="button"
+          class="w-full text-center text-[13px] font-semibold text-sm-muted hover:text-sm-ink dark:hover:text-white transition-colors"
           :disabled="loading"
-          required
-        />
-        <SmInput
-          v-model="password"
-          type="password"
-          label="Password"
-          name="password"
-          placeholder="Your password"
-          :disabled="loading"
-          required
-        />
-
-        <p v-if="error" class="text-red-500 text-xs font-medium text-center">
-          {{ error }}
-        </p>
-
-        <SmButton type="submit" :loading="loading" class="w-full">Sign in</SmButton>
-      </form>
-
-      <button
-        type="button"
-        class="mt-4 text-xs text-gray-500 dark:text-gray-400 hover:text-sm-primary transition-colors"
-        :disabled="loading"
-        @click="onForgotPassword"
-      >
-        Forgot password?
-      </button>
-
-      <p v-if="resetSent" class="mt-3 text-xs text-green-600 dark:text-green-400 text-center">
-        Password reset link sent — check your email.
-      </p>
+          @click="onForgotPassword"
+        >
+          Forgot password?
+        </button>
+      </div>
     </div>
   </div>
 </template>
