@@ -38,6 +38,41 @@
 
 @layer components {
 
+  /* Hidden scrollbars for horizontal chip/day rails and inner scroll regions
+     (matches the redesign's .scr containers). */
+  .scr::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+  .scr {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  /* Editorial micro-label — uppercase, wide tracking, muted ink.
+     Used for section eyebrows across every screen. */
+  .sm-eyebrow {
+    @apply text-[11px] font-extrabold uppercase tracking-[0.14em] text-sm-muted;
+  }
+
+  /* Big tight-tracked headline used for page titles. */
+  .sm-display {
+    @apply font-extrabold tracking-[-0.035em] text-sm-ink dark:text-white;
+  }
+
+  /* Hairline row divider — the workhorse separator replacing cards. */
+  .sm-row {
+    @apply border-t border-sm-hair dark:border-white/5;
+  }
+
+  /* Bottom scrim behind floating pill FABs on scrolling list screens. */
+  .sm-fade-bottom {
+    background: linear-gradient(rgba(255, 255, 255, 0), #ffffff 55%);
+  }
+  .dark .sm-fade-bottom {
+    background: linear-gradient(rgba(0, 0, 0, 0), #000000 55%);
+  }
+
   /* Custom scrollbar styles */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;

@@ -1,84 +1,23 @@
 <template>
-  <!-- Notification bell (bottom-left, opposite the nav FAB) -->
-  <button
-    type="button"
-    class="fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full bg-white dark:bg-sm-card-dark border border-gray-100 dark:border-white/10 shadow-lg shadow-black/5 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:scale-105 active:scale-95 transition-all"
-    aria-label="Notifications"
-    @click="showNotifications = true"
-  >
-    <BellIcon class="w-5 h-5" />
-    <span
-      v-if="notifications.unreadCount"
-      class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center"
-    >
-      {{ notifications.unreadCount > 9 ? '9+' : notifications.unreadCount }}
-    </span>
-  </button>
-
-  <NotificationPanel :open="showNotifications" @close="showNotifications = false" />
-
-  <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
-
-    <!-- Navigation Menu — compact app-drawer grid -->
-    <Transition
-      enter-active-class="transition duration-300 ease-out"
-      enter-from-class="transform translate-y-4 opacity-0 scale-95"
-      enter-to-class="transform translate-y-0 opacity-100 scale-100"
-      leave-active-class="transition duration-200 ease-in"
-      leave-from-class="transform translate-y-0 opacity-100 scale-100"
-      leave-to-class="transform translate-y-4 opacity-0 scale-95"
-    >
-      <div
-        v-if="isOpen"
-        class="pointer-events-auto relative z-50 grid grid-cols-3 gap-2 p-3 w-[19rem] max-w-[calc(100vw-3rem)] bg-white dark:bg-sm-card-dark border border-gray-100 dark:border-white/10 rounded-3xl shadow-xl shadow-black/10 origin-bottom-right"
-      >
-        <router-link
-          v-for="item in navItems"
-          :key="item.name"
-          :to="item.to"
-          @click="isOpen = false"
-          class="flex flex-col items-center justify-start gap-1.5 p-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/5 active:scale-95 transition-all group"
-        >
-          <div
-            class="p-2.5 rounded-xl transition-colors"
-            :class="isActive(item) ? 'bg-sm-primary text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 group-hover:text-sm-primary'"
-          >
-            <component :is="item.icon" class="w-5 h-5" />
-          </div>
-          <span class="text-[11px] leading-tight text-center font-medium text-gray-700 dark:text-gray-200 line-clamp-2">{{ item.name }}</span>
-        </router-link>
-
-        <!-- Logout -->
-        <button
-          @click="handleLogout"
-          class="flex flex-col items-center justify-start gap-1.5 p-2 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 active:scale-95 transition-all group"
-        >
-          <div class="p-2.5 rounded-xl bg-red-100 dark:bg-red-800/30 text-red-600 dark:text-red-400 transition-colors">
-            <ArrowRightOnRectangleIcon class="w-5 h-5" />
-          </div>
-          <span class="text-[11px] leading-tight text-center font-medium text-red-600 dark:text-red-400">Logout</span>
-        </button>
-      </div>
-    </Transition>
-
-    <!-- Main FAB Trigger -->
+  <!-- Mobile navigation. Hidden on lg+, where SideRail takes over. -->
+  <div class="lg:hidden">
+    <!-- Notification bell (bottom-left, opposite the nav FAB) -->
     <button
-      @click="isOpen = !isOpen"
-      class="pointer-events-auto w-14 h-14 rounded-full bg-sm-primary text-white shadow-xl shadow-blue-500/30 flex items-center justify-center hover:scale-110 active:scale-90 transition-all z-50"
+      type="button"
+      class="fixed bottom-6 left-6 z-50 w-11 h-11 rounded-full bg-white dark:bg-sm-card-dark border border-sm-line dark:border-white/10 shadow-lg shadow-black/5 flex items-center justify-center text-sm-ink dark:text-gray-200 active:scale-95 transition-all"
+      aria-label="Notifications"
+      @click="showNotifications = true"
     >
-      <Transition
-        mode="out-in"
-        enter-active-class="transition duration-200 ease-out"
-        enter-from-class="transform rotate-90 opacity-0"
-        enter-to-class="transform rotate-0 opacity-100"
-        leave-active-class="transition duration-200 ease-in"
-        leave-from-class="transform rotate-0 opacity-100"
-        leave-to-class="transform -rotate-90 opacity-0"
+      <BellIcon class="w-5 h-5" />
+      <span
+        v-if="notifications.unreadCount"
+        class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sm-bad text-white text-[10px] font-bold flex items-center justify-center"
       >
-        <XMarkIcon v-if="isOpen" class="w-7 h-7" />
-        <Bars3Icon v-else class="w-7 h-7" />
-      </Transition>
+        {{ notifications.unreadCount > 9 ? '9+' : notifications.unreadCount }}
+      </span>
     </button>
+
+    <NotificationPanel :open="showNotifications" @close="showNotifications = false" />
 
     <!-- Backdrop -->
     <Transition
@@ -89,39 +28,93 @@
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
-      <div 
-        v-if="isOpen" 
+      <div
+        v-if="isOpen"
+        class="fixed inset-0 z-40 bg-sm-ink/30 backdrop-blur-[2px]"
         @click="isOpen = false"
-        class="fixed inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-sm pointer-events-auto z-40"
       ></div>
     </Transition>
+
+    <!-- Bottom sheet -->
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="translate-y-full"
+      enter-to-class="translate-y-0"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="translate-y-0"
+      leave-to-class="translate-y-full"
+    >
+      <div
+        v-if="isOpen"
+        class="fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-sm-card-dark rounded-t-[20px] pt-2.5 pb-6 safe-area-bottom max-h-[80vh] overflow-y-auto scr"
+      >
+        <div class="w-9 h-1 rounded-full bg-sm-line dark:bg-white/15 mx-auto mt-1.5 mb-3.5"></div>
+
+        <RouterLink
+          v-for="item in navItems"
+          :key="item.to"
+          :to="item.to"
+          class="flex items-center gap-3.5 px-6 py-3.5 border-t border-sm-hair dark:border-white/5"
+          @click="isOpen = false"
+        >
+          <component
+            :is="item.icon"
+            class="w-[19px] h-[19px] shrink-0"
+            :class="isActive(item) ? 'text-sm-primary' : 'text-sm-ink dark:text-gray-200'"
+            stroke-width="1.5"
+          />
+          <span
+            class="text-base"
+            :class="isActive(item) ? 'font-extrabold text-sm-primary' : 'font-semibold text-sm-ink dark:text-gray-200'"
+          >{{ item.name }}</span>
+        </RouterLink>
+
+        <button
+          type="button"
+          class="w-full flex items-center gap-3.5 px-6 py-3.5 border-t border-sm-hair dark:border-white/5 text-left"
+          @click="handleLogout"
+        >
+          <ArrowRightOnRectangleIcon class="w-[19px] h-[19px] text-sm-bad" stroke-width="1.5" />
+          <span class="text-base font-semibold text-sm-bad">Sign out</span>
+        </button>
+      </div>
+    </Transition>
+
+    <!-- FAB trigger -->
+    <button
+      class="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-sm-ink dark:bg-white text-white dark:text-sm-ink shadow-xl shadow-black/20 flex items-center justify-center active:scale-90 transition-all"
+      @click="isOpen = !isOpen"
+    >
+      <Transition
+        mode="out-in"
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="rotate-90 opacity-0"
+        enter-to-class="rotate-0 opacity-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="rotate-0 opacity-100"
+        leave-to-class="-rotate-90 opacity-0"
+      >
+        <XMarkIcon v-if="isOpen" class="w-5 h-5" stroke-width="1.75" />
+        <Bars3Icon v-else class="w-5 h-5" stroke-width="1.75" />
+      </Transition>
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useSessionStore } from '@/stores/session'
 import {
-  HomeIcon,
-  ChatBubbleLeftRightIcon,
-  DocumentTextIcon,
-  ClipboardDocumentListIcon,
-  PlusIcon,
   Bars3Icon,
   XMarkIcon,
-  ClipboardDocumentIcon,
-  Squares2X2Icon,
-  ChartBarIcon,
-  CalendarDaysIcon,
-  UsersIcon,
   BellIcon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
 import NotificationPanel from '@/components/NotificationPanel.vue'
 import { useNotificationsStore } from '@/stores/notifications'
 import { usePermissionsStore } from '@/stores/permissions'
-import type { Permission } from '@/lib/permissions'
+import { NAV_ITEMS, isNavActive } from '@/lib/nav'
 
 const route = useRoute()
 const router = useRouter()
@@ -137,86 +130,12 @@ const handleLogout = async () => {
   router.push('/login')
 }
 
-interface NavItem {
-  name: string
-  to: string
-  icon: unknown
-  permission?: Permission // when set, only shown to roles granted this permission
-}
-
-const allNavItems: NavItem[] = [
-  {
-    name: 'Home',
-    to: '/',
-    icon: HomeIcon,
-    permission: 'home:access'
-  },
-  {
-    name: 'Chat',
-    to: '/chat',
-    icon: ChatBubbleLeftRightIcon,
-    permission: 'chat:access'
-  },
-  {
-    name: 'Pipeline',
-    to: '/crm',
-    icon: Squares2X2Icon,
-    permission: 'pipeline:view'
-  },
-  {
-    name: 'Pipeline Report',
-    to: '/crm/report',
-    icon: ChartBarIcon,
-    permission: 'pipeline:report'
-  },
-  {
-    name: 'Function Chart',
-    to: '/function-chart',
-    icon: CalendarDaysIcon,
-    permission: 'function:view'
-  },
-  {
-    name: 'Contract',
-    to: '/contract',
-    icon: DocumentTextIcon,
-    permission: 'contract:access'
-  },
-  {
-    name: 'New RFP',
-    to: '/rfp/new',
-    icon: PlusIcon,
-    permission: 'rfp:create'
-  },
-  {
-    name: 'RFP History',
-    to: '/rfp',
-    icon: ClipboardDocumentListIcon,
-    permission: 'rfp:view'
-  },
-  {
-    name: 'Survey Admin',
-    to: '/survey/admin',
-    icon: ClipboardDocumentIcon,
-    permission: 'survey:view'
-  },
-  {
-    name: 'Team & Access',
-    to: '/users',
-    icon: UsersIcon,
-    permission: 'users:access'
-  }
-]
-
 // Hide entries the current user's role isn't granted (reactive to matrix edits).
 const navItems = computed(() =>
-  allNavItems.filter(
+  NAV_ITEMS.filter(
     item => !item.permission || permissions.has(sessionStore.currentUser, item.permission)
   )
 )
 
-const isActive = (item: { to: string }) => {
-  return item.to === '/'
-    ? route.path === '/'
-    : route.path.startsWith(item.to)
-}
+const isActive = (item: (typeof NAV_ITEMS)[number]) => isNavActive(item, route.path)
 </script>

@@ -1,12 +1,12 @@
 <template>
   <div :class="cardClasses">
-    <div v-if="$slots.header" class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+    <div v-if="$slots.header" class="px-6 py-4 border-b border-sm-line dark:border-white/10">
       <slot name="header" />
     </div>
     <div :class="contentClasses">
       <slot />
     </div>
-    <div v-if="$slots.footer" class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+    <div v-if="$slots.footer" class="px-6 py-4 border-t border-sm-line dark:border-white/10">
       <slot name="footer" />
     </div>
   </div>
@@ -29,20 +29,22 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const cardClasses = computed(() => {
-  const baseClasses = 'bg-white dark:bg-sm-card-dark'
+  const baseClasses = 'bg-white dark:bg-sm-card-dark border border-sm-line dark:border-white/10'
 
+  // Shadows are intentionally near-flat in this system; hairline borders carry
+  // the surface separation instead.
   const shadowClasses = {
     none: '',
-    sm: 'shadow-sm',
-    md: 'shadow-md',
-    lg: 'shadow-lg'
+    sm: '',
+    md: 'shadow-sm shadow-black/5',
+    lg: 'shadow-md shadow-black/5'
   }
 
   const roundedClasses = {
     none: '',
-    sm: 'rounded-sm',
-    md: 'rounded-md',
-    lg: 'rounded-lg',
+    sm: 'rounded-lg',
+    md: 'rounded-2xl',
+    lg: 'rounded-3xl',
     full: 'rounded-full'
   }
 

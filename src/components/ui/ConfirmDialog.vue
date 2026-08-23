@@ -15,10 +15,10 @@
           <div class="flex items-start gap-3">
             <div
               class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
-              :class="danger ? 'bg-red-100 dark:bg-red-900/30' : 'bg-blue-100 dark:bg-blue-900/30'"
+              :class="danger ? 'bg-red-100 dark:bg-red-900/30' : 'bg-sm-surface dark:bg-white/10'"
             >
-              <ExclamationTriangleIcon v-if="danger" class="w-5 h-5 text-red-600 dark:text-red-400" />
-              <QuestionMarkCircleIcon v-else class="w-5 h-5 text-sm-primary" />
+              <ExclamationTriangleIcon v-if="danger" class="w-5 h-5 text-sm-bad" />
+              <QuestionMarkCircleIcon v-else class="w-5 h-5 text-sm-ink dark:text-white" />
             </div>
             <div class="min-w-0">
               <h3 class="text-base font-bold text-gray-900 dark:text-white">{{ title }}</h3>
@@ -38,8 +38,8 @@
             <button
               type="button"
               :disabled="loading"
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors disabled:opacity-60"
-              :class="danger ? 'bg-red-600 hover:bg-red-700' : 'bg-sm-primary hover:bg-blue-700'"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white dark:text-sm-ink transition-colors disabled:opacity-60"
+              :class="danger ? 'bg-sm-bad hover:bg-red-700 text-white' : 'bg-sm-ink hover:bg-black dark:bg-white dark:hover:bg-gray-100'"
               @click="emit('confirm')"
             >
               <svg v-if="loading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

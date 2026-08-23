@@ -2,6 +2,7 @@
 import { onMounted, computed, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import BottomNav from '@/components/BottomNav.vue'
+import SideRail from '@/components/SideRail.vue'
 import { useThemeStore } from '@/stores/theme'
 import { useSessionStore } from '@/stores/session'
 import { useCrmStore } from '@/stores/crm'
@@ -41,14 +42,18 @@ const showNav = computed(() => !['login', 'survey'].includes(route.name as strin
 
 <template>
   <div class="relative min-h-screen overflow-x-hidden safe-area-top bg-sm-bg dark:bg-sm-bg-dark transition-colors duration-300">
-    <router-view v-slot="{ Component }">
-      <transition 
-        name="fade" 
-      >
-        <component :is="Component" :key="route.fullPath" />
-      </transition>
-    </router-view>
-    
+    <SideRail v-if="showNav" />
+
+    <div :class="showNav ? 'lg:pl-[232px]' : ''">
+      <router-view v-slot="{ Component }">
+        <transition
+          name="fade"
+        >
+          <component :is="Component" :key="route.fullPath" />
+        </transition>
+      </router-view>
+    </div>
+
     <BottomNav v-if="showNav" />
   </div>
 </template>

@@ -19,13 +19,26 @@ export default {
         '2xl': '1536px',
       },
       colors: {
-        'sm-primary': '#0066CC', // Deep Blue
+        'sm-primary': '#0066CC', // Deep Blue — spent once per screen
         'sm-secondary': '#8E8E93', // Apple Gray
         'sm-accent': '#30D158', // iOS Green
         'sm-bg': '#F2F2F7', // iOS System Gray 6
         'sm-bg-dark': '#000000', // OLED Black
         'sm-card': '#FFFFFF',
-        'sm-card-dark': '#1C1C1E' // iOS Gray 6 Dark
+        'sm-card-dark': '#1C1C1E', // iOS Gray 6 Dark
+        // Action-queue editorial palette — ink, hairline, whitespace
+        'sm-ink': '#1C1C1E', // near-black — primary text, buttons, FABs
+        'sm-ink-soft': '#6B7280', // secondary reading text
+        'sm-muted': '#8E8E93', // micro-labels, meta
+        'sm-faint': '#C7C7CC', // placeholders, disabled marks
+        'sm-line': '#E5E5EA', // section hairline
+        'sm-hair': '#F0F0F2', // list-row hairline
+        'sm-surface': '#FAFAFA', // page canvas
+        // Semantic status
+        'sm-won': '#1E9E4A',
+        'sm-warn': '#C77700',
+        'sm-bad': '#D92F2F',
+        'sm-wed': '#7C3AED'
       },
       animation: {
         shake: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',

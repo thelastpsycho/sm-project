@@ -40,18 +40,20 @@ defineEmits<{
 }>()
 
 const buttonClasses = computed(() => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+  const baseClasses = 'inline-flex items-center justify-center font-bold rounded-xl transition-all active:scale-[0.98] focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100'
 
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base'
+    sm: 'px-4 py-2 text-[13px]',
+    md: 'px-5 py-3 text-sm',
+    lg: 'px-6 py-4 text-[15px]'
   }
 
+  // Ink-first: the one strong action per screen is near-black; blue is reserved
+  // for inline text links, so it is intentionally not a filled variant here.
   const variantClasses = {
-    primary: 'bg-sm-primary text-white hover:bg-blue-700 focus:ring-sm-primary dark:bg-sm-primary dark:hover:bg-blue-600',
-    secondary: 'bg-sm-secondary text-white hover:bg-slate-600 focus:ring-sm-secondary dark:bg-slate-600 dark:hover:bg-slate-700',
-    ghost: 'text-sm-secondary bg-transparent hover:bg-sm-bg hover:text-sm-primary dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+    primary: 'bg-sm-ink text-white hover:bg-black dark:bg-white dark:text-sm-ink dark:hover:bg-gray-100',
+    secondary: 'bg-transparent text-sm-ink border border-sm-line hover:bg-sm-surface dark:text-white dark:border-white/15 dark:hover:bg-white/5',
+    ghost: 'bg-transparent text-sm-muted hover:text-sm-ink dark:text-gray-400 dark:hover:text-white'
   }
 
   return `${baseClasses} ${sizeClasses[props.size]} ${variantClasses[props.variant]}`

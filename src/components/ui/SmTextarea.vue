@@ -1,8 +1,8 @@
 <template>
   <div class="w-full">
-    <label v-if="label" :for="id" class="block text-xs font-normal text-gray-600 dark:text-gray-400 mb-2">
+    <label v-if="label" :for="id" class="block sm-eyebrow mb-2">
       {{ label }}
-      <span v-if="required" class="text-red-500 ml-1">*</span>
+      <span v-if="required" class="text-sm-bad ml-1">*</span>
     </label>
     <textarea
       :id="id"
@@ -55,7 +55,7 @@ defineEmits<{
 const id = computed(() => `textarea-${Math.random().toString(36).substr(2, 9)}`)
 
 const textareaClasses = computed(() => {
-  const baseClasses = 'block w-full border-0 rounded-lg bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-offset-0 transition-all duration-200'
+  const baseClasses = 'block w-full border rounded-xl bg-transparent px-4 py-3 text-base focus:ring-0 focus:outline-none transition-colors duration-200'
 
   const resizeClasses = {
     none: 'resize-none',
@@ -65,10 +65,10 @@ const textareaClasses = computed(() => {
   }
 
   const stateClasses = props.error
-    ? 'ring-2 ring-red-500 text-red-900 placeholder-red-400 dark:text-red-100 dark:placeholder-red-500'
-    : 'ring-1 ring-gray-200 dark:ring-gray-700 text-gray-900 placeholder-gray-500 dark:text-white dark:placeholder-gray-400 focus:ring-sm-primary focus:border-transparent'
+    ? 'border-sm-bad text-sm-bad placeholder-sm-bad/50'
+    : 'border-sm-line text-sm-ink placeholder-sm-faint dark:text-white dark:border-white/15 dark:placeholder-gray-500 focus:border-sm-ink dark:focus:border-white'
 
-  const disabledClasses = props.disabled ? 'opacity-60 cursor-not-allowed bg-gray-100 dark:bg-gray-900' : ''
+  const disabledClasses = props.disabled ? 'opacity-50 cursor-not-allowed' : ''
 
   return `${baseClasses} ${stateClasses} ${disabledClasses} ${resizeClasses[props.resize]}`
 })

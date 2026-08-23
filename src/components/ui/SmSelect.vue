@@ -1,8 +1,8 @@
 <template>
   <div class="w-full">
-    <label v-if="label" :for="id" class="block text-xs font-normal text-gray-600 dark:text-gray-400 mb-2">
+    <label v-if="label" :for="id" class="block sm-eyebrow mb-2">
       {{ label }}
-      <span v-if="required" class="text-red-500 ml-1">*</span>
+      <span v-if="required" class="text-sm-bad ml-1">*</span>
     </label>
     <select
       :id="id"
@@ -61,20 +61,20 @@ defineEmits<{
 const id = computed(() => `select-${Math.random().toString(36).substr(2, 9)}`)
 
 const selectClasses = computed(() => {
-  const baseClasses = 'block w-full border-0 rounded-lg bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-offset-0 transition-all duration-200 appearance-none cursor-pointer'
+  const baseClasses = 'block w-full border-0 border-b rounded-none bg-transparent focus:ring-0 focus:outline-none transition-colors duration-200 appearance-none cursor-pointer'
 
   const sizeClasses = {
-    sm: 'px-4 py-2 text-sm',
-    md: 'px-4 py-3 text-sm',
-    lg: 'px-5 py-4 text-base'
+    sm: 'py-2 text-sm',
+    md: 'py-2.5 text-base',
+    lg: 'py-3 text-lg'
   }
 
   const stateClasses = props.error
-    ? 'ring-2 ring-red-500 text-gray-900 dark:text-white'
-    : 'ring-1 ring-gray-200 dark:ring-gray-700 text-gray-900 dark:text-white focus:ring-sm-primary focus:border-transparent'
+    ? 'border-sm-bad text-sm-bad'
+    : 'border-sm-line text-sm-ink dark:text-white dark:border-white/15 focus:border-sm-ink dark:focus:border-white'
 
-  const disabledClasses = props.disabled ? 'opacity-60 cursor-not-allowed bg-gray-100 dark:bg-gray-900' : ''
+  const disabledClasses = props.disabled ? 'opacity-50 cursor-not-allowed' : ''
 
-  return `${baseClasses} ${sizeClasses[props.size]} ${stateClasses} ${disabledClasses} bg-[url('data:image/svg+xml,%3csvg xmlns=\\'http://www.w3.org/2000/svg\\' fill=\\'none\\' viewBox=\\'0 0 20 20\\'%3e%3cpath stroke=\\'%236b7280\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'1.5\\' d=\\'M6 8l4 4 4-4\\'/%3e%3c/svg%3e')] bg-right bg-no-repeat pr-10`
+  return `${baseClasses} ${sizeClasses[props.size]} ${stateClasses} ${disabledClasses} bg-[url('data:image/svg+xml,%3csvg xmlns=\\'http://www.w3.org/2000/svg\\' fill=\\'none\\' viewBox=\\'0 0 20 20\\'%3e%3cpath stroke=\\'%238E8E93\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'1.5\\' d=\\'M6 8l4 4 4-4\\'/%3e%3c/svg%3e')] bg-[right_center] bg-no-repeat pr-8`
 })
 </script>

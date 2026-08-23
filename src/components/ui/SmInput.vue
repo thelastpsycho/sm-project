@@ -1,8 +1,8 @@
 <template>
   <div class="w-full">
-    <label v-if="label" :for="id" class="block text-xs font-normal text-gray-600 dark:text-gray-400 mb-2">
+    <label v-if="label" :for="id" class="block sm-eyebrow mb-2">
       {{ label }}
-      <span v-if="required" class="text-red-500 ml-1">*</span>
+      <span v-if="required" class="text-sm-bad ml-1">*</span>
     </label>
     <input
       :id="id"
@@ -57,19 +57,20 @@ defineEmits<{
 const id = computed(() => `input-${Math.random().toString(36).substr(2, 9)}`)
 
 const inputClasses = computed(() => {
-  const baseClasses = 'block w-full border-0 rounded-lg bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-offset-0 transition-all duration-200 [color-scheme:light] dark:[color-scheme:dark]'
+  // Hairline underline field: transparent, one bottom rule that inks on focus.
+  const baseClasses = 'block w-full border-0 border-b bg-transparent rounded-none focus:ring-0 focus:outline-none transition-colors duration-200 [color-scheme:light] dark:[color-scheme:dark]'
 
   const sizeClasses = {
-    sm: 'px-4 py-2 text-sm',
-    md: 'px-4 py-3 text-sm',
-    lg: 'px-5 py-4 text-base'
+    sm: 'py-2 text-sm',
+    md: 'py-2.5 text-base',
+    lg: 'py-3 text-lg'
   }
 
   const stateClasses = props.error
-    ? 'ring-2 ring-red-500 text-red-900 placeholder-red-400 dark:text-red-100 dark:placeholder-red-500'
-    : 'ring-1 ring-gray-200 dark:ring-gray-700 text-gray-900 placeholder-gray-500 dark:text-white dark:placeholder-gray-400 focus:ring-sm-primary focus:border-transparent'
+    ? 'border-sm-bad text-sm-bad placeholder-sm-bad/50'
+    : 'border-sm-line text-sm-ink placeholder-sm-faint dark:text-white dark:border-white/15 dark:placeholder-gray-500 focus:border-sm-ink dark:focus:border-white'
 
-  const disabledClasses = props.disabled ? 'opacity-60 cursor-not-allowed bg-gray-100 dark:bg-gray-900' : ''
+  const disabledClasses = props.disabled ? 'opacity-50 cursor-not-allowed' : ''
 
   return `${baseClasses} ${sizeClasses[props.size]} ${stateClasses} ${disabledClasses}`
 })
