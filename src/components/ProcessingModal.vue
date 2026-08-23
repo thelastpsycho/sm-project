@@ -12,7 +12,7 @@
         
         <!-- Animated Icon -->
         <div class="relative w-24 h-24 mx-auto">
-          <div class="absolute inset-0 border-4 border-gray-100 dark:border-white/10 rounded-full"></div>
+          <div class="absolute inset-0 border-4 border-sm-line dark:border-white/10 rounded-full"></div>
           <div class="absolute inset-0 border-4 border-sm-primary border-t-transparent rounded-full animate-spin"></div>
           <div class="absolute inset-0 flex items-center justify-center">
              <div class="w-12 h-12 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
@@ -20,10 +20,10 @@
         </div>
 
         <div class="space-y-2">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white animate-fade-in">
+          <h3 class="text-2xl font-bold text-sm-ink dark:text-white animate-fade-in">
             Generating RFP
           </h3>
-          <p class="text-gray-500 dark:text-gray-400 h-6 transition-all duration-500">
+          <p class="text-sm-muted h-6 transition-all duration-500">
             {{ currentStep }}
           </p>
         </div>

@@ -9,7 +9,7 @@
       leave-to-class="opacity-0"
     >
       <div v-if="open" class="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true">
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="emit('close')"></div>
+        <div class="fixed inset-0 bg-sm-ink/30 backdrop-blur-sm" @click="emit('close')"></div>
 
         <div
           class="relative flex max-h-[calc(100vh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-sm-card-dark"
@@ -89,7 +89,7 @@
 
     <!-- Calendar range picker (nested, above the share dialog) -->
     <div v-if="open && showPicker" class="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4">
-      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="showPicker = false"></div>
+      <div class="fixed inset-0 bg-sm-ink/40 backdrop-blur-sm" @click="showPicker = false"></div>
       <div class="relative w-full max-w-md">
         <DateRangePicker
           :initial-start="startDate"

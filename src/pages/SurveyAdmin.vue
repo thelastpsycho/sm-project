@@ -234,9 +234,9 @@ function getScorePercentage(score: number): number {
                 alt="The Anvaya Beach Resort Bali"
                 class="h-6 sm:h-7 lg:h-9 w-auto mb-1"
               />
-              <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 hidden xs:block">MICE Survey Admin</p>
+              <p class="text-[10px] sm:text-xs text-sm-muted hidden xs:block">MICE Survey Admin</p>
             </div>
-            <SmButton variant="secondary" @click="handleLogout" class="text-xs py-2 px-3 sm:px-4 text-gray-600 dark:text-gray-400 flex-shrink-0">
+            <SmButton variant="secondary" @click="handleLogout" class="text-xs py-2 px-3 sm:px-4 text-sm-muted flex-shrink-0">
               <ArrowRightOnRectangleIcon class="h-4 w-4" />
               <span class="hidden sm:inline ml-1.5">Logout</span>
             </SmButton>
@@ -269,7 +269,7 @@ function getScorePercentage(score: number): number {
                   'flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0',
                   activeTab === tab.key
                     ? 'text-sm-primary border-b-2 border-sm-primary bg-sm-primary/5'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                    : 'text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-gray-700'
                 ]"
               >
                 <component :is="tab.icon" class="h-4 w-4 flex-shrink-0" />
@@ -283,7 +283,7 @@ function getScorePercentage(score: number): number {
         <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
           <!-- Dashboard Tab -->
           <div v-if="activeTab === 'dashboard'" class="space-y-4 sm:space-y-5">
-            <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h2>
+            <h2 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white">Dashboard Overview</h2>
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -293,8 +293,8 @@ function getScorePercentage(score: number): number {
                     <ChartBarIcon class="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Total Responses</p>
-                    <p class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white truncate">{{ stats.totalResponses }}</p>
+                    <p class="text-[10px] sm:text-xs text-sm-muted">Total Responses</p>
+                    <p class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white truncate">{{ stats.totalResponses }}</p>
                   </div>
                 </div>
               </SmCard>
@@ -305,8 +305,8 @@ function getScorePercentage(score: number): number {
                     <ChartBarIcon class="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Average Score</p>
-                    <p class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white truncate">{{ formatScore(stats.averageScore) }}</p>
+                    <p class="text-[10px] sm:text-xs text-sm-muted">Average Score</p>
+                    <p class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white truncate">{{ formatScore(stats.averageScore) }}</p>
                   </div>
                 </div>
               </SmCard>
@@ -317,8 +317,8 @@ function getScorePercentage(score: number): number {
                     <CalendarDaysIcon class="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Google Review Rate</p>
-                    <p class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white truncate">{{ formatScore(stats.reviewRedirectRate, 0) }}%</p>
+                    <p class="text-[10px] sm:text-xs text-sm-muted">Google Review Rate</p>
+                    <p class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white truncate">{{ formatScore(stats.reviewRedirectRate, 0) }}%</p>
                   </div>
                 </div>
               </SmCard>
@@ -327,11 +327,11 @@ function getScorePercentage(score: number): number {
             <!-- Score Distribution -->
             <SmCard class="p-3 sm:p-4">
               <div class="mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">Score Distribution</h3>
+                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white">Score Distribution</h3>
               </div>
               <div class="space-y-1.5 sm:space-y-2">
                 <div v-for="score in [5, 4, 3, 2, 1]" :key="score" class="flex items-center gap-1.5 sm:gap-3">
-                  <span class="w-6 sm:w-8 lg:w-10 text-[10px] sm:text-xs sm:text-sm font-medium text-gray-900 dark:text-white flex-shrink-0">{{ score }} ★</span>
+                  <span class="w-6 sm:w-8 lg:w-10 text-[10px] sm:text-xs sm:text-sm font-medium text-sm-ink dark:text-white flex-shrink-0">{{ score }} ★</span>
                   <div class="flex-1 h-3 sm:h-4 lg:h-5 bg-sm-primary/10 rounded overflow-hidden min-w-0">
                     <div
                       class="h-full bg-sm-primary transition-all duration-300 flex items-center justify-end px-0.5 sm:px-1 lg:px-2"
@@ -342,7 +342,7 @@ function getScorePercentage(score: number): number {
                       </span>
                     </div>
                   </div>
-                  <span class="w-8 sm:w-10 text-[9px] sm:text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-right flex-shrink-0">
+                  <span class="w-8 sm:w-10 text-[9px] sm:text-xs sm:text-sm text-sm-muted text-right flex-shrink-0">
                     {{ formatScore(getScorePercentage(score), 0) }}%
                   </span>
                 </div>
@@ -352,10 +352,10 @@ function getScorePercentage(score: number): number {
             <!-- Latest Responses -->
             <SmCard class="p-3 sm:p-4">
               <div class="mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">Latest Responses</h3>
+                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white">Latest Responses</h3>
               </div>
               <div v-if="surveyStore.responsesWithEvents.length === 0" class="p-3 sm:p-4">
-                <p class="text-gray-600 dark:text-gray-400 text-center text-sm">No responses yet</p>
+                <p class="text-sm-muted text-center text-sm">No responses yet</p>
               </div>
               <div v-else class="space-y-2">
                 <div
@@ -364,12 +364,12 @@ function getScorePercentage(score: number): number {
                   class="flex items-center justify-between gap-2 p-2 sm:p-2.5 lg:p-3 bg-sm-bg dark:bg-gray-700 rounded-lg"
                 >
                   <div class="min-w-0 flex-1">
-                    <p class="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{{ response.event?.eventName }}</p>
-                    <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">{{ new Date(response.createdAt).toLocaleDateString() }}</p>
+                    <p class="font-medium text-xs sm:text-sm text-sm-ink dark:text-white truncate">{{ response.event?.eventName }}</p>
+                    <p class="text-[10px] sm:text-xs text-sm-muted">{{ new Date(response.createdAt).toLocaleDateString() }}</p>
                   </div>
                   <div class="text-right flex-shrink-0">
                     <p class="text-sm sm:text-base font-semibold text-sm-primary">{{ formatScore(response.totalScore / 5) }}</p>
-                    <p class="text-[9px] sm:text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">out of 5</p>
+                    <p class="text-[9px] sm:text-[10px] sm:text-xs text-sm-muted">out of 5</p>
                   </div>
                 </div>
               </div>
@@ -378,12 +378,12 @@ function getScorePercentage(score: number): number {
 
           <!-- Events Tab -->
           <div v-if="activeTab === 'events'" class="space-y-4 sm:space-y-5">
-            <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Event Management</h2>
+            <h2 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white">Event Management</h2>
 
             <!-- Create Event Form -->
             <SmCard v-if="canCreate" class="p-3 sm:p-4">
               <div class="mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">Create New Event</h3>
+                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white">Create New Event</h3>
               </div>
               <form @submit.prevent="handleCreateEvent" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <SmInput
@@ -407,8 +407,8 @@ function getScorePercentage(score: number): number {
                       :class="[
                         'flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border-2 text-xs sm:text-sm font-medium transition-all',
                         newEvent.language === 'en'
-                          ? 'bg-sm-primary text-white border-sm-primary'
-                          : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-sm-primary/30 hover:border-sm-primary hover:bg-sm-primary/5'
+                          ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink border-sm-primary'
+                          : 'bg-white dark:bg-gray-800 text-sm-ink dark:text-white border-sm-primary/30 hover:border-sm-primary hover:bg-sm-primary/5'
                       ]"
                     >
                       🇬🇧 <span class="hidden xs:inline ml-1">English</span>
@@ -419,8 +419,8 @@ function getScorePercentage(score: number): number {
                       :class="[
                         'flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border-2 text-xs sm:text-sm font-medium transition-all',
                         newEvent.language === 'id'
-                          ? 'bg-sm-primary text-white border-sm-primary'
-                          : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-sm-primary/30 hover:border-sm-primary hover:bg-sm-primary/5'
+                          ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink border-sm-primary'
+                          : 'bg-white dark:bg-gray-800 text-sm-ink dark:text-white border-sm-primary/30 hover:border-sm-primary hover:bg-sm-primary/5'
                       ]"
                     >
                       🇮🇩 <span class="hidden xs:inline ml-1">Indonesia</span>
@@ -443,10 +443,10 @@ function getScorePercentage(score: number): number {
             <!-- Events List -->
             <SmCard class="p-3 sm:p-4">
               <div class="mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">All Events</h3>
+                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white">All Events</h3>
               </div>
               <div v-if="surveyStore.events.length === 0" class="p-3 sm:p-4">
-                <p class="text-gray-600 dark:text-gray-400 text-center text-sm">No events created yet</p>
+                <p class="text-sm-muted text-center text-sm">No events created yet</p>
               </div>
               <div v-else class="space-y-2">
                 <div
@@ -456,13 +456,13 @@ function getScorePercentage(score: number): number {
                 >
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-1.5 sm:gap-2">
-                      <p class="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate flex-1">{{ event.eventName }}</p>
+                      <p class="font-medium text-xs sm:text-sm text-sm-ink dark:text-white truncate flex-1">{{ event.eventName }}</p>
                       <span class="px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-medium bg-sm-primary/10 text-sm-primary flex-shrink-0">
                         {{ event.language === 'en' ? '🇬🇧' : '🇮🇩' }}
                       </span>
                     </div>
-                    <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 truncate">{{ event.companyName }}</p>
-                    <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5">{{ new Date(event.createdAt).toLocaleDateString() }}</p>
+                    <p class="text-[10px] sm:text-xs text-sm-muted truncate">{{ event.companyName }}</p>
+                    <p class="text-[10px] sm:text-xs text-sm-muted mt-0.5">{{ new Date(event.createdAt).toLocaleDateString() }}</p>
                   </div>
                   <div class="flex items-center gap-1 sm:gap-1.5 sm:gap-2 flex-shrink-0">
                     <button
@@ -478,7 +478,7 @@ function getScorePercentage(score: number): number {
                       title="Copy survey link"
                     >
                       <CheckIcon v-if="copiedEventId === event.id" class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600" />
-                      <ClipboardDocumentIcon v-else class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600 dark:text-gray-400" />
+                      <ClipboardDocumentIcon v-else class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sm-muted" />
                     </button>
                     <button
                       v-if="canDelete"
@@ -497,7 +497,7 @@ function getScorePercentage(score: number): number {
           <!-- Results Tab -->
           <div v-if="activeTab === 'results'" class="space-y-4 sm:space-y-5">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Survey Results</h2>
+              <h2 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white">Survey Results</h2>
 
               <div class="relative w-full sm:w-auto">
                 <select
@@ -509,14 +509,14 @@ function getScorePercentage(score: number): number {
                     {{ event.eventName }}
                   </option>
                 </select>
-                <ChevronDownIcon class="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-600 dark:text-gray-400 pointer-events-none" />
+                <ChevronDownIcon class="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-sm-muted pointer-events-none" />
               </div>
             </div>
 
             <!-- Mobile Cards / Desktop Table -->
             <SmCard class="p-0 sm:p-0 overflow-hidden">
               <div v-if="filteredResponses.length === 0" class="p-6 sm:p-8">
-                <p class="text-gray-600 dark:text-gray-400 text-center text-sm">No responses found</p>
+                <p class="text-sm-muted text-center text-sm">No responses found</p>
               </div>
 
               <template v-else>
@@ -532,18 +532,18 @@ function getScorePercentage(score: number): number {
                       @click="toggleExpand(response.id)"
                     >
                       <div class="min-w-0 flex-1">
-                        <p class="font-medium text-sm text-gray-900 dark:text-white truncate">
+                        <p class="font-medium text-sm text-sm-ink dark:text-white truncate">
                           {{ response.name || 'Anonymous' }}
                         </p>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 truncate">{{ response.event?.eventName || 'Unknown Event' }}</p>
+                        <p class="text-xs text-sm-muted truncate">{{ response.event?.eventName || 'Unknown Event' }}</p>
                       </div>
                       <div class="flex items-center gap-2 flex-shrink-0">
                         <div class="text-right">
                           <p class="text-base font-semibold text-sm-primary">{{ formatScore(response.averageScore || response.totalScore / 6) }}</p>
-                          <p class="text-[10px] text-gray-600 dark:text-gray-400">/ 5</p>
+                          <p class="text-[10px] text-sm-muted">/ 5</p>
                         </div>
                         <ChevronDownIcon
-                          :class="['h-4 w-4 text-gray-600 dark:text-gray-400 transition-transform', expandedResponseId === response.id && 'rotate-180']"
+                          :class="['h-4 w-4 text-sm-muted transition-transform', expandedResponseId === response.id && 'rotate-180']"
                         />
                       </div>
                     </div>
@@ -552,25 +552,25 @@ function getScorePercentage(score: number): number {
                       <!-- Contact Info -->
                       <div class="grid grid-cols-2 gap-2">
                         <div>
-                          <p class="text-[10px] text-gray-600 dark:text-gray-400 uppercase tracking-wide">Email</p>
-                          <p class="text-xs font-medium text-gray-900 dark:text-white break-all">{{ response.email }}</p>
+                          <p class="text-[10px] text-sm-muted uppercase tracking-wide">Email</p>
+                          <p class="text-xs font-medium text-sm-ink dark:text-white break-all">{{ response.email }}</p>
                         </div>
                         <div>
-                          <p class="text-[10px] text-gray-600 dark:text-gray-400 uppercase tracking-wide">Role</p>
-                          <p class="text-xs font-medium text-gray-900 dark:text-white capitalize">{{ getRoleLabel(response.role) }}</p>
+                          <p class="text-[10px] text-sm-muted uppercase tracking-wide">Role</p>
+                          <p class="text-xs font-medium text-sm-ink dark:text-white capitalize">{{ getRoleLabel(response.role) }}</p>
                         </div>
                       </div>
 
                       <!-- Rating Scores -->
                       <div>
-                        <p class="text-xs font-semibold text-gray-900 dark:text-white mb-2">Ratings</p>
+                        <p class="text-xs font-semibold text-sm-ink dark:text-white mb-2">Ratings</p>
                         <div class="grid grid-cols-3 gap-1.5">
                           <div
                             v-for="[key, value] in Object.entries(response.scores)"
                             :key="key"
                             class="text-center p-1.5 bg-sm-bg dark:bg-gray-700 rounded-lg"
                           >
-                            <p class="text-[9px] text-gray-600 dark:text-gray-400 truncate">{{ getQuestionLabel(key) }}</p>
+                            <p class="text-[9px] text-sm-muted truncate">{{ getQuestionLabel(key) }}</p>
                             <p class="text-sm font-semibold text-sm-primary">{{ value }}</p>
                           </div>
                         </div>
@@ -584,8 +584,8 @@ function getScorePercentage(score: number): number {
                           v-show="value"
                           class="p-2.5 bg-sm-bg dark:bg-gray-700 rounded-lg"
                         >
-                          <p class="text-[10px] font-semibold text-gray-900 dark:text-white mb-1">{{ getQuestionLabel(key) }}</p>
-                          <p class="text-xs text-gray-600 dark:text-gray-400">"{{ value }}"</p>
+                          <p class="text-[10px] font-semibold text-sm-ink dark:text-white mb-1">{{ getQuestionLabel(key) }}</p>
+                          <p class="text-xs text-sm-muted">"{{ value }}"</p>
                         </div>
                       </div>
                     </div>
@@ -604,22 +604,22 @@ function getScorePercentage(score: number): number {
                     @click="toggleExpand(response.id)"
                   >
                     <div class="min-w-0 flex-1">
-                      <p class="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">
+                      <p class="font-medium text-xs sm:text-sm text-sm-ink dark:text-white truncate">
                         {{ response.name || 'Anonymous' }}
                       </p>
                       <div class="flex items-center gap-2 flex-wrap">
-                        <p class="text-xs text-gray-600 dark:text-gray-400">{{ response.event?.eventName || 'Unknown Event' }}</p>
+                        <p class="text-xs text-sm-muted">{{ response.event?.eventName || 'Unknown Event' }}</p>
                         <span class="text-sm-primary/50">•</span>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 capitalize">{{ getRoleLabel(response.role) }}</p>
+                        <p class="text-xs text-sm-muted capitalize">{{ getRoleLabel(response.role) }}</p>
                       </div>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                       <div class="text-right">
                         <p class="text-sm sm:text-base font-semibold text-sm-primary">{{ formatScore(response.averageScore || response.totalScore / 6) }}</p>
-                        <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">/ 5</p>
+                        <p class="text-[10px] sm:text-xs text-sm-muted">/ 5</p>
                       </div>
                       <ChevronDownIcon
-                        :class="['h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-gray-400 transition-transform', expandedResponseId === response.id && 'rotate-180']"
+                        :class="['h-4 w-4 sm:h-5 sm:w-5 text-sm-muted transition-transform', expandedResponseId === response.id && 'rotate-180']"
                       />
                     </div>
                   </div>
@@ -628,25 +628,25 @@ function getScorePercentage(score: number): number {
                     <!-- Contact Info -->
                     <div class="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
                       <div>
-                        <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Email</p>
-                        <p class="text-xs sm:text-sm font-medium text-gray-900 dark:text-white break-all">{{ response.email }}</p>
+                        <p class="text-[10px] sm:text-xs text-sm-muted uppercase tracking-wide">Email</p>
+                        <p class="text-xs sm:text-sm font-medium text-sm-ink dark:text-white break-all">{{ response.email }}</p>
                       </div>
                       <div>
-                        <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">Role</p>
-                        <p class="text-xs sm:text-sm font-medium text-gray-900 dark:text-white capitalize">{{ getRoleLabel(response.role) }}</p>
+                        <p class="text-[10px] sm:text-xs text-sm-muted uppercase tracking-wide">Role</p>
+                        <p class="text-xs sm:text-sm font-medium text-sm-ink dark:text-white capitalize">{{ getRoleLabel(response.role) }}</p>
                       </div>
                     </div>
 
                     <!-- Rating Scores -->
                     <div class="mb-3 sm:mb-4">
-                      <p class="text-xs font-semibold text-gray-900 dark:text-white mb-2">Ratings</p>
+                      <p class="text-xs font-semibold text-sm-ink dark:text-white mb-2">Ratings</p>
                       <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2">
                         <div
                           v-for="[key, value] in Object.entries(response.scores)"
                           :key="key"
                           class="text-center p-1.5 sm:p-2 bg-sm-bg dark:bg-gray-700 rounded-lg"
                         >
-                          <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 truncate">{{ getQuestionLabel(key) }}</p>
+                          <p class="text-[10px] sm:text-xs text-sm-muted truncate">{{ getQuestionLabel(key) }}</p>
                           <p class="text-sm sm:text-base font-semibold text-sm-primary">{{ value }}</p>
                         </div>
                       </div>
@@ -660,8 +660,8 @@ function getScorePercentage(score: number): number {
                         v-show="value"
                         class="p-2.5 sm:p-3 bg-sm-bg dark:bg-gray-700 rounded-lg"
                       >
-                        <p class="text-[10px] sm:text-xs font-semibold text-gray-900 dark:text-white mb-1">{{ getQuestionLabel(key) }}</p>
-                        <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">"{{ value }}"</p>
+                        <p class="text-[10px] sm:text-xs font-semibold text-sm-ink dark:text-white mb-1">{{ getQuestionLabel(key) }}</p>
+                        <p class="text-xs sm:text-sm text-sm-muted">"{{ value }}"</p>
                       </div>
                     </div>
                   </div>
@@ -673,7 +673,7 @@ function getScorePercentage(score: number): number {
 
           <!-- Statistics Tab -->
           <div v-if="activeTab === 'stats'" class="space-y-4 sm:space-y-5">
-            <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Event Statistics</h2>
+            <h2 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white">Event Statistics</h2>
 
             <!-- Mobile Cards View -->
             <div class="sm:hidden space-y-3">
@@ -684,22 +684,22 @@ function getScorePercentage(score: number): number {
               >
                 <div class="flex items-start justify-between mb-3">
                   <div class="flex-1">
-                    <p class="font-semibold text-sm text-gray-900 dark:text-white">{{ event.eventName }}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400">{{ event.companyName }}</p>
+                    <p class="font-semibold text-sm text-sm-ink dark:text-white">{{ event.eventName }}</p>
+                    <p class="text-xs text-sm-muted">{{ event.companyName }}</p>
                   </div>
                 </div>
                 <div class="grid grid-cols-3 gap-2 pt-3 border-t border-sm-primary/10">
                   <div class="text-center">
-                    <p class="text-[10px] text-gray-600 dark:text-gray-400 uppercase">Responses</p>
-                    <p class="text-base font-semibold text-gray-900 dark:text-white">{{ getEventStats(event).count }}</p>
+                    <p class="text-[10px] text-sm-muted uppercase">Responses</p>
+                    <p class="text-base font-semibold text-sm-ink dark:text-white">{{ getEventStats(event).count }}</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-[10px] text-gray-600 dark:text-gray-400 uppercase">Avg Score</p>
+                    <p class="text-[10px] text-sm-muted uppercase">Avg Score</p>
                     <p class="text-sm font-semibold text-sm-primary">{{ formatScore(getEventStats(event).averageScore) }}</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-[10px] text-gray-600 dark:text-gray-400 uppercase">Review %</p>
-                    <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatScore(getEventStats(event).reviewRedirectRate, 0) }}%</p>
+                    <p class="text-[10px] text-sm-muted uppercase">Review %</p>
+                    <p class="text-sm font-semibold text-sm-ink dark:text-white">{{ formatScore(getEventStats(event).reviewRedirectRate, 0) }}%</p>
                   </div>
                 </div>
               </div>
@@ -711,24 +711,24 @@ function getScorePercentage(score: number): number {
                 <table class="w-full text-xs sm:text-sm">
                   <thead class="bg-sm-bg dark:bg-gray-700">
                     <tr>
-                      <th class="text-left p-2 sm:p-3 font-medium text-gray-900 dark:text-white">Event</th>
-                      <th class="text-center p-2 sm:p-3 font-medium text-gray-900 dark:text-white">Responses</th>
-                      <th class="text-center p-2 sm:p-3 font-medium text-gray-900 dark:text-white">Avg Score</th>
-                      <th class="text-center p-2 sm:p-3 font-medium text-gray-900 dark:text-white">Review Rate</th>
+                      <th class="text-left p-2 sm:p-3 font-medium text-sm-ink dark:text-white">Event</th>
+                      <th class="text-center p-2 sm:p-3 font-medium text-sm-ink dark:text-white">Responses</th>
+                      <th class="text-center p-2 sm:p-3 font-medium text-sm-ink dark:text-white">Avg Score</th>
+                      <th class="text-center p-2 sm:p-3 font-medium text-sm-ink dark:text-white">Review Rate</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-sm-primary/10">
                     <tr v-for="event in surveyStore.events" :key="event.id">
                       <td class="p-2 sm:p-3">
-                        <p class="font-medium text-gray-900 dark:text-white text-xs sm:text-sm">{{ event.eventName }}</p>
-                        <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">{{ event.companyName }}</p>
+                        <p class="font-medium text-sm-ink dark:text-white text-xs sm:text-sm">{{ event.eventName }}</p>
+                        <p class="text-[10px] sm:text-xs text-sm-muted">{{ event.companyName }}</p>
                       </td>
-                      <td class="text-center p-2 sm:p-3 text-gray-900 dark:text-white">{{ getEventStats(event).count }}</td>
+                      <td class="text-center p-2 sm:p-3 text-sm-ink dark:text-white">{{ getEventStats(event).count }}</td>
                       <td class="text-center p-2 sm:p-3">
                         <span class="font-semibold text-sm-primary">{{ formatScore(getEventStats(event).averageScore) }}</span>
-                        <span class="text-gray-600 dark:text-gray-400"> / 5</span>
+                        <span class="text-sm-muted"> / 5</span>
                       </td>
-                      <td class="text-center p-2 sm:p-3 text-gray-900 dark:text-white">{{ formatScore(getEventStats(event).reviewRedirectRate, 0) }}%</td>
+                      <td class="text-center p-2 sm:p-3 text-sm-ink dark:text-white">{{ formatScore(getEventStats(event).reviewRedirectRate, 0) }}%</td>
                     </tr>
                   </tbody>
                 </table>
@@ -738,11 +738,11 @@ function getScorePercentage(score: number): number {
 
           <!-- Settings Tab -->
           <div v-if="activeTab === 'settings'" class="space-y-4 sm:space-y-5">
-            <h2 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Survey Settings</h2>
+            <h2 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white">Survey Settings</h2>
 
             <SmCard class="p-3 sm:p-4">
               <div class="mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">Submission Redirect Settings</h3>
+                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white">Submission Redirect Settings</h3>
               </div>
               <form @submit.prevent="handleSaveSettings" class="space-y-4 sm:space-y-5">
                 <!-- Review Threshold -->
@@ -759,12 +759,12 @@ function getScorePercentage(score: number): number {
                     v-model.number="settings.reviewThreshold"
                     class="w-full h-2 bg-sm-primary/15 rounded-lg appearance-none cursor-pointer accent-sm-primary"
                   />
-                  <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-2">
+                  <div class="flex justify-between text-xs text-sm-muted mt-2">
                     <span>1.0</span>
                     <span class="font-semibold text-sm-primary">{{ settings.reviewThreshold.toFixed(1) }}</span>
                     <span>5.0</span>
                   </div>
-                  <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                  <p class="text-xs text-sm-muted mt-2">
                     Guests with an average score of <strong>{{ settings.reviewThreshold.toFixed(1) }}</strong> or higher will be redirected to Google Reviews.
                   </p>
                 </div>
@@ -791,7 +791,7 @@ function getScorePercentage(score: number): number {
                     v-model="settings.webhookUrl"
                     required
                   />
-                  <p class="text-xs text-gray-600 dark:text-gray-400 mt-1.5">
+                  <p class="text-xs text-sm-muted mt-1.5">
                     This URL will receive a POST request with survey details when a guest submits their feedback.
                   </p>
                 </div>
@@ -808,8 +808,8 @@ function getScorePercentage(score: number): number {
             <!-- Info Card -->
             <SmCard class="bg-sm-bg dark:bg-gray-700 p-3 sm:p-4">
               <div class="pt-0 sm:pt-1">
-                <h3 class="font-semibold text-xs sm:text-sm text-gray-900 dark:text-white mb-2">How it works</h3>
-                <ul class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 space-y-1 sm:space-y-1.5">
+                <h3 class="font-semibold text-xs sm:text-sm text-sm-ink dark:text-white mb-2">How it works</h3>
+                <ul class="text-[10px] sm:text-xs text-sm-muted space-y-1 sm:space-y-1.5">
                   <li>• Guests complete the 5-question survey (each question is scored 1-5)</li>
                   <li>• Their average score is calculated (total score / 5)</li>
                   <li>• If average score >= threshold → Redirect to Google Reviews</li>
@@ -828,14 +828,14 @@ function getScorePercentage(score: number): number {
       class="fixed inset-0 z-50 flex items-center justify-center p-4"
       @click.self="selectedEventForQR = null"
     >
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="absolute inset-0 bg-sm-ink/40 backdrop-blur-sm"></div>
       <div class="relative bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl shadow-2xl max-w-sm w-full p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
         <!-- Close Button -->
         <button
           @click="selectedEventForQR = null"
-          class="absolute top-3 right-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          class="absolute top-3 right-3 p-2 hover:bg-sm-surface dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
-          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 text-sm-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -845,13 +845,13 @@ function getScorePercentage(score: number): number {
           <div class="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <QrCodeIcon class="w-6 h-6 text-teal-600 dark:text-teal-400" />
           </div>
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">Survey QR Code</h3>
-          <p class="text-sm text-gray-600 dark:text-gray-400">{{ selectedEventForQR.eventName }}</p>
+          <h3 class="text-lg font-bold text-sm-ink dark:text-white mb-1">Survey QR Code</h3>
+          <p class="text-sm text-sm-muted">{{ selectedEventForQR.eventName }}</p>
         </div>
 
         <!-- QR Code Image -->
         <div class="flex justify-center mb-6">
-          <div class="p-4 bg-white rounded-xl shadow-lg border border-gray-200">
+          <div class="p-4 bg-white rounded-xl shadow-lg border border-sm-line">
             <img
               :src="getQRCodeUrl(selectedEventForQR.id)"
               :alt="`QR code for ${selectedEventForQR.eventName}`"
@@ -861,11 +861,11 @@ function getScorePercentage(score: number): number {
         </div>
 
         <!-- Event Info -->
-        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 mb-6">
-          <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Company</p>
-          <p class="text-sm font-semibold text-gray-900 dark:text-white mb-3">{{ selectedEventForQR.companyName }}</p>
-          <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Survey Link</p>
-          <p class="text-xs font-mono text-gray-700 dark:text-gray-300 break-all">{{ generateSurveyUrl(selectedEventForQR.id) }}</p>
+        <div class="bg-sm-surface dark:bg-gray-700/50 rounded-xl p-4 mb-6">
+          <p class="text-xs text-sm-muted mb-1">Company</p>
+          <p class="text-sm font-semibold text-sm-ink dark:text-white mb-3">{{ selectedEventForQR.companyName }}</p>
+          <p class="text-xs text-sm-muted mb-1">Survey Link</p>
+          <p class="text-xs font-mono text-sm-ink-soft dark:text-gray-300 break-all">{{ generateSurveyUrl(selectedEventForQR.id) }}</p>
         </div>
 
         <!-- Download Button -->

@@ -1,15 +1,15 @@
 <template>
-  <div class="bg-white dark:bg-sm-card-dark rounded-3xl overflow-hidden shadow-2xl border border-gray-100 dark:border-white/10 animate-fade-in-up">
+  <div class="bg-white dark:bg-sm-card-dark rounded-3xl overflow-hidden shadow-2xl border border-sm-line dark:border-white/10 animate-fade-in-up">
     <!-- Header -->
-    <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
-      <button @click="prevMonth" class="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors">
-        <ChevronLeftIcon class="w-5 h-5 text-gray-400" />
+    <div class="px-6 py-4 flex items-center justify-between border-b border-sm-hair dark:border-white/5">
+      <button @click="prevMonth" class="p-2 hover:bg-sm-surface dark:hover:bg-white/5 rounded-full transition-colors">
+        <ChevronLeftIcon class="w-5 h-5 text-sm-faint" />
       </button>
-      <h3 class="text-sm font-black uppercase tracking-widest text-gray-900 dark:text-white">
+      <h3 class="text-sm font-black uppercase tracking-widest text-sm-ink dark:text-white">
         {{ monthNames[currentDate.getMonth()] }} {{ currentDate.getFullYear() }}
       </h3>
-      <button @click="nextMonth" class="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors">
-        <ChevronRightIcon class="w-5 h-5 text-gray-400" />
+      <button @click="nextMonth" class="p-2 hover:bg-sm-surface dark:hover:bg-white/5 rounded-full transition-colors">
+        <ChevronRightIcon class="w-5 h-5 text-sm-faint" />
       </button>
     </div>
 
@@ -18,7 +18,7 @@
       <!-- Weekdays -->
       <div class="grid grid-cols-7 mb-2">
         <div v-for="day in ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']" :key="day" 
-             class="text-center text-[10px] font-bold text-gray-400 uppercase tracking-tighter py-2">
+             class="text-center text-[10px] font-bold text-sm-faint uppercase tracking-tighter py-2">
           {{ day }}
         </div>
       </div>
@@ -57,7 +57,7 @@
           <span 
             class="relative z-20 text-sm font-bold transition-colors"
             :class="[
-              isSelected(day.dateString) ? 'text-white' : 'text-gray-700 dark:text-gray-200 group-hover:text-sm-primary',
+              isSelected(day.dateString) ? 'text-white' : 'text-sm-ink-soft dark:text-gray-200 group-hover:text-sm-primary',
               isPast(day.dateString) && !isSelected(day.dateString) ? 'opacity-30' : ''
             ]"
           >
@@ -84,18 +84,18 @@
     </div>
 
     <!-- Footer Action -->
-    <div class="px-6 py-4 bg-gray-50 dark:bg-black/20 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
-      <div class="text-[10px] text-gray-400">
+    <div class="px-6 py-4 bg-sm-surface dark:bg-white/5 border-t border-sm-hair dark:border-white/5 flex items-center justify-between">
+      <div class="text-[10px] text-sm-faint">
         <div v-if="start" class="flex items-center gap-1">
-          <span class="font-bold text-gray-600 dark:text-gray-300">{{ formatDate(start) }}</span>
-          <span v-if="mode === 'range' && end"> - <span class="font-bold text-gray-600 dark:text-gray-300">{{ formatDate(end) }}</span></span>
+          <span class="font-bold text-sm-ink-soft dark:text-gray-300">{{ formatDate(start) }}</span>
+          <span v-if="mode === 'range' && end"> - <span class="font-bold text-sm-ink-soft dark:text-gray-300">{{ formatDate(end) }}</span></span>
         </div>
         <div v-else>Select {{ mode === 'range' ? `${startLabel} & ${endLabel}` : 'date' }}</div>
       </div>
       <button 
         @click="confirm"
         :disabled="mode === 'range' ? (!start || !end) : !start"
-        class="px-5 py-2 rounded-xl bg-sm-primary text-white text-xs font-black tracking-widest shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
+        class="px-5 py-2 rounded-xl bg-sm-ink text-white dark:bg-white dark:text-sm-ink text-xs font-black tracking-widest shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
       >
         CONFIRM
       </button>

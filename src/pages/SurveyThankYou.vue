@@ -20,8 +20,8 @@ useHead({
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center py-6 sm:py-8 px-3 sm:px-4 bg-gray-50">
-    <SmCard class="max-w-md w-full text-center p-6 bg-white border border-gray-200 rounded-2xl shadow-sm">
+  <div class="min-h-screen flex items-center justify-center py-6 sm:py-8 px-3 sm:px-4 bg-sm-surface">
+    <SmCard class="max-w-md w-full text-center p-6 bg-white border border-sm-line rounded-2xl shadow-sm">
       <div class="flex justify-center mb-5">
         <img
           src="/logo-theanvaya.svg"
@@ -38,21 +38,21 @@ useHead({
         </div>
       </div>
 
-      <h1 class="text-2xl font-bold text-gray-900 mb-4">
+      <h1 class="text-2xl font-bold text-sm-ink mb-4">
         Thank You
       </h1>
 
-      <p class="text-gray-600 mb-5 text-sm">
+      <p class="text-sm-muted mb-5 text-sm">
         We sincerely appreciate your feedback. Your comments help us improve our MICE services
         and ensure every event at The Anvaya Beach Resort Bali is exceptional.
       </p>
 
-      <p class="text-gray-900 mb-6 italic text-sm">
+      <p class="text-sm-ink mb-6 italic text-sm">
         "We look forward to welcoming you back soon."
       </p>
 
-      <div class="border-t border-gray-100 pt-5">
-        <p class="text-xs text-gray-500">
+      <div class="border-t border-sm-line pt-5">
+        <p class="text-xs text-sm-muted">
           The Anvaya Beach Resort Bali
         </p>
       </div>

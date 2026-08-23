@@ -8,7 +8,7 @@
     leave-to-class="opacity-0"
   >
     <div v-if="open" class="fixed inset-0 z-[70] flex items-center justify-center p-4" role="alertdialog" aria-modal="true">
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="!loading && emit('cancel')"></div>
+      <div class="fixed inset-0 bg-sm-ink/30 backdrop-blur-sm" @click="!loading && emit('cancel')"></div>
 
       <div class="relative bg-white dark:bg-sm-card-dark w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up">
         <div class="p-6">

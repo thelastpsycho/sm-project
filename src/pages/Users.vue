@@ -1,56 +1,48 @@
 <template>
-  <SmPage max-width="lg" with-bottom-nav-padding>
-    <div class="flex items-center justify-between mb-4">
+  <div class="min-h-screen bg-white dark:bg-sm-bg-dark">
+    <div class="max-w-[1100px] mx-auto lg:mx-0 px-6 lg:px-12 pt-10 lg:pt-9 pb-32">
+    <div class="flex items-end justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Team &amp; Access</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          {{ store.activeUsers.length }} active · {{ store.users.length }} total
-        </p>
+        <span class="sm-eyebrow">Access</span>
+        <h1 class="sm-display text-[30px] mt-2">Team <span class="text-sm-faint font-semibold">/ {{ store.activeUsers.length }} active of {{ store.users.length }}</span></h1>
       </div>
       <SmButton size="sm" @click="openCreate">
         <PlusIcon class="w-4 h-4 mr-1" /> Add user
       </SmButton>
     </div>
 
-    <div v-if="store.loading" class="text-center py-16 text-gray-400">Loading…</div>
+    <div v-if="store.loading" class="text-center py-16 text-sm-faint">Loading…</div>
 
-    <div
-      v-else
-      class="rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden divide-y divide-gray-100 dark:divide-white/10"
-    >
+    <div v-else class="border-t border-sm-line dark:border-white/10">
       <div
         v-for="u in store.users"
         :key="u.uid"
-        class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-sm-card-dark"
+        class="flex items-center gap-3 px-1 py-3.5 border-b border-sm-hair dark:border-white/5"
         :class="{ 'opacity-50': u.status === 'disabled' }"
       >
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2">
-            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ u.name }}</p>
+            <p class="text-[15px] font-bold text-sm-ink dark:text-white truncate">{{ u.name }}</p>
             <span
               v-if="u.role && u.role !== 'sales'"
-              class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase"
+              class="text-[10px] font-bold uppercase tracking-[0.06em]"
               :class="roleBadgeClass(u.role)"
               >{{ labelFor(u.role) }}</span
             >
             <span
-              class="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
-              :class="
-                u.status === 'disabled'
-                  ? 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400'
-                  : 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300'
-              "
+              class="text-[10px] font-bold uppercase tracking-[0.06em]"
+              :class="u.status === 'disabled' ? 'text-sm-faint' : 'text-sm-won'"
               >{{ u.status === 'disabled' ? 'Deactivated' : 'Active' }}</span
             >
           </div>
-          <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+          <p class="text-xs text-sm-muted truncate">
             {{ u.position }} · {{ u.email }}
           </p>
         </div>
 
         <button
           type="button"
-          class="p-2 rounded-full text-gray-400 hover:text-sm-primary hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+          class="p-2 rounded-full text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
           title="Edit"
           @click="openEdit(u)"
         >
@@ -61,8 +53,8 @@
           class="p-2 rounded-full transition-colors"
           :class="
             u.status === 'disabled'
-              ? 'text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20'
-              : 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
+              ? 'text-sm-won hover:bg-green-50 dark:hover:bg-green-900/20'
+              : 'text-sm-bad hover:bg-red-50 dark:hover:bg-red-900/20'
           "
           :title="u.status === 'disabled' ? 'Reactivate' : 'Deactivate'"
           @click="askToggle(u)"
@@ -72,14 +64,14 @@
       </div>
     </div>
 
-    <p v-if="apiError" class="mt-3 text-xs text-red-500">{{ apiError }}</p>
+    <p v-if="apiError" class="mt-3 text-xs text-sm-bad">{{ apiError }}</p>
 
     <!-- Roles & Permissions: the granular per-role access grid -->
     <section class="mt-8">
       <div class="flex items-start justify-between gap-3 mb-3">
         <div>
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">Roles &amp; Permissions</h2>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
+          <h2 class="sm-display text-[20px]">Roles &amp; Permissions</h2>
+          <p class="text-sm text-sm-muted mt-1">
             Tick exactly what each role can do — per feature. Admins always have full access.
           </p>
         </div>
@@ -92,19 +84,19 @@
         <div
           v-for="role in editableRoles"
           :key="role.id"
-          class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4"
+          class="rounded-2xl border border-sm-line dark:border-white/10 p-4"
         >
           <div class="flex items-center gap-2 mb-3">
             <span
-              class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase"
+              class="text-[10px] font-bold uppercase tracking-[0.06em]"
               :class="roleBadgeClass(role.id)"
               >{{ role.label }}</span
             >
-            <span class="text-xs text-gray-400">{{ grantedCount(role.id) }} permissions</span>
+            <span class="text-xs text-sm-muted">{{ grantedCount(role.id) }} permissions</span>
             <button
               v-if="!role.reserved"
               type="button"
-              class="ml-auto p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+              class="ml-auto p-1.5 rounded-full text-sm-faint hover:text-sm-bad hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
               title="Delete role"
               :disabled="permissions.saving"
               @click="askDeleteRole(role)"
@@ -115,7 +107,7 @@
 
           <!-- One block per feature, its actions as checkboxes -->
           <div v-for="group in PERMISSION_CATALOG" :key="group.resource" class="mb-3 last:mb-0">
-            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">
+            <p class="sm-eyebrow mb-1.5">
               {{ group.label }}
             </p>
             <div class="flex flex-wrap gap-x-4 gap-y-1">
@@ -123,24 +115,24 @@
                 v-for="action in group.actions"
                 :key="action.key"
                 class="flex items-center gap-1.5 text-sm"
-                :class="group.locked || group.adminOnly ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 dark:text-gray-200 cursor-pointer'"
+                :class="group.locked || group.adminOnly ? 'text-sm-faint cursor-not-allowed' : 'text-sm-ink-soft dark:text-gray-200 cursor-pointer'"
               >
                 <input
                   type="checkbox"
-                  class="w-4 h-4 rounded border-gray-300 text-sm-primary focus:ring-sm-primary disabled:opacity-50"
+                  class="w-4 h-4 rounded border-sm-line text-sm-ink focus:ring-sm-ink disabled:opacity-50"
                   :checked="hasPerm(role.id, permKey(group.resource, action.key))"
                   :disabled="group.locked || group.adminOnly || permissions.saving"
                   @change="togglePerm(role.id, permKey(group.resource, action.key), ($event.target as HTMLInputElement).checked)"
                 />
                 <span>{{ action.label }}</span>
               </label>
-              <span v-if="group.locked" class="text-[10px] text-gray-400 self-center">always on</span>
-              <span v-else-if="group.adminOnly" class="text-[10px] text-gray-400 self-center">admin only</span>
+              <span v-if="group.locked" class="text-[10px] text-sm-faint self-center">always on</span>
+              <span v-else-if="group.adminOnly" class="text-[10px] text-sm-faint self-center">admin only</span>
             </div>
           </div>
         </div>
       </div>
-      <p v-if="permError" class="mt-2 text-xs text-red-500">{{ permError }}</p>
+      <p v-if="permError" class="mt-2 text-xs text-sm-bad">{{ permError }}</p>
     </section>
 
     <!-- Create custom role modal -->
@@ -153,17 +145,17 @@
       leave-to-class="opacity-0"
     >
       <div v-if="roleModalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="roleModalOpen = false"></div>
+        <div class="fixed inset-0 bg-sm-ink/30 backdrop-blur-[2px]" @click="roleModalOpen = false"></div>
         <div
           class="relative bg-white dark:bg-sm-card-dark w-full max-w-md rounded-3xl shadow-2xl p-6 animate-fade-in-up"
         >
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">New role</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+          <h3 class="text-lg font-extrabold tracking-[-0.01em] text-sm-ink dark:text-white mb-1">New role</h3>
+          <p class="text-xs text-sm-muted mb-4">
             Name it — it starts with no access. Tick its permissions on the card afterwards.
           </p>
           <form class="space-y-4" @submit.prevent="onCreateRole">
             <SmInput v-model="roleForm.label" label="Role name" placeholder="e.g. Reservations" required />
-            <p v-if="roleFormError" class="text-xs text-red-500">{{ roleFormError }}</p>
+            <p v-if="roleFormError" class="text-xs text-sm-bad">{{ roleFormError }}</p>
             <div class="flex justify-end gap-2 pt-1">
               <SmButton type="button" variant="ghost" @click="roleModalOpen = false">Cancel</SmButton>
               <SmButton type="submit" :loading="roleSaving">Create role</SmButton>
@@ -183,11 +175,11 @@
       leave-to-class="opacity-0"
     >
       <div v-if="modalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="modalOpen = false"></div>
+        <div class="fixed inset-0 bg-sm-ink/30 backdrop-blur-[2px]" @click="modalOpen = false"></div>
         <div
           class="relative bg-white dark:bg-sm-card-dark w-full max-w-md rounded-3xl shadow-2xl p-6 animate-fade-in-up"
         >
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
+          <h3 class="text-lg font-extrabold tracking-[-0.01em] text-sm-ink dark:text-white mb-4">
             {{ editing ? 'Edit user' : 'Add user' }}
           </h3>
           <form class="space-y-3" @submit.prevent="onSave">
@@ -210,7 +202,7 @@
               placeholder="Min 6 characters"
               required
             />
-            <p v-if="formError" class="text-xs text-red-500">{{ formError }}</p>
+            <p v-if="formError" class="text-xs text-sm-bad">{{ formError }}</p>
             <div class="flex justify-end gap-2 pt-2">
               <SmButton type="button" variant="ghost" @click="modalOpen = false">Cancel</SmButton>
               <SmButton type="submit" :loading="saving">{{ editing ? 'Save' : 'Create' }}</SmButton>
@@ -230,7 +222,8 @@
       @confirm="confirm.action"
       @cancel="confirm.open = false"
     />
-  </SmPage>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -242,7 +235,6 @@ import {
   ArrowPathIcon,
   TrashIcon
 } from '@heroicons/vue/24/outline'
-import SmPage from '@/components/ui/SmPage.vue'
 import SmButton from '@/components/ui/SmButton.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
@@ -317,16 +309,16 @@ function labelFor(id?: string | null): string {
 function roleBadgeClass(role: string): string {
   switch (role) {
     case 'admin':
-      return 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300'
+      return 'text-sm-primary'
     case 'manager':
-      return 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300'
+      return 'text-sm-primary'
     case 'viewer':
-      return 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300'
+      return 'text-sm-warn'
     case 'sales':
-      return 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400'
+      return 'text-sm-muted'
     default:
-      // Custom roles get a distinct teal badge.
-      return 'bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-300'
+      // Custom roles get a distinct accent.
+      return 'text-sm-wed'
   }
 }
 

@@ -93,7 +93,7 @@
   <!-- Event-dates calendar range picker (above the function panel) -->
   <Teleport to="body">
     <div v-if="showDatePicker" class="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4">
-      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="showDatePicker = false"></div>
+      <div class="fixed inset-0 bg-sm-ink/40 backdrop-blur-sm" @click="showDatePicker = false"></div>
       <div class="relative w-full max-w-md">
         <DateRangePicker
           :initial-start="form.startDate"

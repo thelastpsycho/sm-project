@@ -46,8 +46,8 @@ async function handleSubmit() {
             class="h-10 w-auto"
           />
         </div>
-        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Admin Login</h2>
-        <p class="text-gray-600 dark:text-gray-400 text-sm mt-2">
+        <h2 class="text-xl font-bold text-sm-ink dark:text-white">Admin Login</h2>
+        <p class="text-sm-muted text-sm mt-2">
           Enter your PIN to access the admin panel
         </p>
       </div>
@@ -75,7 +75,7 @@ async function handleSubmit() {
         </SmButton>
       </form>
 
-      <p class="text-center text-xs text-gray-600 dark:text-gray-400 mt-6">
+      <p class="text-center text-xs text-sm-muted mt-6">
         The Anvaya Beach Resort Bali - MICE Survey Admin
       </p>
     </SmCard>

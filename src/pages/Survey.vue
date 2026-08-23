@@ -259,7 +259,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen py-4 sm:py-6 px-3 sm:px-4 bg-gray-50">
+  <div class="min-h-screen py-4 sm:py-6 px-3 sm:px-4 bg-sm-surface">
     <div class="max-w-xl mx-auto">
       <!-- Loading State -->
       <div v-if="loading" class="min-h-[50vh] flex items-center justify-center">
@@ -268,8 +268,8 @@ async function handleSubmit() {
 
       <!-- Error State -->
       <div v-else-if="errors.general && !event" class="min-h-[50vh] flex items-center justify-center">
-        <SmCard class="max-w-md text-center p-6 bg-white border border-gray-200 rounded-2xl shadow-sm">
-          <p class="text-gray-700">{{ errors.general }}</p>
+        <SmCard class="max-w-md text-center p-6 bg-white border border-sm-line rounded-2xl shadow-sm">
+          <p class="text-sm-ink-soft">{{ errors.general }}</p>
         </SmCard>
       </div>
 
@@ -310,12 +310,12 @@ async function handleSubmit() {
                 </p>
 
                 <!-- Event Name -->
-                <h1 class="text-lg sm:text-xl font-bold text-gray-900 mb-2 leading-tight">
+                <h1 class="text-lg sm:text-xl font-bold text-sm-ink mb-2 leading-tight">
                   {{ event?.eventName }}
                 </h1>
 
                 <!-- Company Name with icon -->
-                <div class="flex items-center justify-center gap-2 text-gray-600">
+                <div class="flex items-center justify-center gap-2 text-sm-muted">
                   <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
@@ -341,7 +341,7 @@ async function handleSubmit() {
         <template v-else>
           <!-- Progress Bar -->
           <div class="mb-4 sm:mb-5">
-            <div class="flex justify-between text-xs text-gray-600 mb-1.5">
+            <div class="flex justify-between text-xs text-sm-muted mb-1.5">
               <span>{{ ui.progress }}</span>
               <span>{{ answeredCount }} {{ ui.answeredOf }} {{ totalQuestions }}</span>
             </div>
@@ -354,10 +354,10 @@ async function handleSubmit() {
           </div>
 
           <!-- Survey Form -->
-          <form @submit.prevent="handleSubmit" class="bg-white border border-gray-200 p-4 sm:p-6 rounded-2xl shadow-sm">
+          <form @submit.prevent="handleSubmit" class="bg-white border border-sm-line p-4 sm:p-6 rounded-2xl shadow-sm">
             <!-- Rating Questions -->
             <div class="mb-6">
-              <p class="text-sm font-medium text-gray-700 mb-5 tracking-wide">
+              <p class="text-sm font-medium text-sm-ink-soft mb-5 tracking-wide">
                 {{ ui.rateYourExperience }}
               </p>
               <LikertScale
@@ -374,8 +374,8 @@ async function handleSubmit() {
             </div>
 
             <!-- Text Questions -->
-            <div class="mb-5 pt-5 border-t border-gray-100">
-              <p class="text-sm font-medium text-gray-700 mb-5 tracking-wide">
+            <div class="mb-5 pt-5 border-t border-sm-line">
+              <p class="text-sm font-medium text-sm-ink-soft mb-5 tracking-wide">
                 {{ ui.yourFeedback }}
               </p>
               <TextQuestion
@@ -409,7 +409,7 @@ async function handleSubmit() {
         </template>
 
         <!-- Footer -->
-        <p class="text-center text-xs text-gray-500 mt-4 sm:mt-5">
+        <p class="text-center text-xs text-sm-muted mt-4 sm:mt-5">
           {{ ui.thankYouForChoosing }}
         </p>
       </template>
