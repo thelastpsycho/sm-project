@@ -30,8 +30,39 @@
         </div>
       </div>
       <div class="flex items-center gap-2.5">
-        <div class="flex-1 sm:w-52 sm:flex-none">
-          <SmInput v-model="q" size="sm" placeholder="Search event, company or owner" />
+        <div class="relative flex-1 sm:w-64 sm:flex-none">
+          <SmInput
+            v-model="q"
+            size="sm"
+            placeholder="Search event, company or owner"
+            @focus="searchFocused = true"
+            @blur="searchFocused = false"
+          />
+          <!-- Live results: jump straight to a function anywhere in the calendar -->
+          <div
+            v-if="searchFocused && q.trim() && searchResults.length"
+            class="absolute left-0 right-0 top-full z-40 mt-1.5 max-h-80 overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-sm-card-dark"
+          >
+            <button
+              v-for="r in searchResults"
+              :key="r.id"
+              type="button"
+              class="flex w-full flex-col gap-0.5 px-3 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-white/5"
+              @mousedown.prevent="jumpToBooking(r)"
+            >
+              <div class="flex items-center gap-2">
+                <span class="h-2 w-2 shrink-0 rounded-full" :class="STATUS_STYLE[r.status].dot"></span>
+                <span class="truncate text-[13px] font-semibold text-gray-900 dark:text-white">{{ r.eventName || '(untitled)' }}</span>
+              </div>
+              <div class="pl-4 text-[11px] font-medium text-sm-secondary">{{ searchDateLabel(r) }}</div>
+            </button>
+          </div>
+          <div
+            v-else-if="searchFocused && q.trim()"
+            class="absolute left-0 right-0 top-full z-40 mt-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-[12px] text-sm-secondary shadow-xl dark:border-white/10 dark:bg-sm-card-dark"
+          >
+            No functions match “{{ q.trim() }}”
+          </div>
         </div>
         <div class="w-32 shrink-0 sm:w-36">
           <SmSelect v-model="statusFilter" size="sm" :options="statusFilterOptions" />
@@ -167,6 +198,7 @@
           <div
             v-for="b in bookingBlocks"
             :key="b.key"
+            :id="'fc-block-' + b.key"
             :draggable="canEdit"
             @click="openEdit(b.booking)"
             @dragstart="onBlockDragStart($event, b)"
@@ -176,11 +208,13 @@
             :class="[
               b.blockClass,
               b.on ? '' : 'opacity-30',
-              selectedId === b.key
-                ? 'ring-2 ring-gray-900 dark:ring-white'
-                : b.conflict
-                  ? 'ring-2 ring-red-500 dark:ring-red-400'
-                  : '',
+              flashId === b.key
+                ? 'z-20 animate-pulse ring-2 ring-sm-primary ring-offset-2 ring-offset-white dark:ring-offset-sm-card-dark'
+                : selectedId === b.key
+                  ? 'ring-2 ring-gray-900 dark:ring-white'
+                  : b.conflict
+                    ? 'ring-2 ring-red-500 dark:ring-red-400'
+                    : '',
               canEdit ? 'cursor-move' : 'cursor-pointer',
               // Let cells beneath OTHER blocks receive the drop, but never disable
               // pointer-events on the drag source itself — Chrome aborts the drag if
@@ -440,7 +474,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watchEffect } from 'vue'
+import { ref, computed, onMounted, watchEffect, nextTick } from 'vue'
 import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ExclamationTriangleIcon, ShareIcon } from '@heroicons/vue/24/outline'
 import SmPage from '@/components/ui/SmPage.vue'
 import SmInput from '@/components/ui/SmInput.vue'
@@ -474,6 +508,11 @@ const monthIndex = ref(7) // August
 const q = ref('')
 const statusFilter = ref<string>('ALL')
 const shareOpen = ref(false)
+
+// Live search dropdown: matches across ALL dates so you can jump to any function.
+const searchFocused = ref(false)
+const flashId = ref('') // block briefly highlighted after a jump
+let flashTimer: ReturnType<typeof setTimeout> | null = null
 
 // Panel state
 const editing = ref<FunctionBooking | null>(null)
@@ -529,6 +568,33 @@ function matches(f: FunctionBooking): boolean {
   const query = q.value.trim().toLowerCase()
   const hay = (f.eventName + ' ' + f.company + ' ' + f.salesOwner + ' ' + f.venues.join(' ')).toLowerCase()
   return (!query || hay.indexOf(query) >= 0) && (statusFilter.value === 'ALL' || f.status === statusFilter.value)
+}
+
+// Flat, date-sorted list of matches (any month/year) for the search dropdown.
+const searchResults = computed(() => {
+  if (!q.value.trim()) return []
+  return store.functions
+    .filter(matches)
+    .slice()
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+    .slice(0, 25)
+})
+
+function searchDateLabel(f: FunctionBooking): string {
+  return f.startDate === f.endDate ? fmt(f.startDate) : `${fmt(f.startDate)} – ${fmt(f.endDate)}`
+}
+
+// Navigate the calendar to a function and briefly flash its block.
+async function jumpToBooking(f: FunctionBooking) {
+  searchFocused.value = false
+  year.value = Number(f.startDate.slice(0, 4))
+  monthIndex.value = Number(f.startDate.slice(5, 7)) - 1
+  selectedDay.value = f.startDate // surfaces it in the mobile day agenda too
+  await nextTick()
+  document.getElementById('fc-block-' + f.id)?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
+  flashId.value = f.id
+  if (flashTimer) clearTimeout(flashTimer)
+  flashTimer = setTimeout(() => (flashId.value = ''), 2000)
 }
 
 // Bookings that touch the visible month, indexed by each room they occupy (a
