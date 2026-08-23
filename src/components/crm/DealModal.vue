@@ -9,40 +9,40 @@
   >
     <div
       v-if="isOpen"
-      class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      class="fixed inset-0 z-[60] flex items-center justify-center p-4 lg:items-stretch lg:justify-end lg:p-0"
       role="dialog"
       aria-modal="true"
     >
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="emit('close')"></div>
+      <div class="fixed inset-0 bg-sm-ink/30 backdrop-blur-[2px]" @click="emit('close')"></div>
 
       <div
-        class="relative bg-white dark:bg-sm-card-dark w-full rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up"
-        :class="deal ? 'max-w-4xl' : 'max-w-2xl'"
+        class="relative bg-white dark:bg-sm-card-dark w-full flex flex-col overflow-hidden animate-fade-in-up rounded-3xl max-h-[90vh] shadow-2xl lg:rounded-none lg:rounded-l-3xl lg:max-h-none lg:h-full lg:shadow-[-8px_0_40px_rgba(0,0,0,0.12)]"
+        :class="deal ? 'max-w-4xl lg:max-w-[880px]' : 'max-w-2xl lg:max-w-[640px]'"
       >
         <!-- Header with title + icon actions -->
         <div
-          class="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between gap-3 bg-white/50 dark:bg-black/20 backdrop-blur-md"
+          class="px-6 py-4 border-b border-sm-line dark:border-white/10 flex items-center justify-between gap-3"
         >
           <div class="flex items-center gap-2 min-w-0">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate">
-              {{ deal ? (canEdit ? 'Edit Deal' : 'View Deal') : 'New Deal' }}
+            <h3 class="text-lg font-extrabold tracking-[-0.02em] text-sm-ink dark:text-white truncate">
+              {{ deal ? (canEdit ? 'Edit deal' : 'View deal') : 'New deal' }}
             </h3>
             <span
               v-if="deal && !canEdit"
-              class="shrink-0 inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400"
+              class="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.06em] text-sm-muted"
             >
               <LockClosedIcon class="w-3 h-3" /> View only
             </span>
           </div>
 
-          <div class="flex items-center gap-1.5 shrink-0">
+          <div class="flex items-center gap-1 shrink-0">
             <!-- Delete (Andi only, edit mode) -->
             <button
               v-if="deal && canDelete"
               type="button"
               aria-label="Delete deal"
               title="Delete"
-              class="p-2 rounded-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              class="p-2 rounded-full text-sm-bad hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               @click="emit('delete')"
             >
               <TrashIcon class="w-5 h-5" />
@@ -53,7 +53,7 @@
               type="button"
               aria-label="Cancel"
               title="Cancel"
-              class="p-2 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+              class="p-2 rounded-full text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
               @click="emit('close')"
             >
               <XMarkIcon class="w-5 h-5" />
@@ -67,7 +67,7 @@
               :disabled="saving"
               aria-label="Save deal"
               :title="deal ? 'Save' : 'Create'"
-              class="p-2 rounded-full bg-sm-primary text-white hover:bg-blue-700 transition-colors disabled:opacity-60"
+              class="p-2 rounded-full bg-sm-ink text-white dark:bg-white dark:text-sm-ink hover:bg-black dark:hover:bg-gray-100 transition-colors disabled:opacity-60"
             >
               <svg v-if="saving" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -80,13 +80,13 @@
 
         <!-- Body: form + side comments -->
         <div class="flex-1 min-h-0 flex flex-col lg:flex-row">
-          <div class="flex-1 overflow-y-auto p-6">
+          <div class="flex-1 overflow-y-auto p-6 scr">
             <DealForm :deal="deal" :disabled="!canEdit" @submit="p => emit('submit', p)" />
           </div>
 
           <div
             v-if="deal"
-            class="lg:w-80 shrink-0 overflow-y-auto p-6 border-t lg:border-t-0 lg:border-l border-gray-100 dark:border-white/10 bg-gray-50/60 dark:bg-black/10"
+            class="lg:w-80 shrink-0 overflow-y-auto p-6 border-t lg:border-t-0 lg:border-l border-sm-hair dark:border-white/10 bg-sm-surface/60 dark:bg-black/10 scr"
           >
             <DealComments :deal-id="deal.id" />
           </div>

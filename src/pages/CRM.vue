@@ -1,79 +1,70 @@
 <template>
-  <SmPage max-width="full" with-bottom-nav-padding>
+  <div class="min-h-screen bg-white dark:bg-sm-bg-dark">
+    <div class="px-6 lg:px-10 pt-10 lg:pt-8 pb-32">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Sales Pipeline</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          {{ filteredDeals.length }}<span v-if="filteredDeals.length !== store.deals.length"> of {{ store.deals.length }}</span> deals
-        </p>
+    <div class="flex items-start justify-between gap-4">
+      <div class="min-w-0">
+        <span class="sm-eyebrow">Pipeline</span>
+        <h1 class="sm-display text-[30px] mt-2">
+          {{ formatMoney(pipelineTotal) }}
+          <span class="text-sm-faint font-semibold">/ {{ filteredDeals.length }}<span v-if="filteredDeals.length !== store.deals.length"> of {{ store.deals.length }}</span></span>
+        </h1>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-4 shrink-0">
         <router-link
           to="/crm/report"
-          class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:text-sm-primary transition-colors"
+          class="hidden sm:inline text-sm font-bold text-sm-muted hover:text-sm-ink dark:hover:text-white transition-colors"
         >
-          <ChartBarIcon class="w-4 h-4" />
-          <span class="hidden sm:inline">Report</span>
+          Report
         </router-link>
         <SmButton v-if="canCreate" size="sm" @click="openCreate">
-          <PlusIcon class="w-4 h-4 mr-1" /> New Deal
+          <PlusIcon class="w-4 h-4 mr-1" /> New deal
         </SmButton>
       </div>
     </div>
 
-    <!-- Summary strip -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-      <div
-        v-for="s in summaryTiles"
-        :key="s.key"
-        class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark px-3 py-2"
-      >
-        <div class="flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full" :class="s.dot"></span>
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ s.label }}</span>
-          <span class="ml-auto text-xs text-gray-400">{{ s.count }}</span>
-        </div>
-        <p class="mt-1 text-xs font-semibold text-gray-900 dark:text-white truncate">
-          {{ formatMoney(s.value) }}
-        </p>
+    <!-- Summary strip — inline editorial stats -->
+    <div class="mt-6 flex flex-wrap gap-x-10 gap-y-4">
+      <div v-for="s in summaryTiles" :key="s.key">
+        <div class="sm-eyebrow">{{ s.label }} <span class="text-sm-faint">· {{ s.count }}</span></div>
+        <div class="mt-1 text-[17px] font-bold" :class="s.textClass">{{ formatMoney(s.value) }}</div>
       </div>
     </div>
 
     <!-- Controls: view toggle + search + filter button -->
-    <div class="flex items-center gap-2 mb-3">
-      <div class="inline-flex rounded-xl bg-gray-100 dark:bg-white/5 p-1">
+    <div class="mt-6 flex items-center gap-3">
+      <div class="inline-flex rounded-full border border-sm-line dark:border-white/15 p-0.5">
         <button
           v-for="v in (['board', 'list'] as const)"
           :key="v"
           @click="view = v"
-          class="px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors"
-          :class="view === v ? 'bg-white dark:bg-sm-card-dark text-sm-primary shadow-sm' : 'text-gray-500 dark:text-gray-400'"
+          class="px-3.5 py-1.5 rounded-full text-[13px] font-bold capitalize transition-colors"
+          :class="view === v ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink' : 'text-sm-muted'"
         >
           {{ v }}
         </button>
       </div>
 
-      <div class="relative flex-1">
-        <MagnifyingGlassIcon class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+      <div class="relative flex-1 flex items-center gap-2 border-b border-sm-line dark:border-white/15 pb-2 focus-within:border-sm-ink dark:focus-within:border-white transition-colors">
+        <MagnifyingGlassIcon class="w-4 h-4 text-sm-muted shrink-0" />
         <input
           v-model="filters.search"
           type="search"
           placeholder="Search company, notes, action…"
-          class="w-full pl-9 pr-3 py-2 text-sm rounded-xl bg-gray-50 dark:bg-gray-800 border-0 ring-1 ring-gray-200 dark:ring-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-sm-primary"
+          class="w-full bg-transparent border-0 p-0 text-sm text-sm-ink dark:text-white placeholder:text-sm-faint focus:outline-none focus:ring-0"
         />
       </div>
 
       <button
         @click="showFilters = !showFilters"
-        class="relative inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
-        :class="activeFilterCount ? 'bg-sm-primary text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300'"
+        class="relative inline-flex items-center gap-1.5 text-[13px] font-bold transition-colors"
+        :class="activeFilterCount ? 'text-sm-primary' : 'text-sm-muted hover:text-sm-ink dark:hover:text-white'"
       >
         <FunnelIcon class="w-4 h-4" />
         <span class="hidden sm:inline">Filters</span>
         <span
           v-if="activeFilterCount"
-          class="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] text-[11px] rounded-full bg-white/25"
+          class="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] text-[11px] rounded-full bg-sm-primary text-white"
         >
           {{ activeFilterCount }}
         </span>
@@ -83,9 +74,9 @@
     <!-- Filter panel -->
     <div
       v-if="showFilters"
-      class="mb-4 rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-2.5 space-y-2 animate-fade-in-up"
+      class="mt-4 rounded-2xl border border-sm-line dark:border-white/10 p-3 space-y-3 animate-fade-in-up"
     >
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <SmSelect v-model="filters.outcome" :options="outcomeFilterOptions" size="sm" />
         <SmSelect v-model="filters.stage" :options="stageFilterOptions" size="sm" />
         <SmSelect v-model="filters.owner" :options="ownerFilterOptions" size="sm" />
@@ -95,7 +86,7 @@
       </div>
 
       <!-- Date range + revenue range -->
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5 items-end">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 items-end">
         <SmSelect v-model="filters.dateField" :options="dateFieldOptions" label="Date field" size="sm" />
         <SmInput v-model="filters.dateFrom" type="date" label="From" size="sm" />
         <SmInput v-model="filters.dateTo" type="date" label="To" size="sm" />
@@ -126,22 +117,26 @@
 
     <!-- Empty state / import -->
     <div v-if="store.deals.length === 0 && !store.loading" class="text-center py-16">
-      <p class="text-gray-500 dark:text-gray-400 mb-4">No deals yet.</p>
+      <p class="text-sm-muted mb-4">No deals yet.</p>
       <SmButton :loading="store.importing" @click="runImport">Import existing pipeline</SmButton>
-      <p class="text-xs text-gray-400 mt-2">Loads your spreadsheet deals into the board (one time).</p>
+      <p class="text-xs text-sm-faint mt-2">Loads your spreadsheet deals into the board (one time).</p>
     </div>
 
     <!-- Loading -->
-    <div v-else-if="store.loading" class="text-center py-16 text-gray-400">Loading…</div>
+    <div v-else-if="store.loading" class="text-center py-16 text-sm-faint">Loading…</div>
 
     <!-- Kanban board (single pipeline axis: stages) -->
     <template v-else-if="view === 'board'">
-      <div class="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 snap-x">
-        <div v-for="col in boardColumns" :key="col" class="shrink-0 w-72 snap-start">
-          <div class="flex items-center gap-2 mb-2 px-1">
-            <span class="w-2 h-2 rounded-full" :class="stageDot[col]"></span>
-            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">{{ col }}</h3>
-            <span class="text-xs text-gray-400">{{ board[col]?.length ?? 0 }}</span>
+      <div class="mt-5 flex overflow-x-auto scr pb-4 -mx-6 lg:-mx-10">
+        <div
+          v-for="col in boardColumns"
+          :key="col"
+          class="shrink-0 w-[300px] px-6 lg:px-8 border-r border-sm-hair dark:border-white/5 last:border-r-0"
+        >
+          <div class="flex items-baseline gap-2 pb-3">
+            <span class="w-1.5 h-1.5 rounded-full" :class="stageDot[col]"></span>
+            <h3 class="sm-eyebrow !text-sm-ink dark:!text-white">{{ col }}</h3>
+            <span class="text-xs text-sm-muted">{{ board[col]?.length ?? 0 }}</span>
           </div>
           <draggable
             :list="board[col]"
@@ -155,7 +150,7 @@
             :prevent-on-filter="false"
             ghost-class="drag-ghost"
             drag-class="drag-active"
-            class="space-y-2 min-h-[4rem] rounded-xl transition-colors"
+            class="min-h-[4rem] transition-colors"
             @start="dragging = true"
             @end="onDragEnd"
             @change="onDragChange($event, col)"
@@ -172,7 +167,7 @@
           </draggable>
           <p
             v-if="!board[col]?.length"
-            class="text-xs text-gray-300 dark:text-gray-600 px-1 py-4 pointer-events-none"
+            class="text-xs text-sm-faint dark:text-gray-600 py-4 pointer-events-none"
           >
             No deals — drop here
           </p>
@@ -180,30 +175,44 @@
       </div>
     </template>
 
-    <!-- List view -->
-    <div v-else>
-      <div class="rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden divide-y divide-gray-100 dark:divide-white/10">
-        <button
-          v-for="deal in filteredDeals"
-          :key="deal.id"
-          type="button"
-          @click="openEdit(deal)"
-          class="w-full text-left px-4 py-3 bg-white dark:bg-sm-card-dark hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center gap-3"
-        >
-          <span class="w-2 h-2 rounded-full shrink-0" :class="stageDot[deal.stage ?? 'New']"></span>
-          <div class="min-w-0 flex-1">
-            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ deal.company }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+    <!-- List view — hairline rows on mobile, table on desktop -->
+    <div v-else class="mt-5">
+      <!-- Desktop table header -->
+      <div class="hidden sm:flex px-1 py-3 border-b border-sm-line dark:border-white/10 sm-eyebrow">
+        <span class="flex-[3]">Company</span>
+        <span class="flex-[1.1]">Stage</span>
+        <span class="flex-1">Segment</span>
+        <span class="flex-[1.4]">Owner</span>
+        <span class="flex-[1.7]">Next action</span>
+        <span class="flex-[1.2] text-right">Value</span>
+      </div>
+      <button
+        v-for="deal in filteredDeals"
+        :key="deal.id"
+        type="button"
+        @click="openEdit(deal)"
+        class="w-full text-left px-1 py-3.5 border-b border-sm-hair dark:border-white/5 hover:bg-sm-surface dark:hover:bg-white/5 transition-colors flex items-center gap-3"
+      >
+        <!-- Company (+ mobile meta) -->
+        <div class="flex-[3] min-w-0 flex items-center gap-2.5">
+          <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="stageDot[deal.stage ?? 'New']"></span>
+          <div class="min-w-0">
+            <p class="text-[15px] font-bold text-sm-ink dark:text-white truncate">{{ deal.company }}</p>
+            <p class="sm:hidden text-xs text-sm-muted truncate">
               {{ deal.stage ?? 'New' }} · {{ deal.segment }} · {{ deal.ownerName || 'Unassigned' }}
             </p>
           </div>
-          <span class="text-xs font-medium text-gray-700 dark:text-gray-200 shrink-0">
-            {{ formatMoney(deal.actualRevenue ?? deal.totalRevenue, deal.currency) }}
-          </span>
-        </button>
-        <div v-if="filteredDeals.length === 0" class="px-4 py-8 text-center text-sm text-gray-400">
-          No deals match these filters.
         </div>
+        <span class="hidden sm:block flex-[1.1] text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ deal.stage ?? 'New' }}</span>
+        <span class="hidden sm:block flex-1 text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ deal.segment }}</span>
+        <span class="hidden sm:block flex-[1.4] text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ deal.ownerName || 'Unassigned' }}</span>
+        <span class="hidden sm:block flex-[1.7] text-sm text-sm-ink-soft dark:text-gray-300 truncate pr-3">{{ deal.nextAction || '—' }}</span>
+        <span class="flex-none sm:flex-[1.2] text-sm font-bold text-sm-ink dark:text-white text-right shrink-0">
+          {{ formatMoney(deal.actualRevenue ?? deal.totalRevenue, deal.currency) }}
+        </span>
+      </button>
+      <div v-if="filteredDeals.length === 0" class="px-4 py-8 text-center text-sm text-sm-faint">
+        No deals match these filters.
       </div>
     </div>
 
@@ -235,7 +244,8 @@
       @confirm="acceptConfirm"
       @cancel="cancelConfirm"
     />
-  </SmPage>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -243,7 +253,6 @@ import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import draggable from 'vuedraggable'
 import { PlusIcon, MagnifyingGlassIcon, FunnelIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
-import SmPage from '@/components/ui/SmPage.vue'
 import SmButton from '@/components/ui/SmButton.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import SmInput from '@/components/ui/SmInput.vue'
@@ -477,12 +486,17 @@ const summaryTiles = computed(() => {
   const won = bucket(d => dealOutcome(d) === 'won', d => wonRevenue(d))
   const lost = bucket(d => dealOutcome(d) === 'lost', d => d.totalRevenue ?? 0)
   return [
-    { key: 'open', label: 'Open', dot: 'bg-blue-500', ...open },
-    { key: 'idle', label: 'Idle', dot: 'bg-amber-500', ...idle },
-    { key: 'won', label: 'Won', dot: 'bg-green-500', ...won },
-    { key: 'lost', label: 'Lost', dot: 'bg-red-500', ...lost }
+    { key: 'open', label: 'Open', textClass: 'text-sm-ink dark:text-white', ...open },
+    { key: 'idle', label: 'Idle', textClass: 'text-sm-warn', ...idle },
+    { key: 'won', label: 'Won', textClass: 'text-sm-won', ...won },
+    { key: 'lost', label: 'Lost', textClass: 'text-sm-bad', ...lost }
   ]
 })
+
+// Headline pipeline value across the filtered set (open + closed alike).
+const pipelineTotal = computed(() =>
+  filteredDeals.value.reduce((s, d) => s + (d.totalRevenue ?? 0), 0)
+)
 
 // Mutable per-column mirror that vuedraggable can splice during a drag. Rebuilt when
 // the filtered grouping changes — but NOT mid-drag, so an incoming real-time snapshot

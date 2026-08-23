@@ -1,44 +1,44 @@
 <template>
   <div class="space-y-3">
     <div class="flex items-center gap-2">
-      <ChatBubbleLeftRightIcon class="w-4 h-4 text-gray-400" />
-      <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+      <ChatBubbleLeftRightIcon class="w-4 h-4 text-sm-muted" />
+      <h4 class="text-sm font-bold text-sm-ink dark:text-white">
         Comments
-        <span v-if="list.length" class="text-gray-400 font-normal">({{ list.length }})</span>
+        <span v-if="list.length" class="text-sm-faint font-normal">({{ list.length }})</span>
       </h4>
     </div>
 
     <!-- Thread -->
-    <div v-if="store.commentsLoading && !list.length" class="text-xs text-gray-400 py-2">
+    <div v-if="store.commentsLoading && !list.length" class="text-xs text-sm-faint py-2">
       Loading comments…
     </div>
-    <div v-else-if="list.length === 0" class="text-xs text-gray-400 py-2">
+    <div v-else-if="list.length === 0" class="text-xs text-sm-faint py-2">
       No comments yet. Be the first to add one.
     </div>
     <ul v-else class="space-y-3">
       <li v-for="c in list" :key="c.id" class="flex gap-2.5">
         <div
-          class="shrink-0 w-8 h-8 rounded-full bg-sm-primary/10 text-sm-primary flex items-center justify-center text-xs font-semibold"
+          class="shrink-0 w-8 h-8 rounded-full bg-sm-surface dark:bg-white/10 text-sm-ink dark:text-white flex items-center justify-center text-xs font-bold"
         >
           {{ initials(c.authorName) }}
         </div>
         <div class="min-w-0 flex-1">
           <div class="flex items-baseline gap-2">
-            <span class="text-sm font-medium text-gray-900 dark:text-white truncate">
+            <span class="text-sm font-bold text-sm-ink dark:text-white truncate">
               {{ c.authorName || 'Unknown' }}
             </span>
-            <span class="text-[11px] text-gray-400 shrink-0">{{ relativeTime(c.createdAt) }}</span>
+            <span class="text-[11px] text-sm-faint shrink-0">{{ relativeTime(c.createdAt) }}</span>
             <button
               v-if="canDelete(c)"
               type="button"
-              class="ml-auto text-gray-300 hover:text-red-500 transition-colors shrink-0"
+              class="ml-auto text-sm-faint hover:text-sm-bad transition-colors shrink-0"
               title="Delete comment"
               @click="onDelete(c.id)"
             >
               <TrashIcon class="w-3.5 h-3.5" />
             </button>
           </div>
-          <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
+          <p class="text-sm text-sm-ink-soft dark:text-gray-300 whitespace-pre-wrap break-words">
             {{ c.text }}
           </p>
         </div>
@@ -51,7 +51,7 @@
         v-model="draft"
         rows="1"
         placeholder="Add a comment…"
-        class="flex-1 resize-none rounded-xl bg-gray-50 dark:bg-gray-800 border-0 ring-1 ring-gray-200 dark:ring-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 px-3 py-2 focus:ring-2 focus:ring-sm-primary"
+        class="flex-1 resize-none rounded-xl border border-sm-line dark:border-white/15 bg-transparent text-sm text-sm-ink dark:text-white placeholder:text-sm-faint px-3 py-2 focus:outline-none focus:border-sm-ink dark:focus:border-white"
         @keydown.enter.exact.prevent="submit"
       ></textarea>
       <SmButton size="sm" :loading="posting" :disabled="!draft.trim()" @click="submit">

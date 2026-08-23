@@ -25,7 +25,7 @@
       <SmSelect v-model="form.stage" label="Stage" :options="stageOptions" />
       <SmSelect v-model="ownerChoice" label="Sales Owner" :options="ownerOptions" />
     </div>
-    <p class="text-[11px] text-gray-400 -mt-3">
+    <p class="text-[11px] text-sm-faint -mt-3">
       Confirmed = won · Lost = closed lost. The outcome follows the stage.
     </p>
 
@@ -34,25 +34,25 @@
     <!-- Dates -->
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="mb-2 block text-xs font-normal text-gray-600 dark:text-gray-400">Lead Date</label>
+        <label class="mb-2 block sm-eyebrow">Lead Date</label>
         <button type="button" :class="fieldBtnClass" @click="openLead">
           <span class="flex min-w-0 items-center gap-2">
-            <CalendarIcon class="h-4 w-4 shrink-0 text-sm-primary" />
-            <span v-if="form.leadDate" class="truncate font-medium text-gray-900 dark:text-white">{{ fmtFull(form.leadDate) }}</span>
-            <span v-else class="text-gray-400">Select date</span>
+            <CalendarIcon class="h-4 w-4 shrink-0 text-sm-muted" />
+            <span v-if="form.leadDate" class="truncate font-semibold text-sm-ink dark:text-white">{{ fmtFull(form.leadDate) }}</span>
+            <span v-else class="text-sm-faint">Select date</span>
           </span>
-          <ChevronRightIcon class="h-4 w-4 shrink-0 text-gray-300" />
+          <ChevronRightIcon class="h-4 w-4 shrink-0 text-sm-faint" />
         </button>
       </div>
       <div>
-        <label class="mb-2 block text-xs font-normal text-gray-600 dark:text-gray-400">Arrival – Departure</label>
+        <label class="mb-2 block sm-eyebrow">Arrival – Departure</label>
         <button type="button" :class="fieldBtnClass" @click="openStay">
           <span class="flex min-w-0 items-center gap-2">
-            <CalendarIcon class="h-4 w-4 shrink-0 text-sm-primary" />
-            <span v-if="stayLabel" class="truncate font-medium text-gray-900 dark:text-white">{{ stayLabel }}</span>
-            <span v-else class="text-gray-400">Select dates</span>
+            <CalendarIcon class="h-4 w-4 shrink-0 text-sm-muted" />
+            <span v-if="stayLabel" class="truncate font-semibold text-sm-ink dark:text-white">{{ stayLabel }}</span>
+            <span v-else class="text-sm-faint">Select dates</span>
           </span>
-          <ChevronRightIcon class="h-4 w-4 shrink-0 text-gray-300" />
+          <ChevronRightIcon class="h-4 w-4 shrink-0 text-sm-faint" />
         </button>
       </div>
     </div>
@@ -66,9 +66,9 @@
 
     <!-- Revenue -->
     <div class="flex items-center justify-between">
-      <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Revenue</span>
-      <label class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">
-        <input type="checkbox" v-model="form.manualRevenue" class="rounded border-gray-300 text-sm-primary focus:ring-sm-primary" />
+      <span class="sm-eyebrow">Revenue</span>
+      <label class="flex items-center gap-2 text-xs text-sm-muted cursor-pointer select-none">
+        <input type="checkbox" v-model="form.manualRevenue" class="rounded border-sm-line text-sm-ink focus:ring-sm-ink" />
         Enter manually
       </label>
     </div>
@@ -98,7 +98,7 @@
         @update:model-value="v => (form.totalRevenue = toNum(v))"
       />
     </div>
-    <p v-if="!form.manualRevenue" class="text-[11px] text-gray-400 -mt-2">
+    <p v-if="!form.manualRevenue" class="text-[11px] text-sm-faint -mt-2">
       Auto-calculated from Rooms × Nights × ADR (+ F&B).
     </p>
 
@@ -127,14 +127,14 @@
     <div class="grid grid-cols-2 gap-3">
       <SmInput v-model="form.nextAction" label="Next Action" placeholder="e.g. send reminder" />
       <div>
-        <label class="mb-2 block text-xs font-normal text-gray-600 dark:text-gray-400">Action Due Date</label>
+        <label class="mb-2 block sm-eyebrow">Action Due Date</label>
         <button type="button" :class="fieldBtnClass" @click="openActionDue">
           <span class="flex min-w-0 items-center gap-2">
-            <CalendarIcon class="h-4 w-4 shrink-0 text-sm-primary" />
-            <span v-if="form.actionDueDate" class="truncate font-medium text-gray-900 dark:text-white">{{ fmtFull(form.actionDueDate) }}</span>
-            <span v-else class="text-gray-400">Select date</span>
+            <CalendarIcon class="h-4 w-4 shrink-0 text-sm-muted" />
+            <span v-if="form.actionDueDate" class="truncate font-semibold text-sm-ink dark:text-white">{{ fmtFull(form.actionDueDate) }}</span>
+            <span v-else class="text-sm-faint">Select date</span>
           </span>
-          <ChevronRightIcon class="h-4 w-4 shrink-0 text-gray-300" />
+          <ChevronRightIcon class="h-4 w-4 shrink-0 text-sm-faint" />
         </button>
       </div>
     </div>
@@ -146,7 +146,7 @@
   <!-- Calendar picker for any date field (above the deal modal) -->
   <Teleport to="body">
     <div v-if="picker" class="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4">
-      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="picker = null"></div>
+      <div class="fixed inset-0 bg-sm-ink/40 backdrop-blur-sm" @click="picker = null"></div>
       <div class="relative w-full max-w-md">
         <DateRangePicker
           :key="picker.key"
@@ -194,7 +194,7 @@ const session = useSessionStore()
 // ---- Calendar date fields (lead date · stay range · action due) ----
 // A single reusable picker modal, configured per field it's opened for.
 const fieldBtnClass =
-  'flex w-full items-center justify-between rounded-lg bg-gray-50 px-4 py-3 text-left text-sm ring-1 ring-gray-200 transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700'
+  'flex w-full items-center justify-between border-b border-sm-line py-2.5 text-left text-base transition-colors hover:border-sm-ink dark:border-white/15 dark:hover:border-white'
 
 interface PickerCfg {
   key: string

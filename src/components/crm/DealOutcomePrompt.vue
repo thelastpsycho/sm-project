@@ -8,7 +8,7 @@
     leave-to-class="opacity-0"
   >
     <div v-if="open" class="fixed inset-0 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="!loading && emit('cancel')"></div>
+      <div class="fixed inset-0 bg-sm-ink/30 backdrop-blur-[2px]" @click="!loading && emit('cancel')"></div>
 
       <div class="relative bg-white dark:bg-sm-card-dark w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up">
         <div class="p-6">
@@ -21,10 +21,10 @@
               <TrophyIcon v-else class="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div class="min-w-0">
-              <h3 class="text-base font-bold text-gray-900 dark:text-white">
+              <h3 class="text-base font-extrabold tracking-[-0.01em] text-sm-ink dark:text-white">
                 {{ isLost ? 'Mark as Lost' : 'Mark as Won' }}
               </h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400 truncate">{{ deal?.company }}</p>
+              <p class="mt-1 text-sm text-sm-muted truncate">{{ deal?.company }}</p>
             </div>
           </div>
 
@@ -38,7 +38,7 @@
               placeholder="Type reason"
             />
             <SmTextarea v-model="note" label="Note (optional)" :rows="2" placeholder="Any extra context" />
-            <p v-if="showError" class="text-xs text-red-500">Please choose or type a reason.</p>
+            <p v-if="showError" class="text-xs text-sm-bad">Please choose or type a reason.</p>
           </div>
 
           <!-- Won: actual booked value -->
@@ -50,7 +50,7 @@
               :placeholder="String(deal?.totalRevenue ?? 0)"
               @update:model-value="onActualInput"
             />
-            <p class="text-[11px] text-gray-400">
+            <p class="text-[11px] text-sm-faint">
               Estimated {{ formatMoney(deal?.totalRevenue, deal?.currency) }} — adjust to the real booked amount.
             </p>
           </div>
@@ -59,7 +59,7 @@
             <button
               type="button"
               :disabled="loading"
-              class="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+              class="px-4 py-2 rounded-xl text-sm font-bold text-sm-ink dark:text-white border border-sm-line dark:border-white/15 hover:bg-sm-surface dark:hover:bg-white/5 transition-colors disabled:opacity-50"
               @click="emit('cancel')"
             >
               Cancel
@@ -67,8 +67,8 @@
             <button
               type="button"
               :disabled="loading"
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors disabled:opacity-60"
-              :class="isLost ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-colors disabled:opacity-60"
+              :class="isLost ? 'bg-sm-bad hover:bg-red-700' : 'bg-sm-won hover:bg-green-700'"
               @click="onConfirm"
             >
               <svg v-if="loading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

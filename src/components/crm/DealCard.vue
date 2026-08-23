@@ -2,27 +2,27 @@
   <button
     type="button"
     @click="emit('open', deal)"
-    class="w-full text-left bg-white dark:bg-sm-card-dark rounded-2xl border border-gray-100 dark:border-white/10 p-3 shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all"
+    class="w-full text-left border-t border-sm-hair dark:border-white/5 py-3.5 hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
     :class="{ 'drag-locked cursor-pointer': locked }"
   >
-    <div class="flex items-start justify-between gap-2">
-      <h4 class="font-semibold text-sm text-gray-900 dark:text-white leading-snug line-clamp-2">
+    <div class="flex items-start justify-between gap-2.5">
+      <h4 class="font-bold text-[15px] tracking-[-0.01em] text-sm-ink dark:text-white leading-snug line-clamp-2">
         {{ deal.company }}
       </h4>
-      <span :class="segmentBadgeClass" class="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full">
+      <span class="shrink-0 text-[11px] font-bold uppercase tracking-[0.06em] mt-0.5" :class="segmentBadgeClass">
         {{ deal.segment }}
       </span>
     </div>
 
-    <div class="mt-1 flex items-center justify-between gap-2">
-      <p class="text-xs font-medium text-sm-primary">
+    <div class="mt-2 flex items-center justify-between gap-2">
+      <p class="text-sm font-bold text-sm-ink dark:text-white">
         {{ formatMoney(deal.actualRevenue ?? deal.totalRevenue, deal.currency) }}
       </p>
       <span
         v-if="aging"
         ref="stageChip"
-        :class="[aging.class, locked ? '' : 'cursor-pointer hover:ring-1 hover:ring-inset hover:ring-current/40']"
-        class="shrink-0 inline-flex items-center gap-0.5 text-[10px] font-medium px-2 py-0.5 rounded-full select-none transition-shadow"
+        :class="[aging.class, locked ? '' : 'cursor-pointer hover:underline']"
+        class="shrink-0 inline-flex items-center gap-0.5 text-xs font-bold select-none"
         :title="locked ? aging.title : 'Change stage'"
         role="button"
         @click.stop.prevent="toggleMenu"
@@ -32,10 +32,10 @@
       </span>
     </div>
 
-    <div class="mt-2 flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
-      <LockClosedIcon v-if="locked" class="w-3 h-3 shrink-0 text-gray-400" title="You can only edit your own leads" />
+    <div class="mt-1.5 flex items-center gap-1.5 text-xs text-sm-muted">
+      <LockClosedIcon v-if="locked" class="w-3 h-3 shrink-0 text-sm-faint" title="You can only edit your own leads" />
       <span class="truncate">{{ deal.ownerName || 'Unassigned' }}</span>
-      <span v-if="deal.arrivalDate">· {{ formatDate(deal.arrivalDate) }}</span>
+      <span v-if="deal.nextAction" class="truncate">· {{ deal.nextAction }}</span>
       <span
         v-if="deal.commentCount"
         class="ml-auto inline-flex items-center gap-0.5 shrink-0"
@@ -46,13 +46,12 @@
     </div>
 
     <div
-      v-if="deal.nextAction"
-      class="mt-2 flex items-center gap-1 text-[11px]"
-      :class="overdue ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'"
+      v-if="deal.actionDueDate"
+      class="mt-1 flex items-center gap-1 text-[11px]"
+      :class="overdue ? 'text-sm-bad font-bold' : 'text-sm-faint'"
     >
-      <ClockIcon class="w-3.5 h-3.5 shrink-0" />
-      <span class="truncate">{{ deal.nextAction }}</span>
-      <span v-if="deal.actionDueDate">· {{ formatDate(deal.actionDueDate) }}</span>
+      <ClockIcon class="w-3 h-3 shrink-0" />
+      <span>{{ overdue ? 'Overdue' : 'Due' }} {{ formatDate(deal.actionDueDate) }}</span>
     </div>
 
     <!-- Quick stage picker (teleported so the board's horizontal scroll can't clip it) -->
@@ -60,7 +59,7 @@
       <template v-if="menuOpen">
         <div class="fixed inset-0 z-40" @click.stop="closeMenu" @contextmenu.prevent="closeMenu"></div>
         <div
-          class="fixed z-50 w-40 rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark shadow-lg py-1"
+          class="fixed z-50 w-40 rounded-2xl border border-sm-line dark:border-white/10 bg-white dark:bg-sm-card-dark shadow-lg shadow-black/10 py-1"
           :style="menuStyle"
         >
           <button
@@ -68,8 +67,8 @@
             :key="s"
             type="button"
             @click.stop="pick(s)"
-            class="w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
-            :class="s === currentStage ? 'font-semibold text-sm-primary' : 'text-gray-700 dark:text-gray-200'"
+            class="w-full flex items-center gap-2 px-3 py-2 text-left text-xs transition-colors hover:bg-sm-surface dark:hover:bg-white/5"
+            :class="s === currentStage ? 'font-bold text-sm-primary' : 'text-sm-ink dark:text-gray-200'"
           >
             <span class="w-2 h-2 rounded-full shrink-0" :class="stageDot[s]"></span>
             {{ s }}
@@ -164,9 +163,9 @@ onUnmounted(() => {
 const aging = computed<{ label: string; class: string; title: string } | null>(() => {
   const outcome = dealOutcome(props.deal)
   if (outcome === 'won')
-    return { label: 'Won', class: 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300', title: 'Confirmed / won' }
+    return { label: 'Won', class: 'text-sm-won', title: 'Confirmed / won' }
   if (outcome === 'lost')
-    return { label: 'Lost', class: 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300', title: props.deal.reasonWonLost || 'Lost' }
+    return { label: 'Lost', class: 'text-sm-bad', title: props.deal.reasonWonLost || 'Lost' }
 
   const enteredIso = props.deal.stageEnteredAt ?? props.deal.createdAt
   const entered = enteredIso instanceof Date ? enteredIso : new Date(enteredIso)
@@ -175,11 +174,12 @@ const aging = computed<{ label: string; class: string; title: string } | null>((
   const days = Math.floor((now.getTime() - entered.getTime()) / 86_400_000)
   const stage = (props.deal.stage ?? 'New') as DealStage
   const sla = DEFAULT_ALERT_CONFIG.stageSlaDays[stage]
-  let cls = 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400'
+  // Editorial flags: muted while healthy, warn past SLA, bad at double SLA.
+  let cls = 'text-sm-muted'
   if (sla != null) {
-    if (days >= sla * 2) cls = 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300'
-    else if (days >= sla) cls = 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300'
-    else cls = 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-300'
+    if (days >= sla * 2) cls = 'text-sm-bad'
+    else if (days >= sla) cls = 'text-sm-warn'
+    else cls = 'text-sm-muted'
   }
   return { label: `${days}d in ${stage}`, class: cls, title: `In ${stage} for ${days} day${days === 1 ? '' : 's'}` }
 })
@@ -187,13 +187,13 @@ const aging = computed<{ label: string; class: string; title: string } | null>((
 const segmentBadgeClass = computed(() => {
   switch (props.deal.segment) {
     case 'MICE':
-      return 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300'
+      return 'text-sm-ink dark:text-gray-200'
     case 'Wedding':
-      return 'bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-300'
+      return 'text-sm-wed'
     case 'Leisure':
-      return 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300'
+      return 'text-sm-warn'
     default:
-      return 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300'
+      return 'text-sm-muted'
   }
 })
 </script>
