@@ -48,7 +48,7 @@ function handleNext() {
 </script>
 
 <template>
-  <SmCard class="bg-white border border-gray-200 p-4 sm:p-6 rounded-2xl shadow-sm">
+  <SmCard class="bg-white dark:bg-sm-card-dark border border-sm-line dark:border-white/10 p-4 sm:p-6 rounded-2xl shadow-sm">
     <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-5 text-center">
       {{ ui.welcomeTitle }}
     </h2>

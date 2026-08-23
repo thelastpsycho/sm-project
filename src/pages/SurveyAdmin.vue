@@ -851,7 +851,7 @@ function getScorePercentage(score: number): number {
 
         <!-- QR Code Image -->
         <div class="flex justify-center mb-6">
-          <div class="p-4 bg-white rounded-xl shadow-lg border border-sm-line">
+          <div class="p-4 bg-white dark:bg-sm-card-dark rounded-xl shadow-lg border border-sm-line dark:border-white/10">
             <img
               :src="getQRCodeUrl(selectedEventForQR.id)"
               :alt="`QR code for ${selectedEventForQR.eventName}`"

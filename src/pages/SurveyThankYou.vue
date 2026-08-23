@@ -21,7 +21,7 @@ useHead({
 
 <template>
   <div class="min-h-screen flex items-center justify-center py-6 sm:py-8 px-3 sm:px-4 bg-sm-surface">
-    <SmCard class="max-w-md w-full text-center p-6 bg-white border border-sm-line rounded-2xl shadow-sm">
+    <SmCard class="max-w-md w-full text-center p-6 bg-white dark:bg-sm-card-dark border border-sm-line dark:border-white/10 rounded-2xl shadow-sm">
       <div class="flex justify-center mb-5">
         <img
           src="/logo-theanvaya.svg"
@@ -38,7 +38,7 @@ useHead({
         </div>
       </div>
 
-      <h1 class="text-2xl font-bold text-sm-ink mb-4">
+      <h1 class="text-2xl font-bold text-sm-ink dark:text-white mb-4">
         Thank You
       </h1>
 
@@ -47,7 +47,7 @@ useHead({
         and ensure every event at The Anvaya Beach Resort Bali is exceptional.
       </p>
 
-      <p class="text-sm-ink mb-6 italic text-sm">
+      <p class="text-sm-ink dark:text-gray-300 mb-6 italic text-sm">
         "We look forward to welcoming you back soon."
       </p>
 

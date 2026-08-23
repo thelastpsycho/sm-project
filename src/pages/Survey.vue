@@ -268,7 +268,7 @@ async function handleSubmit() {
 
       <!-- Error State -->
       <div v-else-if="errors.general && !event" class="min-h-[50vh] flex items-center justify-center">
-        <SmCard class="max-w-md text-center p-6 bg-white border border-sm-line rounded-2xl shadow-sm">
+        <SmCard class="max-w-md text-center p-6 bg-white dark:bg-sm-card-dark border border-sm-line dark:border-white/10 rounded-2xl shadow-sm">
           <p class="text-sm-ink-soft">{{ errors.general }}</p>
         </SmCard>
       </div>
@@ -297,7 +297,7 @@ async function handleSubmit() {
             <div class="absolute bottom-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
 
             <!-- Content -->
-            <div class="relative bg-white backdrop-blur-md border border-teal-100 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-lg shadow-teal-500/5">
+            <div class="relative bg-white dark:bg-sm-card-dark backdrop-blur-md border border-teal-100 dark:border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-lg shadow-teal-500/5">
               <!-- Decorative line -->
               <div class="absolute top-0 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-0.5 bg-gradient-to-r from-transparent via-teal-500 to-transparent rounded-full"></div>
 
@@ -310,7 +310,7 @@ async function handleSubmit() {
                 </p>
 
                 <!-- Event Name -->
-                <h1 class="text-lg sm:text-xl font-bold text-sm-ink mb-2 leading-tight">
+                <h1 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white mb-2 leading-tight">
                   {{ event?.eventName }}
                 </h1>
 
@@ -354,7 +354,7 @@ async function handleSubmit() {
           </div>
 
           <!-- Survey Form -->
-          <form @submit.prevent="handleSubmit" class="bg-white border border-sm-line p-4 sm:p-6 rounded-2xl shadow-sm">
+          <form @submit.prevent="handleSubmit" class="bg-white dark:bg-sm-card-dark border border-sm-line dark:border-white/10 p-4 sm:p-6 rounded-2xl shadow-sm">
             <!-- Rating Questions -->
             <div class="mb-6">
               <p class="text-sm font-medium text-sm-ink-soft mb-5 tracking-wide">
