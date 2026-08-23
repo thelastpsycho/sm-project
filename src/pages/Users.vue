@@ -101,7 +101,19 @@
       <div class="hidden lg:block overflow-x-auto">
         <div class="flex items-center py-3 border-b border-sm-line dark:border-white/10 sm-eyebrow">
           <span class="flex-[2]">Permission</span>
-          <span v-for="role in permissions.roles" :key="role.id" class="flex-1 text-center">{{ role.label }}</span>
+          <div v-for="role in permissions.roles" :key="role.id" class="flex-1 flex items-center justify-center gap-1">
+            <span>{{ role.label }}</span>
+            <button
+              v-if="!role.reserved"
+              type="button"
+              class="text-sm-faint hover:text-sm-bad transition-colors disabled:opacity-50"
+              title="Delete role"
+              :disabled="permissions.saving"
+              @click="askDeleteRole(role)"
+            >
+              <TrashIcon class="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
         <div
           v-for="row in permissionRows"

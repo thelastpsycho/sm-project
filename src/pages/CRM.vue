@@ -153,38 +153,48 @@
     <!-- Loading -->
     <div v-else-if="store.loading" class="text-center py-16 text-sm-faint">Loading…</div>
 
-    <!-- Action queue — deals grouped by urgency (Overdue / Stuck past SLA / Due today) -->
+    <!-- Action queue — deals grouped by urgency (Overdue / Stuck past SLA / Due today).
+         Desktop: queue rail on the left, full deals table on the right. -->
     <template v-else-if="view === 'queue'">
-      <div class="mt-6">
-        <div v-if="!visibleQueueGroups.length" class="py-16 text-center text-sm text-sm-muted">
-          Nothing needs you right now. 🎉
-        </div>
-        <div v-for="g in visibleQueueGroups" :key="g.key">
-          <div class="pt-4 pb-1.5 sm-eyebrow" :class="g.colorClass">{{ g.title }}</div>
-          <div
-            v-for="deal in g.items"
-            :key="deal.id"
-            class="flex items-start gap-3 py-3.5 border-t border-sm-hair dark:border-white/5"
-          >
-            <button type="button" class="flex-1 min-w-0 text-left" @click="openEdit(deal)">
-              <div class="text-[15px] font-bold tracking-[-0.01em] text-sm-ink dark:text-white truncate">{{ deal.company }}</div>
-              <div class="mt-1 text-[13px] text-sm-ink dark:text-gray-200 truncate">{{ deal.nextAction || 'No action noted' }}</div>
-              <div class="mt-1 text-xs text-sm-muted truncate">
-                {{ deal.stage ?? 'New' }} · {{ formatMoney(deal.actualRevenue ?? deal.totalRevenue, deal.currency) }} · {{ deal.ownerName || 'Unassigned' }}
+      <div class="mt-6 lg:flex lg:items-start">
+        <!-- Queue rail -->
+        <div class="lg:w-[380px] lg:shrink-0 lg:pr-8 lg:border-r lg:border-sm-line lg:dark:border-white/10">
+          <div v-if="!visibleQueueGroups.length" class="py-16 text-center text-sm text-sm-muted">
+            Nothing needs you right now. 🎉
+          </div>
+          <div v-for="g in visibleQueueGroups" :key="g.key">
+            <div class="pt-4 pb-1.5 sm-eyebrow" :class="g.colorClass">{{ g.title }}</div>
+            <div
+              v-for="deal in g.items"
+              :key="deal.id"
+              class="flex items-start gap-3 py-3.5 border-t border-sm-hair dark:border-white/5"
+            >
+              <button type="button" class="flex-1 min-w-0 text-left" @click="openEdit(deal)">
+                <div class="text-[15px] font-bold tracking-[-0.01em] text-sm-ink dark:text-white truncate">{{ deal.company }}</div>
+                <div class="mt-1 text-[13px] text-sm-ink dark:text-gray-200 truncate">{{ deal.nextAction || 'No action noted' }}</div>
+                <div class="mt-1 text-xs text-sm-muted truncate">
+                  {{ deal.stage ?? 'New' }} · {{ formatMoney(deal.actualRevenue ?? deal.totalRevenue, deal.currency) }} · {{ deal.ownerName || 'Unassigned' }}
+                </div>
+              </button>
+              <div class="flex flex-col items-end gap-2 shrink-0">
+                <span class="text-xs font-bold" :class="g.flagClass">{{ deal.queueFlag }}</span>
+                <button
+                  v-if="canAdvance(deal)"
+                  type="button"
+                  class="text-xs font-bold text-sm-primary hover:underline"
+                  @click="advance(deal)"
+                >Advance</button>
               </div>
-            </button>
-            <div class="flex flex-col items-end gap-2 shrink-0">
-              <span class="text-xs font-bold" :class="g.flagClass">{{ deal.queueFlag }}</span>
-              <button
-                v-if="canAdvance(deal)"
-                type="button"
-                class="text-xs font-bold text-sm-primary hover:underline"
-                @click="advance(deal)"
-              >Advance</button>
             </div>
           </div>
+          <div class="h-4"></div>
         </div>
-        <div class="h-4"></div>
+
+        <!-- Full deals table (desktop only) -->
+        <div class="hidden lg:block flex-1 min-w-0 lg:pl-8">
+          <div class="sm-eyebrow pb-2">All deals · {{ filteredDeals.length }}</div>
+          <DealTable :deals="filteredDeals" @open="openEdit" />
+        </div>
       </div>
     </template>
 
@@ -238,45 +248,9 @@
       </div>
     </template>
 
-    <!-- List view — hairline rows on mobile, table on desktop -->
+    <!-- List view -->
     <div v-else class="mt-5">
-      <!-- Desktop table header -->
-      <div class="hidden sm:flex px-1 py-3 border-b border-sm-line dark:border-white/10 sm-eyebrow">
-        <span class="flex-[3]">Company</span>
-        <span class="flex-[1.1]">Stage</span>
-        <span class="flex-1">Segment</span>
-        <span class="flex-[1.4]">Owner</span>
-        <span class="flex-[1.7]">Next action</span>
-        <span class="flex-[1.2] text-right">Value</span>
-      </div>
-      <button
-        v-for="deal in filteredDeals"
-        :key="deal.id"
-        type="button"
-        @click="openEdit(deal)"
-        class="w-full text-left px-1 py-3.5 border-b border-sm-hair dark:border-white/5 hover:bg-sm-surface dark:hover:bg-white/5 transition-colors flex items-center gap-3"
-      >
-        <!-- Company (+ mobile meta) -->
-        <div class="flex-[3] min-w-0 flex items-center gap-2.5">
-          <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="stageDot[deal.stage ?? 'New']"></span>
-          <div class="min-w-0">
-            <p class="text-[15px] font-bold text-sm-ink dark:text-white truncate">{{ deal.company }}</p>
-            <p class="sm:hidden text-xs text-sm-muted truncate">
-              {{ deal.stage ?? 'New' }} · {{ deal.segment }} · {{ deal.ownerName || 'Unassigned' }}
-            </p>
-          </div>
-        </div>
-        <span class="hidden sm:block flex-[1.1] text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ deal.stage ?? 'New' }}</span>
-        <span class="hidden sm:block flex-1 text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ deal.segment }}</span>
-        <span class="hidden sm:block flex-[1.4] text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ deal.ownerName || 'Unassigned' }}</span>
-        <span class="hidden sm:block flex-[1.7] text-sm text-sm-ink-soft dark:text-gray-300 truncate pr-3">{{ deal.nextAction || '—' }}</span>
-        <span class="flex-none sm:flex-[1.2] text-sm font-bold text-sm-ink dark:text-white text-right shrink-0">
-          {{ formatMoney(deal.actualRevenue ?? deal.totalRevenue, deal.currency) }}
-        </span>
-      </button>
-      <div v-if="filteredDeals.length === 0" class="px-4 py-8 text-center text-sm text-sm-faint">
-        No deals match these filters.
-      </div>
+      <DealTable :deals="filteredDeals" @open="openEdit" />
     </div>
 
     <DealModal
@@ -320,6 +294,7 @@ import SmButton from '@/components/ui/SmButton.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import DealCard from '@/components/crm/DealCard.vue'
+import DealTable from '@/components/crm/DealTable.vue'
 import DealModal from '@/components/crm/DealModal.vue'
 import DealOutcomePrompt from '@/components/crm/DealOutcomePrompt.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
@@ -346,12 +321,12 @@ const agingTick = setInterval(() => (now.value = new Date()), 3_600_000)
 onUnmounted(() => clearInterval(agingTick))
 
 const stageDot: Record<DealStage, string> = {
-  New: 'bg-gray-400',
-  Proposal: 'bg-blue-500',
-  Negotiation: 'bg-amber-500',
-  Contract: 'bg-purple-500',
-  Confirmed: 'bg-green-500',
-  Lost: 'bg-red-500'
+  New: 'bg-sm-muted',
+  Proposal: 'bg-sm-primary',
+  Negotiation: 'bg-sm-warn',
+  Contract: 'bg-sm-wed',
+  Confirmed: 'bg-sm-won',
+  Lost: 'bg-sm-bad'
 }
 
 // Board is a single axis: the pipeline stages.
