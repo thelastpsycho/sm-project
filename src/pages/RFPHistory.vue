@@ -1,79 +1,82 @@
 <template>
-  <div class="pb-24 bg-gray-50 dark:bg-sm-bg-dark min-h-screen">
-    <!-- Header -->
-    <div class="px-6 py-6 bg-white dark:bg-sm-card-dark border-b border-gray-100 dark:border-white/5 sticky top-0 z-30 safe-area-top shadow-sm flex items-center justify-between">
-      <div>
-        <h1 class="text-xl font-bold text-gray-900 dark:text-white">RFP History</h1>
-        <p class="text-xs text-gray-500 mt-1">Manage your proposals</p>
-      </div>
-      <router-link to="/rfp/new" class="p-2 bg-gray-100 dark:bg-white/5 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 transition-colors">
-        <PlusIcon class="w-6 h-6" />
-      </router-link>
-    </div>
-
-    <!-- Content -->
-    <div class="p-4 space-y-4">
-      <div v-if="loading" class="flex justify-center py-12">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-sm-primary"></div>
-      </div>
-
-      <div v-else-if="error" class="p-4 rounded-2xl bg-red-50 text-red-700 text-sm text-center">
-        {{ error }}
-      </div>
-
-      <div v-else-if="rfps.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
-        <div class="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-4 text-gray-400">
-           <DocumentTextIcon class="w-8 h-8" />
+  <div class="min-h-screen bg-white dark:bg-sm-bg-dark">
+    <div class="max-w-[1000px] mx-auto lg:mx-0 px-6 lg:px-12 pt-11 lg:pt-9 pb-32">
+      <!-- Header -->
+      <div class="flex items-end justify-between gap-4">
+        <div>
+          <span class="sm-eyebrow">Requests for proposal</span>
+          <h1 class="sm-display text-[30px] mt-2">{{ rfps.length }} RFP{{ rfps.length === 1 ? '' : 's' }}</h1>
         </div>
-        <h3 class="text-gray-900 dark:text-white font-medium mb-1">No RFPs Found</h3>
-        <p class="text-xs text-gray-500 mb-4">Start by creating your first proposal</p>
-        <router-link to="/rfp/new" class="px-5 py-2.5 rounded-xl bg-sm-primary text-white text-sm font-bold shadow-lg shadow-blue-500/30">
-          Create New
+        <router-link
+          to="/rfp/new"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-sm-ink px-4 py-2.5 text-sm font-bold text-white dark:bg-white dark:text-sm-ink hover:bg-black dark:hover:bg-gray-100 transition-colors shrink-0"
+        >
+          <PlusIcon class="w-4 h-4" /> New RFP
         </router-link>
       </div>
 
-      <div v-else class="space-y-3">
-        <router-link 
-          v-for="rfp in rfps" 
-          :key="rfp.id"
-          :to="{ name: 'rfp-edit', params: { id: rfp.id } }"
-          class="block bg-white dark:bg-sm-card-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 hover:scale-[1.01] active:scale-[0.99] transition-all"
-        >
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <h3 class="font-bold text-gray-900 dark:text-white line-clamp-1">{{ rfp.full_company_name || 'Untitled Company' }}</h3>
-              <p class="text-xs text-gray-500">{{ rfp.pic_name }}</p>
-            </div>
-            <div class="text-[10px] font-medium px-2 py-1 rounded-lg" :class="rfp.generated ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-400'">
-              {{ rfp.generated ? 'Generated' : 'Draft' }}
-            </div>
-          </div>
-          
-          <div class="flex items-center gap-4 text-[10px] text-gray-400">
-            <div class="flex items-center gap-1">
-               <CalendarIcon class="w-3 h-3" />
-               <span>{{ formatDate(rfp.updatedAt) }}</span>
-            </div>
-            <div class="flex items-center gap-1">
-               <UserGroupIcon class="w-3 h-3" />
-               <span>{{ rfp.number_of_participants || 0 }} pax</span>
-            </div>
+      <!-- Content -->
+      <div class="mt-6">
+        <div v-if="loading" class="flex justify-center py-16">
+          <div class="animate-spin rounded-full h-7 w-7 border-b-2 border-sm-ink dark:border-white"></div>
+        </div>
+
+        <div v-else-if="error" class="py-8 text-center text-sm text-sm-bad">{{ error }}</div>
+
+        <div v-else-if="rfps.length === 0" class="flex flex-col items-center justify-center py-16 text-center">
+          <p class="text-sm-muted mb-4">No RFPs yet — start your first proposal.</p>
+          <router-link to="/rfp/new" class="rounded-xl bg-sm-ink px-5 py-2.5 text-sm font-bold text-white dark:bg-white dark:text-sm-ink">
+            Create new
+          </router-link>
+        </div>
+
+        <template v-else>
+          <!-- Desktop table header -->
+          <div class="hidden sm:flex px-1 py-3 border-b border-sm-line dark:border-white/10 sm-eyebrow">
+            <span class="flex-[2.4]">Company</span>
+            <span class="flex-[1.4]">PIC</span>
+            <span class="flex-[1.6]">Updated</span>
+            <span class="flex-[0.8] text-right">Pax</span>
+            <span class="flex-[1.2] text-right">Status</span>
           </div>
 
-          <!-- Proposal Link -->
-          <div v-if="rfp.link_to_pdf" class="mt-3 pt-3 border-t border-gray-100 dark:border-white/5 flex">
-            <a 
-              :href="rfp.link_to_pdf" 
-              target="_blank"
-              @click.stop
-              class="flex items-center gap-2 text-[10px] font-bold text-red-600 hover:text-red-700 dark:text-red-400 transition-colors"
-            >
-              <DocumentTextIcon class="w-3.5 h-3.5" />
-              <span>View PDF Proposal</span>
-              <ArrowTopRightOnSquareIcon class="w-3 h-3 opacity-50" />
-            </a>
-          </div>
-        </router-link>
+          <router-link
+            v-for="rfp in rfps"
+            :key="rfp.id"
+            :to="{ name: 'rfp-edit', params: { id: rfp.id } }"
+            class="block border-b border-sm-hair dark:border-white/5 hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
+          >
+            <div class="flex items-center gap-3 px-1 py-4">
+              <div class="flex-[2.4] min-w-0">
+                <p class="text-[15px] font-bold text-sm-ink dark:text-white truncate">{{ rfp.full_company_name || 'Untitled Company' }}</p>
+                <!-- mobile meta -->
+                <p class="sm:hidden text-xs text-sm-muted mt-0.5 truncate">
+                  {{ rfp.pic_name }} · {{ rfp.number_of_participants || 0 }} pax · {{ formatDate(rfp.updatedAt) }}
+                </p>
+              </div>
+              <span class="hidden sm:block flex-[1.4] text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ rfp.pic_name }}</span>
+              <span class="hidden sm:block flex-[1.6] text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ formatDate(rfp.updatedAt) }}</span>
+              <span class="hidden sm:block flex-[0.8] text-sm text-sm-ink-soft dark:text-gray-300 text-right">{{ rfp.number_of_participants || 0 }}</span>
+              <span
+                class="flex-none sm:flex-[1.2] text-xs font-bold text-right shrink-0"
+                :class="rfp.generated ? 'text-sm-won' : 'text-sm-muted'"
+              >{{ rfp.generated ? 'Generated' : 'Draft' }}</span>
+            </div>
+            <!-- PDF link -->
+            <div v-if="rfp.link_to_pdf" class="px-1 pb-3 -mt-1">
+              <a
+                :href="rfp.link_to_pdf"
+                target="_blank"
+                @click.stop
+                class="inline-flex items-center gap-1.5 text-[11px] font-bold text-sm-primary hover:underline"
+              >
+                <DocumentTextIcon class="w-3.5 h-3.5" />
+                View PDF proposal
+                <ArrowTopRightOnSquareIcon class="w-3 h-3 opacity-60" />
+              </a>
+            </div>
+          </router-link>
+        </template>
       </div>
     </div>
   </div>

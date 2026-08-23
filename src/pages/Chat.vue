@@ -1,14 +1,14 @@
 <template>
   <div class="flex flex-col h-screen bg-sm-bg dark:bg-sm-bg-dark">
     <!-- Header -->
-    <div class="px-4 py-3 bg-white/80 dark:bg-sm-card-dark/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 flex items-center justify-between sticky top-0 z-30 safe-area-top">
+    <div class="px-4 py-3 bg-white/80 dark:bg-sm-card-dark/80 backdrop-blur-xl border-b border-sm-line dark:border-white/10 flex items-center justify-between sticky top-0 z-30 safe-area-top">
       <div class="flex items-center space-x-3">
         <router-link to="/" class="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-          <ChevronLeftIcon class="w-6 h-6 text-sm-primary" />
+          <ChevronLeftIcon class="w-6 h-6 text-sm-ink dark:text-white" />
         </router-link>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-semibold text-gray-900 dark:text-white">Chat</h1>
+            <h1 class="font-extrabold tracking-[-0.01em] text-sm-ink dark:text-white">Chat</h1>
             <div class="relative">
               <select
                 :value="activeAgent?.id"
@@ -17,7 +17,7 @@
                   const agent = availableAgents.find((a: any) => a.id === val);
                   if (agent && !agent.disabled) setAgent(val);
                 }"
-                class="appearance-none bg-gray-100 dark:bg-white/10 text-xs font-medium px-2 py-1 pr-6 rounded-lg text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-sm-primary border-none cursor-pointer"
+                class="appearance-none bg-sm-surface dark:bg-white/10 text-xs font-bold px-2 py-1 pr-6 rounded-lg text-sm-ink dark:text-gray-200 focus:outline-none border-none cursor-pointer"
               >
                 <option 
                   v-for="agent in availableAgents" 
@@ -36,8 +36,8 @@
               </div>
             </div>
           </div>
-          <p class="text-xs text-green-500 flex items-center mt-0.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
+          <p class="text-xs text-sm-won flex items-center mt-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-sm-won mr-1.5"></span>
             Online
           </p>
         </div>
@@ -53,10 +53,10 @@
       class="flex-1 overflow-y-auto p-4 space-y-6 pb-32 scroll-smooth"
     >
       <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center p-8 opacity-50">
-        <div class="w-16 h-16 bg-gray-200 dark:bg-white/10 rounded-full flex items-center justify-center mb-4">
-          <ChatBubbleLeftRightIcon class="w-8 h-8 text-gray-400" />
+        <div class="w-16 h-16 bg-sm-surface dark:bg-white/10 rounded-full flex items-center justify-center mb-4">
+          <ChatBubbleLeftRightIcon class="w-8 h-8 text-sm-muted" />
         </div>
-        <p class="text-gray-500">No messages yet</p>
+        <p class="text-sm-muted">No messages yet</p>
       </div>
 
       <div
@@ -77,7 +77,7 @@
             :class="[
               message.sender === 'user' 
                 ? 'bg-sm-primary text-white rounded-br-sm' 
-                : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-sm border border-gray-100 dark:border-white/5'
+                : 'bg-sm-surface dark:bg-white/10 text-sm-ink dark:text-white rounded-bl-sm'
             ]"
           >
             <p class="text-[15px] leading-relaxed">{{ message.text }}</p>
@@ -96,14 +96,14 @@
     </div>
 
     <!-- Input Area -->
-    <div class="p-4 bg-white/80 dark:bg-sm-card-dark/80 backdrop-blur-xl border-t border-gray-200 dark:border-white/10 pb-8 safe-area-bottom sticky bottom-0 z-40">
+    <div class="p-4 bg-white/80 dark:bg-sm-card-dark/80 backdrop-blur-xl border-t border-sm-line dark:border-white/10 pb-8 safe-area-bottom sticky bottom-0 z-40">
       <form @submit.prevent="handleSendMessage" class="flex items-end space-x-2">
-        <div class="flex-1 bg-gray-100 dark:bg-black/20 rounded-2xl p-1 flex items-center border border-transparent focus-within:border-sm-primary/50 focus-within:bg-white dark:focus-within:bg-black/40 transition-all">
+        <div class="flex-1 bg-sm-surface dark:bg-white/5 rounded-2xl p-1 flex items-center border border-transparent focus-within:border-sm-ink/30 dark:focus-within:border-white/30 transition-all">
           <input
             v-model="newMessage"
             type="text"
-            placeholder="iMessage..."
-            class="flex-1 bg-transparent border-none focus:ring-0 px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-500"
+            placeholder="Message"
+            class="flex-1 bg-transparent border-none focus:ring-0 px-4 py-2.5 text-sm-ink dark:text-white placeholder:text-sm-faint"
             :disabled="isSending"
           />
         </div>
