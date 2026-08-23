@@ -4,11 +4,24 @@
     <!-- Header -->
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <span class="sm-eyebrow">Pipeline</span>
-        <h1 class="sm-display text-[30px] mt-2">
-          {{ formatMoney(pipelineTotal) }}
-          <span class="text-sm-faint font-semibold">/ {{ filteredDeals.length }}<span v-if="filteredDeals.length !== store.deals.length"> of {{ store.deals.length }}</span></span>
-        </h1>
+        <!-- Queue view: action-first hero -->
+        <template v-if="view === 'queue'">
+          <span class="sm-eyebrow">{{ todayLabel }}</span>
+          <h1 class="sm-display text-[32px] leading-[1.05] mt-2.5">
+            {{ queueCount }} {{ queueCount === 1 ? 'deal' : 'deals' }}<br />{{ queueCount === 1 ? 'needs' : 'need' }} you today
+          </h1>
+          <p class="mt-3 text-sm text-sm-muted">
+            {{ formatMoney(atRiskTotal) }} at risk<span v-if="overdueCount"> · {{ overdueCount }} overdue</span>
+          </p>
+        </template>
+        <!-- Board / list: pipeline value -->
+        <template v-else>
+          <span class="sm-eyebrow">Pipeline</span>
+          <h1 class="sm-display text-[30px] mt-2">
+            {{ formatMoney(pipelineTotal) }}
+            <span class="text-sm-faint font-semibold">/ {{ filteredDeals.length }}<span v-if="filteredDeals.length !== store.deals.length"> of {{ store.deals.length }}</span></span>
+          </h1>
+        </template>
       </div>
       <div class="flex items-center gap-4 shrink-0">
         <router-link
@@ -23,8 +36,23 @@
       </div>
     </div>
 
-    <!-- Summary strip — inline editorial stats -->
-    <div class="mt-6 flex flex-wrap gap-x-10 gap-y-4">
+    <!-- Queue view: filter chips -->
+    <div v-if="view === 'queue'" class="scr mt-5 -mx-6 lg:-mx-10 px-6 lg:px-10 flex gap-2 overflow-x-auto">
+      <button
+        v-for="c in queueChips"
+        :key="c.key"
+        @click="queueChip = c.key"
+        class="whitespace-nowrap text-[13px] font-bold px-3.5 py-1.5 rounded-full border transition-colors"
+        :class="queueChip === c.key
+          ? 'bg-sm-ink text-white border-sm-ink dark:bg-white dark:text-sm-ink dark:border-white'
+          : 'border-sm-line text-sm-ink dark:border-white/15 dark:text-gray-200'"
+      >
+        {{ c.label }}<span v-if="c.count != null" :class="queueChip === c.key ? 'opacity-70' : 'text-sm-faint'"> {{ c.count }}</span>
+      </button>
+    </div>
+
+    <!-- Board / list: inline editorial stats -->
+    <div v-else class="mt-6 flex flex-wrap gap-x-10 gap-y-4">
       <div v-for="s in summaryTiles" :key="s.key">
         <div class="sm-eyebrow">{{ s.label }} <span class="text-sm-faint">· {{ s.count }}</span></div>
         <div class="mt-1 text-[17px] font-bold" :class="s.textClass">{{ formatMoney(s.value) }}</div>
@@ -35,7 +63,7 @@
     <div class="mt-6 flex items-center gap-3">
       <div class="inline-flex rounded-full border border-sm-line dark:border-white/15 p-0.5">
         <button
-          v-for="v in (['board', 'list'] as const)"
+          v-for="v in (['queue', 'board', 'list'] as const)"
           :key="v"
           @click="view = v"
           class="px-3.5 py-1.5 rounded-full text-[13px] font-bold capitalize transition-colors"
@@ -124,6 +152,41 @@
 
     <!-- Loading -->
     <div v-else-if="store.loading" class="text-center py-16 text-sm-faint">Loading…</div>
+
+    <!-- Action queue — deals grouped by urgency (Overdue / Stuck past SLA / Due today) -->
+    <template v-else-if="view === 'queue'">
+      <div class="mt-6">
+        <div v-if="!visibleQueueGroups.length" class="py-16 text-center text-sm text-sm-muted">
+          Nothing needs you right now. 🎉
+        </div>
+        <div v-for="g in visibleQueueGroups" :key="g.key">
+          <div class="pt-4 pb-1.5 sm-eyebrow" :class="g.colorClass">{{ g.title }}</div>
+          <div
+            v-for="deal in g.items"
+            :key="deal.id"
+            class="flex items-start gap-3 py-3.5 border-t border-sm-hair dark:border-white/5"
+          >
+            <button type="button" class="flex-1 min-w-0 text-left" @click="openEdit(deal)">
+              <div class="text-[15px] font-bold tracking-[-0.01em] text-sm-ink dark:text-white truncate">{{ deal.company }}</div>
+              <div class="mt-1 text-[13px] text-sm-ink dark:text-gray-200 truncate">{{ deal.nextAction || 'No action noted' }}</div>
+              <div class="mt-1 text-xs text-sm-muted truncate">
+                {{ deal.stage ?? 'New' }} · {{ formatMoney(deal.actualRevenue ?? deal.totalRevenue, deal.currency) }} · {{ deal.ownerName || 'Unassigned' }}
+              </div>
+            </button>
+            <div class="flex flex-col items-end gap-2 shrink-0">
+              <span class="text-xs font-bold" :class="g.flagClass">{{ deal.queueFlag }}</span>
+              <button
+                v-if="canAdvance(deal)"
+                type="button"
+                class="text-xs font-bold text-sm-primary hover:underline"
+                @click="advance(deal)"
+              >Advance</button>
+            </div>
+          </div>
+        </div>
+        <div class="h-4"></div>
+      </div>
+    </template>
 
     <!-- Kanban board (single pipeline axis: stages) -->
     <template v-else-if="view === 'board'">
@@ -264,13 +327,14 @@ import { useCrmStore } from '@/stores/crm'
 import { DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStage, NewDeal } from '@/types/crm'
 import { formatMoney, canDeleteDeals, canEditDeal, canCreateDeal, dealOutcome, isDealIdle, wonRevenue } from '@/lib/crmUtils'
+import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
 import userData from '@/user.json'
 import { useSessionStore } from '@/stores/session'
 
 const store = useCrmStore()
 const session = useSessionStore()
 
-const view = ref<'board' | 'list'>('board')
+const view = ref<'queue' | 'board' | 'list'>('queue')
 const showFilters = ref(false)
 const modalOpen = ref(false)
 const editing = ref<Deal | null>(null)
@@ -497,6 +561,106 @@ const summaryTiles = computed(() => {
 const pipelineTotal = computed(() =>
   filteredDeals.value.reduce((s, d) => s + (d.totalRevenue ?? 0), 0)
 )
+
+// ---- Action queue (Direction 1c): open deals grouped by urgency ----
+type QueueChip = 'all' | 'overdue' | 'stuck' | 'today' | 'mine'
+const queueChip = ref<QueueChip>('all')
+
+const todayLabel = computed(() =>
+  now.value.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })
+)
+
+// Local (not UTC) YYYY-MM-DD so "today"/"overdue" match the user's calendar day.
+function localISO(d: Date): string {
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
+}
+function daysSince(iso: string): number {
+  const a = new Date(iso + 'T00:00:00').getTime()
+  return Math.floor((now.value.getTime() - a) / 86_400_000)
+}
+function daysInStage(deal: Deal): number {
+  const raw = deal.stageEnteredAt ?? deal.createdAt
+  const entered = raw instanceof Date ? raw : new Date(raw as string)
+  if (isNaN(entered.getTime())) return 0
+  return Math.floor((now.value.getTime() - entered.getTime()) / 86_400_000)
+}
+
+interface QueueDeal extends Deal {
+  queueFlag: string
+}
+
+// Each open deal falls into the first bucket it matches: overdue action, else due
+// today, else "stuck" (in-stage longer than the stage SLA).
+const queueBuckets = computed(() => {
+  const todayIso = localISO(now.value)
+  const overdue: QueueDeal[] = []
+  const today: QueueDeal[] = []
+  const stuck: QueueDeal[] = []
+  for (const d of filteredDeals.value) {
+    if (dealOutcome(d) !== 'open') continue
+    const due = d.actionDueDate
+    if (due && due < todayIso) {
+      overdue.push({ ...d, queueFlag: `${daysSince(due)}d late` })
+    } else if (due && due === todayIso) {
+      today.push({ ...d, queueFlag: 'Today' })
+    } else {
+      const stage = (d.stage ?? 'New') as DealStage
+      const sla = DEFAULT_ALERT_CONFIG.stageSlaDays[stage]
+      const days = daysInStage(d)
+      if (sla != null && days >= sla) stuck.push({ ...d, queueFlag: `${days}d` })
+    }
+  }
+  return { overdue, today, stuck }
+})
+
+const queueCount = computed(() => {
+  const b = queueBuckets.value
+  return b.overdue.length + b.stuck.length + b.today.length
+})
+const overdueCount = computed(() => queueBuckets.value.overdue.length)
+const atRiskTotal = computed(() =>
+  [...queueBuckets.value.overdue, ...queueBuckets.value.stuck, ...queueBuckets.value.today]
+    .reduce((s, d) => s + (d.totalRevenue ?? 0), 0)
+)
+
+const mineName = computed(() => session.currentUser?.name ?? '')
+
+const queueChips = computed(() => [
+  { key: 'all' as QueueChip, label: 'Needs action', count: queueCount.value },
+  { key: 'overdue' as QueueChip, label: 'Overdue', count: queueBuckets.value.overdue.length },
+  { key: 'stuck' as QueueChip, label: 'Stuck', count: queueBuckets.value.stuck.length },
+  { key: 'today' as QueueChip, label: 'Due today', count: queueBuckets.value.today.length },
+  { key: 'mine' as QueueChip, label: 'Mine only', count: null as number | null }
+])
+
+const visibleQueueGroups = computed(() => {
+  const b = queueBuckets.value
+  let groups = [
+    { key: 'overdue', title: 'Overdue', colorClass: '!text-sm-bad', flagClass: 'text-sm-bad', items: b.overdue },
+    { key: 'stuck', title: 'Stuck past SLA', colorClass: '!text-sm-warn', flagClass: 'text-sm-warn', items: b.stuck },
+    { key: 'today', title: 'Due today', colorClass: '', flagClass: 'text-sm-muted', items: b.today }
+  ]
+  if (queueChip.value === 'mine') {
+    groups = groups.map(g => ({ ...g, items: g.items.filter(d => (d.ownerName || '') === mineName.value) }))
+  } else if (queueChip.value !== 'all') {
+    groups = groups.filter(g => g.key === queueChip.value)
+  }
+  return groups.filter(g => g.items.length)
+})
+
+// Advance = bump a deal to the next pipeline stage. Terminal moves (→ Confirmed)
+// route through the won prompt via onQuickMove, exactly like the board.
+const ADVANCE_ORDER: DealStage[] = ['New', 'Proposal', 'Negotiation', 'Contract', 'Confirmed']
+function canAdvance(deal: Deal): boolean {
+  if (!editable(deal)) return false
+  const i = ADVANCE_ORDER.indexOf((deal.stage ?? 'New') as DealStage)
+  return i >= 0 && i < ADVANCE_ORDER.length - 1
+}
+function advance(deal: Deal) {
+  const i = ADVANCE_ORDER.indexOf((deal.stage ?? 'New') as DealStage)
+  if (i < 0 || i >= ADVANCE_ORDER.length - 1) return
+  onQuickMove({ deal, stage: ADVANCE_ORDER[i + 1]! })
+}
 
 // Mutable per-column mirror that vuedraggable can splice during a drag. Rebuilt when
 // the filtered grouping changes — but NOT mid-drag, so an incoming real-time snapshot
