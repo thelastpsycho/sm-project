@@ -13,54 +13,71 @@
 
     <div v-if="store.loading" class="text-center py-16 text-sm-faint">Loading…</div>
 
-    <div v-else class="border-t border-sm-line dark:border-white/10">
+    <div v-else>
+      <!-- Desktop table header -->
+      <div class="hidden lg:flex items-center gap-3 px-1 py-3 border-b border-sm-line dark:border-white/10 sm-eyebrow">
+        <span class="flex-[1.6]">Name</span>
+        <span class="flex-[1.6]">Position</span>
+        <span class="flex-[2.2]">Email</span>
+        <span class="flex-[0.9]">Role</span>
+        <span class="flex-[0.9] text-right">Status</span>
+        <span class="w-[76px]"></span>
+      </div>
+
       <div
         v-for="u in store.users"
         :key="u.uid"
         class="flex items-center gap-3 px-1 py-3.5 border-b border-sm-hair dark:border-white/5"
         :class="{ 'opacity-50': u.status === 'disabled' }"
       >
-        <div class="min-w-0 flex-1">
+        <!-- Name (+ mobile meta/badges) -->
+        <div class="min-w-0 flex-1 lg:flex-[1.6]">
           <div class="flex items-center gap-2">
             <p class="text-[15px] font-bold text-sm-ink dark:text-white truncate">{{ u.name }}</p>
             <span
               v-if="u.role && u.role !== 'sales'"
-              class="text-[10px] font-bold uppercase tracking-[0.06em]"
+              class="lg:hidden text-[10px] font-bold uppercase tracking-[0.06em]"
               :class="roleBadgeClass(u.role)"
               >{{ labelFor(u.role) }}</span
             >
             <span
-              class="text-[10px] font-bold uppercase tracking-[0.06em]"
+              class="lg:hidden text-[10px] font-bold uppercase tracking-[0.06em]"
               :class="u.status === 'disabled' ? 'text-sm-faint' : 'text-sm-won'"
               >{{ u.status === 'disabled' ? 'Deactivated' : 'Active' }}</span
             >
           </div>
-          <p class="text-xs text-sm-muted truncate">
-            {{ u.position }} · {{ u.email }}
-          </p>
+          <p class="lg:hidden text-xs text-sm-muted truncate">{{ u.position }} · {{ u.email }}</p>
         </div>
 
-        <button
-          type="button"
-          class="p-2 rounded-full text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
-          title="Edit"
-          @click="openEdit(u)"
-        >
-          <PencilSquareIcon class="w-5 h-5" />
-        </button>
-        <button
-          type="button"
-          class="p-2 rounded-full transition-colors"
-          :class="
-            u.status === 'disabled'
-              ? 'text-sm-won hover:bg-green-50 dark:hover:bg-green-900/20'
-              : 'text-sm-bad hover:bg-red-50 dark:hover:bg-red-900/20'
-          "
-          :title="u.status === 'disabled' ? 'Reactivate' : 'Deactivate'"
-          @click="askToggle(u)"
-        >
-          <component :is="u.status === 'disabled' ? ArrowPathIcon : NoSymbolIcon" class="w-5 h-5" />
-        </button>
+        <!-- Desktop columns -->
+        <span class="hidden lg:block flex-[1.6] text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ u.position }}</span>
+        <span class="hidden lg:block flex-[2.2] text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ u.email }}</span>
+        <span class="hidden lg:block flex-[0.9] text-[11px] font-bold uppercase tracking-[0.06em]" :class="roleBadgeClass(u.role || 'sales')">{{ labelFor(u.role || 'sales') }}</span>
+        <span class="hidden lg:block flex-[0.9] text-right text-[11px] font-bold uppercase tracking-[0.06em]" :class="u.status === 'disabled' ? 'text-sm-faint' : 'text-sm-won'">{{ u.status === 'disabled' ? 'Deactivated' : 'Active' }}</span>
+
+        <div class="flex items-center shrink-0 lg:w-[76px] lg:justify-end">
+          <button
+            type="button"
+            class="p-2 rounded-full text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
+            title="Edit"
+            @click="openEdit(u)"
+          >
+            <PencilSquareIcon class="w-5 h-5" />
+          </button>
+          <button
+            type="button"
+            class="p-2 rounded-full transition-colors"
+            :class="
+              u.status === 'disabled'
+                ? 'text-sm-won hover:bg-green-50 dark:hover:bg-green-900/20'
+                : 'text-sm-bad hover:bg-red-50 dark:hover:bg-red-900/20'
+            "
+            :title="u.status === 'disabled' ? 'Reactivate' : 'Deactivate'"
+            @click="askToggle(u)"
+          >
+            <component :is="u.status === 'disabled' ? ArrowPathIcon : NoSymbolIcon" class="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </div>
 
@@ -80,7 +97,37 @@
         </SmButton>
       </div>
 
-      <div class="grid gap-4 sm:grid-cols-2">
+      <!-- Desktop: permission matrix (roles × permissions) -->
+      <div class="hidden lg:block overflow-x-auto">
+        <div class="flex items-center py-3 border-b border-sm-line dark:border-white/10 sm-eyebrow">
+          <span class="flex-[2]">Permission</span>
+          <span v-for="role in permissions.roles" :key="role.id" class="flex-1 text-center">{{ role.label }}</span>
+        </div>
+        <div
+          v-for="row in permissionRows"
+          :key="row.key"
+          class="flex items-center py-3 border-b border-sm-hair dark:border-white/5"
+        >
+          <span class="flex-[2] text-sm font-semibold text-sm-ink dark:text-white">{{ row.label }}</span>
+          <div v-for="role in permissions.roles" :key="role.id" class="flex-1 flex justify-center">
+            <button
+              type="button"
+              class="text-[15px] font-bold leading-none transition-colors"
+              :class="[
+                cell(role, row).granted ? 'text-sm-ink dark:text-white' : 'text-sm-line dark:text-white/20',
+                cell(role, row).editable ? 'cursor-pointer hover:opacity-70' : 'cursor-default'
+              ]"
+              :disabled="!cell(role, row).editable || permissions.saving"
+              :title="cell(role, row).editable ? 'Toggle' : (role.id === 'admin' ? 'Admins always have full access' : row.locked ? 'Always on' : 'Admin only')"
+              @click="toggleCell(role, row)"
+            >{{ cell(role, row).granted ? '●' : '—' }}</button>
+          </div>
+        </div>
+        <p v-if="permError" class="mt-2 text-xs text-sm-bad">{{ permError }}</p>
+      </div>
+
+      <!-- Mobile / tablet: per-role permission cards -->
+      <div class="grid gap-4 sm:grid-cols-2 lg:hidden">
         <div
           v-for="role in editableRoles"
           :key="role.id"
@@ -278,6 +325,31 @@ function hasPerm(role: UserRole, key: Permission): boolean {
   if (isLockedPermission(key)) return true
   if (isAdminOnlyPermission(key)) return false
   return (permissions.matrix[role] ?? []).includes(key)
+}
+
+// ---- Desktop permission matrix (permissions × roles) ----
+// Flatten the catalog into one row per action, e.g. "Pipeline · view".
+const permissionRows = computed(() =>
+  PERMISSION_CATALOG.flatMap(group =>
+    group.actions.map(action => ({
+      key: permKey(group.resource, action.key),
+      label: group.actions.length === 1 ? group.label : `${group.label} · ${action.label}`,
+      locked: !!group.locked,
+      adminOnly: !!group.adminOnly
+    }))
+  )
+)
+
+/** Cell state for role × permission: ● granted / — not, and whether it's editable. */
+function cell(role: RoleDef, row: { key: Permission; locked: boolean; adminOnly: boolean }) {
+  const granted = row.locked || role.id === 'admin' || (!row.adminOnly && hasPerm(role.id, row.key))
+  const editable = role.id !== 'admin' && !row.locked && !row.adminOnly
+  return { granted, editable }
+}
+function toggleCell(role: RoleDef, row: { key: Permission; locked: boolean; adminOnly: boolean }) {
+  const { granted, editable } = cell(role, row)
+  if (!editable || permissions.saving) return
+  togglePerm(role.id, row.key, !granted)
 }
 
 async function togglePerm(role: UserRole, key: Permission, checked: boolean) {
