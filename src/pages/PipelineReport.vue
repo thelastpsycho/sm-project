@@ -1,25 +1,23 @@
 <template>
-  <SmPage max-width="full" with-bottom-nav-padding>
+  <div class="min-h-screen bg-white dark:bg-sm-bg-dark">
+    <div class="max-w-[1100px] mx-auto lg:mx-0 px-6 lg:px-12 pt-10 lg:pt-9 pb-32">
     <!-- Header -->
-    <div class="flex items-start justify-between gap-3 mb-4">
-      <div class="flex items-center gap-2 min-w-0">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex items-start gap-2 min-w-0">
         <button
-          class="no-print p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500"
+          class="no-print p-2 -ml-2 rounded-full hover:bg-sm-surface dark:hover:bg-white/5 text-sm-ink dark:text-white lg:hidden"
           @click="router.push('/crm')"
         >
           <ArrowLeftIcon class="w-5 h-5" />
         </button>
         <div class="min-w-0">
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Pipeline Report</h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
-            {{ deals.length }} deals
-            <span v-if="activeFilterCount"> · filtered</span>
-            · {{ formatMoney(kpis.totalValue) }} total
-          </p>
+          <span class="sm-eyebrow">Pipeline report<span v-if="activeFilterCount"> · filtered</span></span>
+          <h1 class="sm-display text-[30px] mt-2 truncate">{{ formatMoney(kpis.totalValue) }}</h1>
+          <p class="mt-1.5 text-sm text-sm-muted truncate">{{ deals.length }} deals · all owners</p>
         </div>
       </div>
       <button
-        class="no-print inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300"
+        class="no-print inline-flex items-center gap-1.5 text-sm font-bold text-sm-primary shrink-0"
         @click="printReport"
       >
         <PrinterIcon class="w-4 h-4" />
@@ -28,8 +26,8 @@
     </div>
 
     <!-- Filter bar -->
-    <div class="no-print mb-5 rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4 space-y-3">
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+    <div class="no-print mt-6 rounded-2xl border border-sm-line dark:border-white/10 p-3">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <SmSelect v-model="filters.owner" :options="ownerOptions" label="Owner" size="sm" />
         <SmSelect v-model="filters.segment" :options="segmentOptions" label="Segment" size="sm" />
         <SmSelect v-model="filters.dateField" :options="dateFieldOptions" label="Date field" size="sm" />
@@ -42,218 +40,198 @@
     </div>
 
     <!-- Loading / empty -->
-    <div v-if="store.loading && !store.deals.length" class="text-center py-16 text-gray-400">Loading…</div>
-    <div v-else-if="!store.deals.length" class="text-center py-16 text-gray-400">
+    <div v-if="store.loading && !store.deals.length" class="text-center py-16 text-sm-faint">Loading…</div>
+    <div v-else-if="!store.deals.length" class="text-center py-16 text-sm-faint">
       No deals yet. Import your pipeline from the board first.
     </div>
 
     <template v-else>
-      <!-- KPI cards -->
-      <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-2 mb-5">
-        <div
-          v-for="c in kpiCards"
-          :key="c.label"
-          class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark px-3 py-3"
-        >
-          <p class="text-[11px] font-medium text-gray-500 dark:text-gray-400 truncate">{{ c.label }}</p>
-          <p class="mt-1 text-lg font-bold leading-tight truncate" :class="c.accent">{{ c.value }}</p>
-          <p class="text-[11px] text-gray-400 truncate">{{ c.sub }}</p>
+      <!-- KPI row -->
+      <div class="mt-8 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-x-8 gap-y-6">
+        <div v-for="c in kpiCards" :key="c.label">
+          <p class="sm-eyebrow truncate">{{ c.label }}</p>
+          <p class="mt-1.5 text-xl font-extrabold tracking-[-0.02em] leading-tight truncate" :class="c.accent">{{ c.value }}</p>
+          <p class="text-[11px] text-sm-faint truncate">{{ c.sub }}</p>
         </div>
       </div>
 
-      <div class="space-y-4">
-        <!-- Status split (donut + table) -->
-        <section class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4">
-          <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Pipeline value by outcome</h2>
-          <div class="flex flex-col sm:flex-row items-center gap-5">
-            <div class="relative shrink-0">
-              <div class="w-36 h-36 rounded-full" :style="{ background: statusDonut }"></div>
-              <div class="absolute inset-6 rounded-full bg-white dark:bg-sm-card-dark flex flex-col items-center justify-center">
-                <span class="text-[11px] text-gray-400">Total</span>
-                <span class="text-xs font-bold text-gray-900 dark:text-white text-center px-1">{{ formatMoney(kpis.totalValue) }}</span>
-              </div>
+      <!-- Value by outcome -->
+      <section class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
+        <h2 class="sm-eyebrow">Value by outcome</h2>
+        <div class="mt-4 space-y-3">
+          <div v-for="r in byOutcome" :key="r.key">
+            <div class="flex items-baseline justify-between text-[13px]">
+              <span class="font-bold text-sm-ink dark:text-white">{{ outcomeLabel[r.key] ?? r.key }}</span>
+              <span class="text-sm-muted">{{ r.count }} deals · {{ formatMoney(r.value) }}</span>
             </div>
-            <div class="flex-1 w-full space-y-2">
-              <div v-for="r in byOutcome" :key="r.key" class="flex items-center gap-2 text-xs">
-                <span class="w-2.5 h-2.5 rounded-full shrink-0" :class="outcomeClass(r.key)"></span>
-                <span class="font-medium text-gray-700 dark:text-gray-200 w-16">{{ outcomeLabel[r.key] ?? r.key }}</span>
-                <span class="text-gray-400 w-10 text-right">{{ r.count }}</span>
-                <div class="flex-1 h-2 rounded-full bg-gray-100 dark:bg-white/5 overflow-hidden">
-                  <div class="h-full rounded-full" :class="outcomeClass(r.key)" :style="{ width: pct(r.value, kpis.totalValue) + '%' }"></div>
-                </div>
-                <span class="text-gray-600 dark:text-gray-300 w-28 text-right tabular-nums">{{ formatMoney(r.value) }}</span>
-              </div>
+            <div class="mt-2 h-1 rounded-full bg-sm-hair dark:bg-white/10 overflow-hidden">
+              <div class="h-full rounded-full" :class="outcomeClass(r.key)" :style="{ width: pct(r.value, kpis.totalValue) + '%' }"></div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Stage funnel -->
-        <section class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4">
-          <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">Funnel by stage</h2>
-          <p class="text-[11px] text-gray-400 mb-3">All deals distributed across the sales stages.</p>
-          <div class="space-y-2">
-            <div v-for="r in byStage" :key="r.key">
-              <div class="flex items-center justify-between text-xs mb-1">
-                <span class="font-medium text-gray-700 dark:text-gray-200">{{ r.key }}</span>
-                <span class="text-gray-500">{{ r.count }} deals · {{ formatMoney(r.value) }}</span>
-              </div>
-              <div class="h-6 rounded-lg bg-gray-100 dark:bg-white/5 overflow-hidden">
-                <div
-                  class="h-full rounded-lg flex items-center justify-end pr-2 text-[10px] font-semibold text-white/90"
-                  :class="stageClass(r.key)"
-                  :style="{ width: Math.max(pct(r.count, maxStageCount), r.count ? 8 : 0) + '%' }"
-                >
-                  <span v-if="r.count">{{ fmtPct(r.count / (kpis.count || 1)) }}</span>
-                </div>
-              </div>
+      <!-- Funnel by stage -->
+      <section class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
+        <h2 class="sm-eyebrow">Funnel by stage</h2>
+        <div class="mt-4 space-y-3">
+          <div v-for="r in byStage" :key="r.key">
+            <div class="flex items-baseline justify-between text-[13px]">
+              <span class="font-bold text-sm-ink dark:text-white">{{ r.key }}</span>
+              <span class="text-sm-muted">{{ r.count }} deals · {{ formatMoney(r.value) }}</span>
+            </div>
+            <div class="mt-2 h-2 rounded-[3px] bg-sm-surface dark:bg-white/5 overflow-hidden">
+              <div
+                class="h-full bg-sm-ink dark:bg-white"
+                :style="{ width: Math.max(pct(r.count, maxStageCount), r.count ? 4 : 0) + '%' }"
+              ></div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Segment / Source performance -->
-        <section
-          v-for="tbl in [{ title: 'Performance by segment', rows: bySegment, name: 'Segment' }, { title: 'Performance by lead source', rows: bySource, name: 'Source' }]"
-          :key="tbl.title"
-          class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4"
-        >
-          <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">{{ tbl.title }}</h2>
-          <div class="overflow-x-auto">
-            <table class="w-full text-xs">
-              <thead>
-                <tr class="text-gray-400 text-left">
-                  <th class="font-medium pb-2">{{ tbl.name }}</th>
-                  <th class="font-medium pb-2 text-right">Deals</th>
-                  <th class="font-medium pb-2 text-right">Value</th>
-                  <th class="font-medium pb-2 text-right">Won</th>
-                  <th class="font-medium pb-2 text-right">Lost</th>
-                  <th class="font-medium pb-2 text-right">Win&nbsp;%</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="r in tbl.rows" :key="r.key" class="border-t border-gray-50 dark:border-white/5">
-                  <td class="py-2 font-medium text-gray-700 dark:text-gray-200">{{ r.key }}</td>
-                  <td class="py-2 text-right text-gray-500">{{ r.count }}</td>
-                  <td class="py-2 text-right text-gray-700 dark:text-gray-300 tabular-nums">{{ formatMoney(r.value) }}</td>
-                  <td class="py-2 text-right text-green-600">{{ r.won }}</td>
-                  <td class="py-2 text-right text-red-500">{{ r.lost }}</td>
-                  <td class="py-2 text-right font-semibold" :class="winRateColor(r.winRate)">{{ fmtPct(r.winRate) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+      <!-- Segment / Source performance -->
+      <section
+        v-for="tbl in [{ title: 'Performance by segment', rows: bySegment, name: 'Segment' }, { title: 'Performance by lead source', rows: bySource, name: 'Source' }]"
+        :key="tbl.title"
+        class="mt-10 pt-8 border-t border-sm-line dark:border-white/10"
+      >
+        <h2 class="sm-eyebrow">{{ tbl.title }}</h2>
+        <div class="overflow-x-auto mt-3">
+          <table class="w-full text-[13px]">
+            <thead>
+              <tr class="sm-eyebrow text-left border-b border-sm-line dark:border-white/10">
+                <th class="pb-2.5 font-extrabold">{{ tbl.name }}</th>
+                <th class="pb-2.5 font-extrabold text-right">Deals</th>
+                <th class="pb-2.5 font-extrabold text-right">Value</th>
+                <th class="pb-2.5 font-extrabold text-right">Won</th>
+                <th class="pb-2.5 font-extrabold text-right">Lost</th>
+                <th class="pb-2.5 font-extrabold text-right">Win&nbsp;%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="r in tbl.rows" :key="r.key" class="border-b border-sm-hair dark:border-white/5">
+                <td class="py-2.5 font-bold text-sm-ink dark:text-white">{{ r.key }}</td>
+                <td class="py-2.5 text-right text-sm-muted">{{ r.count }}</td>
+                <td class="py-2.5 text-right text-sm-ink-soft dark:text-gray-300 tabular-nums">{{ formatMoney(r.value) }}</td>
+                <td class="py-2.5 text-right text-sm-won">{{ r.won }}</td>
+                <td class="py-2.5 text-right text-sm-bad">{{ r.lost }}</td>
+                <td class="py-2.5 text-right font-bold" :class="winRateColor(r.winRate)">{{ fmtPct(r.winRate) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-        <!-- Owner leaderboard -->
-        <section class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4">
-          <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Sales owner leaderboard</h2>
-          <div class="space-y-3">
-            <div v-for="(r, i) in byOwner" :key="r.key">
-              <div class="flex items-center justify-between text-xs mb-1">
-                <span class="font-medium text-gray-700 dark:text-gray-200">
-                  <span class="text-gray-400 mr-1">{{ i + 1 }}.</span>{{ r.key }}
-                </span>
-                <span class="text-gray-500">
-                  {{ r.count }} deals · won {{ formatMoney(r.wonValue) }} ·
-                  <span :class="winRateColor(r.winRate)">{{ fmtPct(r.winRate) }} win</span>
-                </span>
-              </div>
-              <div class="h-2.5 rounded-full bg-gray-100 dark:bg-white/5 overflow-hidden">
-                <div class="h-full rounded-full bg-sm-primary" :style="{ width: pct(r.value, maxOwnerValue) + '%' }"></div>
-              </div>
-              <p class="text-[11px] text-gray-400 mt-0.5">Total pipeline {{ formatMoney(r.value) }}</p>
+      <!-- Owner leaderboard -->
+      <section class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
+        <h2 class="sm-eyebrow">Sales owner leaderboard</h2>
+        <div class="mt-4 space-y-4">
+          <div v-for="(r, i) in byOwner" :key="r.key">
+            <div class="flex items-baseline justify-between text-[13px]">
+              <span class="font-bold text-sm-ink dark:text-white">
+                <span class="text-sm-faint mr-1">{{ i + 1 }}.</span>{{ r.key }}
+              </span>
+              <span class="text-sm-muted">
+                {{ r.count }} deals · won {{ formatMoney(r.wonValue) }} ·
+                <span :class="winRateColor(r.winRate)">{{ fmtPct(r.winRate) }} win</span>
+              </span>
+            </div>
+            <div class="mt-2 h-1.5 rounded-full bg-sm-hair dark:bg-white/10 overflow-hidden">
+              <div class="h-full rounded-full bg-sm-ink dark:bg-white" :style="{ width: pct(r.value, maxOwnerValue) + '%' }"></div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Lost reasons -->
-        <section v-if="lostReasons.length" class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4">
-          <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">Why deals are lost</h2>
-          <p class="text-[11px] text-gray-400 mb-3">{{ kpis.lost }} lost deals · {{ formatMoney(kpis.lostValue) }} value forfeited</p>
-          <div class="space-y-2">
-            <div v-for="r in lostReasons" :key="r.key">
-              <div class="flex items-center justify-between text-xs mb-1">
-                <span class="font-medium text-gray-700 dark:text-gray-200">{{ r.key }}</span>
-                <span class="text-gray-500">{{ r.count }} · {{ formatMoney(r.value) }}</span>
-              </div>
-              <div class="h-2 rounded-full bg-gray-100 dark:bg-white/5 overflow-hidden">
-                <div class="h-full rounded-full bg-red-500" :style="{ width: pct(r.count, maxReasonCount) + '%' }"></div>
-              </div>
+      <!-- Lost reasons -->
+      <section v-if="lostReasons.length" class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
+        <h2 class="sm-eyebrow">Why deals are lost</h2>
+        <p class="mt-1 text-[13px] text-sm-muted">{{ kpis.lost }} lost deals · {{ formatMoney(kpis.lostValue) }} value forfeited</p>
+        <div class="mt-4 space-y-3">
+          <div v-for="r in lostReasons" :key="r.key">
+            <div class="flex items-baseline justify-between text-[13px]">
+              <span class="font-bold text-sm-ink dark:text-white">{{ r.key }}</span>
+              <span class="text-sm-muted">{{ r.count }} · {{ formatMoney(r.value) }}</span>
+            </div>
+            <div class="mt-2 h-1 rounded-full bg-sm-hair dark:bg-white/10 overflow-hidden">
+              <div class="h-full rounded-full bg-sm-bad" :style="{ width: pct(r.count, maxReasonCount) + '%' }"></div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- Monthly trend -->
-        <section v-if="byMonth.length" class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4">
-          <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-1">Deals by arrival month</h2>
-          <p class="text-[11px] text-gray-400 mb-3">Value of events by month (won portion in green).</p>
-          <div class="flex items-end gap-1.5 overflow-x-auto pb-1" style="min-height: 8rem">
-            <div v-for="m in byMonth" :key="m.key" class="shrink-0 w-10 flex flex-col items-center gap-1">
-              <div class="w-full h-24 flex flex-col justify-end rounded-t-md bg-gray-100 dark:bg-white/5 overflow-hidden relative">
-                <div class="w-full bg-sm-primary/70" :style="{ height: pct(m.value, maxMonthValue) + '%' }"></div>
-                <div class="w-full bg-green-500 absolute bottom-0" :style="{ height: pct(m.won, maxMonthValue) + '%' }"></div>
+      <!-- Monthly trend -->
+      <section v-if="byMonth.length" class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
+        <h2 class="sm-eyebrow">Deals by arrival month</h2>
+        <p class="mt-1 text-[13px] text-sm-muted">Value of events by month (won portion in green).</p>
+        <div class="mt-4 flex items-end gap-1.5 overflow-x-auto scr pb-1" style="min-height: 8rem">
+          <div v-for="m in byMonth" :key="m.key" class="shrink-0 w-10 flex flex-col items-center gap-1">
+            <div class="w-full h-24 flex flex-col justify-end rounded-t-md bg-sm-surface dark:bg-white/5 overflow-hidden relative">
+              <div class="w-full bg-sm-ink/70 dark:bg-white/50" :style="{ height: pct(m.value, maxMonthValue) + '%' }"></div>
+              <div class="w-full bg-sm-won absolute bottom-0" :style="{ height: pct(m.won, maxMonthValue) + '%' }"></div>
+            </div>
+            <span class="text-[9px] text-sm-faint whitespace-nowrap">{{ monthLabel(m.key) }}</span>
+            <span class="text-[9px] font-bold text-sm-ink-soft dark:text-gray-300">{{ m.count }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Top deals -->
+      <section class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
+        <h2 class="sm-eyebrow">Top 10 deals by value</h2>
+        <div class="mt-2">
+          <div v-for="(d, i) in topDeals" :key="d.id" class="flex items-center gap-3 py-2.5 border-t border-sm-hair dark:border-white/5">
+            <span class="text-xs text-sm-faint w-5 text-right">{{ i + 1 }}</span>
+            <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="stageClass(d.stage ?? 'New')"></span>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-bold text-sm-ink dark:text-white truncate">{{ d.company }}</p>
+              <p class="text-[11px] text-sm-muted truncate">{{ d.segment }} · {{ d.stage ?? 'New' }} · {{ d.ownerName || 'Unassigned' }}</p>
+            </div>
+            <span class="text-sm font-bold text-sm-ink dark:text-white tabular-nums shrink-0">{{ formatMoney(d.actualRevenue ?? d.totalRevenue, d.currency) }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Action items -->
+      <section class="mt-10 pt-8 border-t border-sm-line dark:border-white/10 grid sm:grid-cols-2 gap-8">
+        <div>
+          <h2 class="sm-eyebrow !text-sm-bad">Overdue actions · {{ overdue.length }}</h2>
+          <p v-if="!overdue.length" class="mt-2 text-xs text-sm-faint">Nothing overdue.</p>
+          <div v-else class="mt-2">
+            <div v-for="d in overdue" :key="d.id" class="py-2.5 border-t border-sm-hair dark:border-white/5">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-sm font-bold text-sm-ink dark:text-white truncate">{{ d.company }}</p>
+                <span class="text-[11px] font-bold text-sm-bad shrink-0">{{ formatDate(d.actionDueDate) }}</span>
               </div>
-              <span class="text-[9px] text-gray-400 whitespace-nowrap">{{ monthLabel(m.key) }}</span>
-              <span class="text-[9px] font-medium text-gray-600 dark:text-gray-300">{{ m.count }}</span>
+              <p class="text-[11px] text-sm-muted truncate">{{ d.nextAction || 'No action noted' }} · {{ d.ownerName || 'Unassigned' }}</p>
             </div>
           </div>
-        </section>
+        </div>
 
-        <!-- Top deals -->
-        <section class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4">
-          <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Top 10 deals by value</h2>
-          <div class="divide-y divide-gray-50 dark:divide-white/5">
-            <div v-for="(d, i) in topDeals" :key="d.id" class="flex items-center gap-3 py-2">
-              <span class="text-xs text-gray-400 w-5 text-right">{{ i + 1 }}</span>
-              <span class="w-2 h-2 rounded-full shrink-0" :class="stageClass(d.stage ?? 'New')"></span>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ d.company }}</p>
-                <p class="text-[11px] text-gray-400 truncate">{{ d.segment }} · {{ d.stage ?? 'New' }} · {{ d.ownerName || 'Unassigned' }}</p>
+        <div>
+          <h2 class="sm-eyebrow">Upcoming actions · {{ upcoming.length }}</h2>
+          <p v-if="!upcoming.length" class="mt-2 text-xs text-sm-faint">No actions due in the next 30 days.</p>
+          <div v-else class="mt-2">
+            <div v-for="d in upcoming" :key="d.id" class="py-2.5 border-t border-sm-hair dark:border-white/5">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-sm font-bold text-sm-ink dark:text-white truncate">{{ d.company }}</p>
+                <span class="text-[11px] text-sm-muted shrink-0">{{ formatDate(d.actionDueDate) }}</span>
               </div>
-              <span class="text-xs font-semibold text-gray-800 dark:text-gray-100 tabular-nums shrink-0">{{ formatMoney(d.actualRevenue ?? d.totalRevenue, d.currency) }}</span>
+              <p class="text-[11px] text-sm-muted truncate">{{ d.nextAction || 'No action noted' }} · {{ d.ownerName || 'Unassigned' }}</p>
             </div>
           </div>
-        </section>
-
-        <!-- Action items -->
-        <section class="grid sm:grid-cols-2 gap-4">
-          <div class="rounded-2xl border border-red-100 dark:border-red-900/30 bg-white dark:bg-sm-card-dark p-4">
-            <h2 class="text-sm font-semibold text-red-600 dark:text-red-400 mb-3">Overdue actions ({{ overdue.length }})</h2>
-            <p v-if="!overdue.length" class="text-xs text-gray-400">Nothing overdue. 🎉</p>
-            <div v-else class="divide-y divide-gray-50 dark:divide-white/5">
-              <div v-for="d in overdue" :key="d.id" class="py-2">
-                <div class="flex items-center justify-between gap-2">
-                  <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ d.company }}</p>
-                  <span class="text-[11px] text-red-500 shrink-0">{{ formatDate(d.actionDueDate) }}</span>
-                </div>
-                <p class="text-[11px] text-gray-400 truncate">{{ d.nextAction || 'No action noted' }} · {{ d.ownerName || 'Unassigned' }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-sm-card-dark p-4">
-            <h2 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Upcoming actions ({{ upcoming.length }})</h2>
-            <p v-if="!upcoming.length" class="text-xs text-gray-400">No actions due in the next 30 days.</p>
-            <div v-else class="divide-y divide-gray-50 dark:divide-white/5">
-              <div v-for="d in upcoming" :key="d.id" class="py-2">
-                <div class="flex items-center justify-between gap-2">
-                  <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ d.company }}</p>
-                  <span class="text-[11px] text-gray-500 shrink-0">{{ formatDate(d.actionDueDate) }}</span>
-                </div>
-                <p class="text-[11px] text-gray-400 truncate">{{ d.nextAction || 'No action noted' }} · {{ d.ownerName || 'Unassigned' }}</p>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </template>
-  </SmPage>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, PrinterIcon } from '@heroicons/vue/24/outline'
-import SmPage from '@/components/ui/SmPage.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmButton from '@/components/ui/SmButton.vue'
@@ -346,9 +324,9 @@ function fmtPct(x: number): string {
   return `${Math.round(x * 100)}%`
 }
 function winRateColor(x: number): string {
-  if (x >= 0.5) return 'text-green-600'
-  if (x >= 0.25) return 'text-amber-600'
-  return 'text-red-500'
+  if (x >= 0.5) return 'text-sm-won'
+  if (x >= 0.25) return 'text-sm-warn'
+  return 'text-sm-bad'
 }
 
 // Stage win-probability for the weighted forecast (only open stages are weighted).
@@ -398,16 +376,16 @@ const kpis = computed(() => {
 })
 
 const kpiCards = computed(() => [
-  { label: 'Total Pipeline', value: formatMoney(kpis.value.totalValue), sub: `${kpis.value.count} deals`, accent: 'text-gray-900 dark:text-white' },
-  { label: 'Open Pipeline', value: formatMoney(kpis.value.openValue), sub: `${kpis.value.open} active/idle`, accent: 'text-blue-600' },
-  { label: 'Weighted Forecast', value: formatMoney(kpis.value.weighted), sub: 'stage-adjusted', accent: 'text-indigo-600' },
-  { label: 'Won', value: formatMoney(kpis.value.wonValue), sub: `${kpis.value.won} deals`, accent: 'text-green-600' },
-  { label: 'Lost', value: formatMoney(kpis.value.lostValue), sub: `${kpis.value.lost} deals`, accent: 'text-red-500' },
-  { label: 'Win Rate (count)', value: fmtPct(kpis.value.winRateCount), sub: `${kpis.value.won}/${kpis.value.won + kpis.value.lost} decided`, accent: 'text-gray-900 dark:text-white' },
-  { label: 'Win Rate (value)', value: fmtPct(kpis.value.winRateValue), sub: 'won ÷ decided value', accent: 'text-gray-900 dark:text-white' },
-  { label: 'Avg Deal Size', value: formatMoney(kpis.value.avgDeal), sub: 'all deals', accent: 'text-gray-900 dark:text-white' },
-  { label: 'Room Nights', value: kpis.value.roomNights.toLocaleString('en-US'), sub: 'total potential', accent: 'text-gray-900 dark:text-white' },
-  { label: 'Avg Proposed ADR', value: formatMoney(kpis.value.avgADR), sub: 'where quoted', accent: 'text-gray-900 dark:text-white' }
+  { label: 'Total Pipeline', value: formatMoney(kpis.value.totalValue), sub: `${kpis.value.count} deals`, accent: 'text-sm-ink dark:text-white' },
+  { label: 'Open Pipeline', value: formatMoney(kpis.value.openValue), sub: `${kpis.value.open} active/idle`, accent: 'text-sm-primary' },
+  { label: 'Weighted Forecast', value: formatMoney(kpis.value.weighted), sub: 'stage-adjusted', accent: 'text-sm-ink dark:text-white' },
+  { label: 'Won', value: formatMoney(kpis.value.wonValue), sub: `${kpis.value.won} deals`, accent: 'text-sm-won' },
+  { label: 'Lost', value: formatMoney(kpis.value.lostValue), sub: `${kpis.value.lost} deals`, accent: 'text-sm-bad' },
+  { label: 'Win Rate (count)', value: fmtPct(kpis.value.winRateCount), sub: `${kpis.value.won}/${kpis.value.won + kpis.value.lost} decided`, accent: 'text-sm-ink dark:text-white' },
+  { label: 'Win Rate (value)', value: fmtPct(kpis.value.winRateValue), sub: 'won ÷ decided value', accent: 'text-sm-ink dark:text-white' },
+  { label: 'Avg Deal Size', value: formatMoney(kpis.value.avgDeal), sub: 'all deals', accent: 'text-sm-ink dark:text-white' },
+  { label: 'Room Nights', value: kpis.value.roomNights.toLocaleString('en-US'), sub: 'total potential', accent: 'text-sm-ink dark:text-white' },
+  { label: 'Avg Proposed ADR', value: formatMoney(kpis.value.avgADR), sub: 'where quoted', accent: 'text-sm-ink dark:text-white' }
 ])
 
 // ---- Breakdowns ----
@@ -517,18 +495,18 @@ const upcoming = computed(() => {
 
 // ---- Colors ----
 const outcomeColor: Record<string, string> = {
-  open: 'bg-blue-500',
-  won: 'bg-green-500',
-  lost: 'bg-red-500'
+  open: 'bg-sm-primary',
+  won: 'bg-sm-won',
+  lost: 'bg-sm-bad'
 }
 const outcomeLabel: Record<string, string> = { open: 'Open', won: 'Won', lost: 'Lost' }
 const stageColor: Record<string, string> = {
-  New: 'bg-gray-400',
-  Proposal: 'bg-blue-500',
-  Negotiation: 'bg-amber-500',
-  Contract: 'bg-purple-500',
-  Confirmed: 'bg-green-500',
-  Lost: 'bg-red-500'
+  New: 'bg-sm-muted',
+  Proposal: 'bg-sm-primary',
+  Negotiation: 'bg-sm-warn',
+  Contract: 'bg-sm-wed',
+  Confirmed: 'bg-sm-won',
+  Lost: 'bg-sm-bad'
 }
 function outcomeClass(k: string): string {
   return outcomeColor[k] ?? 'bg-gray-400'

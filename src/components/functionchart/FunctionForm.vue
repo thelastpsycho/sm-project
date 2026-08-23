@@ -27,7 +27,7 @@
             class="rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
             :class="
               r.selected
-                ? 'border-sm-primary bg-sm-primary text-white'
+                ? 'border-sm-ink bg-sm-ink text-white dark:border-white dark:bg-white dark:text-sm-ink'
                 : 'border-gray-300 text-gray-600 hover:border-sm-primary dark:border-white/15 dark:text-gray-300'
             "
             @click="toggleRoom(r.room)"
@@ -213,7 +213,7 @@ function toNum(v: string): number {
 
 // ---- Event dates (calendar range picker; single-day = same start & end) ----
 const fieldBtnClass =
-  'flex w-full items-center justify-between rounded-lg bg-gray-50 px-4 py-3 text-left text-sm ring-1 ring-gray-200 transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700'
+  'flex w-full items-center justify-between border-b border-sm-line py-2.5 text-left text-base transition-colors hover:border-sm-ink dark:border-white/15 dark:hover:border-white'
 const showDatePicker = ref(false)
 
 function fmtShort(d?: string): string {

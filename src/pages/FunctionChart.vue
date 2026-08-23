@@ -1,13 +1,14 @@
 <template>
-  <SmPage max-width="full" with-bottom-nav-padding>
+  <div class="min-h-screen bg-white dark:bg-sm-bg-dark">
+    <div class="px-6 lg:px-10 pt-8 pb-32">
     <!-- Header -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-4">
       <div class="flex flex-col gap-0.5">
-        <div class="text-[11px] font-semibold uppercase tracking-[0.14em] text-sm-secondary">
+        <div class="sm-eyebrow">
           The Anvaya Bali · Sales &amp; Events
         </div>
         <div class="flex items-center gap-2">
-          <h1 class="m-0 text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white">Function Charting</h1>
+          <h1 class="m-0 sm-display text-[26px]">Function Charting</h1>
           <div class="flex items-center gap-1">
             <button
               type="button"
@@ -49,7 +50,7 @@
           <!-- Live results: jump straight to a function anywhere in the calendar -->
           <div
             v-if="searchFocused && q.trim() && searchResults.length"
-            class="absolute left-0 right-0 top-full z-40 mt-1.5 max-h-80 overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-sm-card-dark"
+            class="absolute left-0 right-0 top-full z-40 mt-1.5 max-h-80 overflow-auto rounded-xl border border-sm-line bg-white py-1 shadow-xl dark:border-white/10 dark:bg-sm-card-dark"
           >
             <button
               v-for="r in searchResults"
@@ -67,7 +68,7 @@
           </div>
           <div
             v-else-if="searchFocused && q.trim()"
-            class="absolute left-0 right-0 top-full z-40 mt-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-[12px] text-sm-secondary shadow-xl dark:border-white/10 dark:bg-sm-card-dark"
+            class="absolute left-0 right-0 top-full z-40 mt-1.5 rounded-xl border border-sm-line bg-white px-3 py-2.5 text-[12px] text-sm-secondary shadow-xl dark:border-white/10 dark:bg-sm-card-dark"
           >
             No functions match “{{ q.trim() }}”
           </div>
@@ -76,7 +77,7 @@
           <SmSelect v-model="statusFilter" size="sm" :options="statusFilterOptions" />
         </div>
         <button
-          class="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
+          class="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-sm-line px-3 py-2 text-sm font-bold text-sm-ink transition-colors hover:bg-sm-surface dark:border-white/15 dark:text-gray-200 dark:hover:bg-white/5"
           title="Share a date range as an image"
           @click="shareOpen = true"
         >
@@ -84,7 +85,7 @@
         </button>
         <button
           v-if="canCreate"
-          class="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-sm-primary px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+          class="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-sm-ink px-3.5 py-2 text-sm font-bold text-white transition-colors hover:bg-black dark:bg-white dark:text-sm-ink dark:hover:bg-gray-100"
           @click="openCreate()"
         >
           <PlusIcon class="w-4 h-4" /> New
@@ -103,7 +104,7 @@
         class="cursor-pointer rounded-lg px-3.5 py-2 text-xs font-bold tracking-wide transition-colors"
         :class="
           i === monthIndex
-            ? 'bg-sm-primary text-white'
+            ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink'
             : 'text-sm-secondary hover:bg-gray-100 dark:hover:bg-white/5'
         "
       >
@@ -139,13 +140,13 @@
     <div v-else class="md:flex md:min-h-0 md:gap-4">
       <!-- Scrollable grid (desktop) -->
       <div
-        class="hidden flex-1 overflow-auto rounded-2xl border border-gray-200 bg-sm-card dark:border-white/10 dark:bg-sm-card-dark md:block"
+        class="hidden flex-1 overflow-auto rounded-2xl border border-sm-line bg-sm-card dark:border-white/10 dark:bg-sm-card-dark md:block"
         style="max-height: calc(100vh - 240px)"
       >
         <div :style="gridStyle">
           <!-- Corner -->
           <div
-            class="sticky left-0 top-0 z-30 flex items-end border-b border-r border-gray-200 bg-sm-card px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-sm-secondary dark:border-white/10 dark:bg-sm-card-dark"
+            class="sticky left-0 top-0 z-30 flex items-end border-b border-r border-sm-line bg-sm-card px-3.5 py-2.5 sm-eyebrow dark:border-white/10 dark:bg-sm-card-dark"
             style="grid-row: 1; grid-column: 1"
           >
             Function
@@ -156,8 +157,8 @@
             v-for="(d, i) in days"
             :key="'h' + d.date"
             :id="'fc-day-' + d.date"
-            class="sticky top-0 z-20 flex flex-col gap-px border-b border-r border-gray-200 px-3 pb-[7px] pt-2 dark:border-white/10"
-            :class="d.isWeekend ? 'bg-gray-100 dark:bg-white/5' : 'bg-sm-card dark:bg-sm-card-dark'"
+            class="sticky top-0 z-20 flex flex-col gap-px border-b border-r border-sm-line px-3 pb-[7px] pt-2 dark:border-white/10"
+            :class="d.isWeekend ? 'bg-sm-surface dark:bg-white/5' : 'bg-sm-card dark:bg-sm-card-dark'"
             :style="{ gridRow: 1, gridColumn: i + 2, boxShadow: d.isToday ? 'inset 0 -2px 0 #0066CC' : undefined }"
           >
             <span class="text-[10px] font-bold uppercase tracking-wider text-sm-secondary">{{ d.dow }}</span>
@@ -172,7 +173,7 @@
           <template v-for="line in lines" :key="line.key">
             <div
               v-if="line.kind === 'cat'"
-              class="sticky left-0 z-[12] flex h-[30px] items-center border-y border-gray-200 bg-gray-100 px-3.5 text-[10px] font-bold uppercase tracking-widest text-sm-secondary dark:border-white/10 dark:bg-white/5"
+              class="sticky left-0 z-[12] flex h-[30px] items-center border-y border-sm-line bg-sm-surface px-3.5 text-[10px] font-bold uppercase tracking-widest text-sm-secondary dark:border-white/10 dark:bg-white/5"
               :style="{ gridColumn: '1 / -1', gridRow: line.row }"
             >
               {{ line.label }}
@@ -181,7 +182,7 @@
             <template v-else>
               <!-- Venue name cell -->
               <div
-                class="sticky left-0 z-[14] flex items-center justify-between gap-2 border-b border-r border-gray-100 bg-sm-card px-3.5 text-[12.5px] font-bold text-gray-800 dark:border-white/5 dark:bg-sm-card-dark dark:text-gray-100"
+                class="sticky left-0 z-[14] flex items-center justify-between gap-2 border-b border-r border-sm-hair bg-sm-card px-3.5 text-[12.5px] font-bold text-gray-800 dark:border-white/5 dark:bg-sm-card-dark dark:text-gray-100"
                 :style="{ gridColumn: 1, gridRow: line.row, minHeight: rowH + 'px' }"
               >
                 <span>{{ line.label }}</span>
@@ -192,9 +193,9 @@
               <div
                 v-for="(d, i) in days"
                 :key="line.key + 'bg' + i"
-                class="cursor-pointer border-b border-r border-gray-100 hover:bg-sm-primary/5 dark:border-white/5"
+                class="cursor-pointer border-b border-r border-sm-hair hover:bg-sm-primary/5 dark:border-white/5"
                 :class="[
-                  d.isWeekend ? 'bg-gray-50 dark:bg-white/[0.03]' : '',
+                  d.isWeekend ? 'bg-sm-surface dark:bg-white/[0.03]' : '',
                   dragOverKey === line.key + '|' + d.date ? 'ring-2 ring-inset ring-sm-primary bg-sm-primary/10' : ''
                 ]"
                 :style="{ gridColumn: i + 2, gridRow: line.row, minHeight: rowH + 'px' }"
@@ -290,7 +291,7 @@
         v-if="panelOpen"
         class="fixed inset-0 z-50 flex w-full flex-col overflow-auto bg-sm-card dark:bg-sm-card-dark md:static md:z-auto md:max-h-[calc(100vh-240px)] md:w-[400px] md:flex-none md:rounded-2xl md:border md:border-gray-200 md:dark:border-white/10"
       >
-        <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-white/5">
+        <div class="flex items-center justify-between gap-3 border-b border-sm-hair px-4 py-3 dark:border-white/5">
           <div class="min-w-0 truncate text-[10px] font-bold uppercase tracking-widest text-sm-secondary">
             {{ editing ? comboName(editing.venues) : 'New Function' }}
           </div>
@@ -320,7 +321,7 @@
               :disabled="saving"
               :title="editing ? 'Save' : 'Create'"
               aria-label="Save function"
-              class="rounded-full bg-sm-primary p-2 text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+              class="rounded-full bg-sm-ink p-2 text-white dark:bg-white dark:text-sm-ink transition-colors hover:bg-black dark:hover:bg-gray-100 disabled:opacity-60"
             >
               <svg v-if="saving" class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -337,7 +338,7 @@
         </div>
 
         <!-- Same-event context (existing bookings only) -->
-        <div v-if="editing" class="flex flex-col gap-4 border-t border-gray-100 px-5 py-4 dark:border-white/5">
+        <div v-if="editing" class="flex flex-col gap-4 border-t border-sm-hair px-5 py-4 dark:border-white/5">
           <div class="flex flex-col gap-1">
             <div class="text-[10px] font-bold uppercase tracking-widest text-sm-secondary">Duration</div>
             <div class="text-sm text-gray-900 dark:text-white">{{ durationLabel }}</div>
@@ -347,7 +348,7 @@
             <div
               v-for="(s, i) in sameDay"
               :key="i"
-              class="flex items-baseline gap-2 border-b border-gray-100 py-1.5 text-[12.5px] dark:border-white/5"
+              class="flex items-baseline gap-2 border-b border-sm-hair py-1.5 text-[12.5px] dark:border-white/5"
             >
               <span class="min-w-[92px] text-[10px] font-bold uppercase tracking-wide text-sm-secondary">{{ s.venue }}</span>
               <span class="text-gray-700 dark:text-gray-200">{{ s.title }}</span>
@@ -362,7 +363,7 @@
     <Teleport to="body">
       <div v-if="statusMenu" class="fixed inset-0 z-[60]" @click="statusMenu = null" @contextmenu.prevent="statusMenu = null">
         <div
-          class="fixed z-[61] min-w-[150px] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-xl dark:border-white/10 dark:bg-sm-card-dark"
+          class="fixed z-[61] min-w-[150px] overflow-hidden rounded-xl border border-sm-line bg-white py-1 shadow-xl dark:border-white/10 dark:bg-sm-card-dark"
           :style="{ left: statusMenu.x + 'px', top: statusMenu.y + 'px', transform: 'translateX(-100%)' }"
           @click.stop
         >
@@ -410,13 +411,13 @@
 
     <!-- Share a date range as a WhatsApp-ready image -->
     <ShareChartDialog :open="shareOpen" :functions="store.functions" @close="shareOpen = false" />
-  </SmPage>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ExclamationTriangleIcon, ShareIcon } from '@heroicons/vue/24/outline'
-import SmPage from '@/components/ui/SmPage.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'

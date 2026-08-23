@@ -12,7 +12,7 @@
     </div>
 
     <!-- Month grid -->
-    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-sm-card dark:border-white/10 dark:bg-sm-card-dark">
+    <div class="overflow-hidden rounded-2xl border border-sm-line bg-sm-card dark:border-white/10 dark:bg-sm-card-dark">
       <div v-for="(week, wi) in mobileWeeks" :key="'wk' + wi" class="grid grid-cols-7">
         <button
           v-for="(cell, ci) in week"
@@ -20,7 +20,7 @@
           type="button"
           :disabled="!cell"
           class="flex aspect-square flex-col items-center gap-1 border-b border-r border-gray-100 pt-1.5 dark:border-white/5"
-          :class="cell && cell.isWeekend ? 'bg-gray-50 dark:bg-white/[0.03]' : ''"
+          :class="cell && cell.isWeekend ? 'bg-sm-surface dark:bg-white/[0.03]' : ''"
           @click="cell && $emit('update:selectedDay', cell.date)"
         >
           <template v-if="cell">
@@ -28,7 +28,7 @@
               class="flex h-7 w-7 items-center justify-center rounded-full text-[13px] font-normal"
               :class="
                 cell.date === selectedDay
-                  ? 'bg-sm-primary text-white'
+                  ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink'
                   : cell.isToday
                     ? 'text-sm-primary'
                     : 'text-gray-900 dark:text-white'
@@ -89,7 +89,7 @@
       </div>
       <div
         v-else
-        class="rounded-2xl border border-dashed border-gray-200 py-10 text-center text-sm text-sm-secondary dark:border-white/10"
+        class="rounded-2xl border border-dashed border-sm-line py-10 text-center text-sm text-sm-secondary dark:border-white/10"
       >
         No functions this day
       </div>

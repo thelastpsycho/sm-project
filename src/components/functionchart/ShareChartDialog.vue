@@ -23,7 +23,7 @@
             <button
               type="button"
               aria-label="Close"
-              class="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-200"
+              class="rounded-full p-2 text-sm-muted transition-colors hover:bg-sm-surface hover:text-sm-ink dark:hover:bg-white/5 dark:hover:text-white"
               @click="emit('close')"
             >
               <XMarkIcon class="h-5 w-5" />
@@ -37,7 +37,7 @@
               <label class="mb-2 block text-xs font-normal text-gray-600 dark:text-gray-400">Date range</label>
               <button
                 type="button"
-                class="flex w-full items-center justify-between rounded-xl bg-gray-50 px-4 py-3 text-left ring-1 ring-gray-200 transition-colors hover:bg-gray-100 dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700"
+                class="flex w-full items-center justify-between border-b border-sm-line py-2.5 text-left transition-colors hover:border-sm-ink dark:border-white/15 dark:hover:border-white"
                 @click="showPicker = true"
               >
                 <div class="flex items-center gap-2">
@@ -52,7 +52,7 @@
             </p>
 
             <!-- Preview -->
-            <div class="mt-3 overflow-hidden rounded-xl border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/5">
+            <div class="mt-3 overflow-hidden rounded-xl border border-sm-line bg-sm-surface dark:border-white/10 dark:bg-white/5">
               <div v-if="rendering" class="flex items-center justify-center py-16 text-sm text-gray-500 dark:text-gray-400">
                 Rendering…
               </div>
@@ -69,7 +69,7 @@
             <button
               type="button"
               :disabled="!currentBlob"
-              class="rounded-xl bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200 disabled:opacity-50 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10"
+              class="rounded-xl border border-sm-line px-4 py-2 text-sm font-bold text-sm-ink transition-colors hover:bg-sm-surface disabled:opacity-50 dark:border-white/15 dark:text-gray-300 dark:hover:bg-white/10"
               @click="onDownload"
             >
               Download JPG
@@ -77,7 +77,7 @@
             <button
               type="button"
               :disabled="!currentBlob"
-              class="inline-flex items-center gap-2 rounded-xl bg-sm-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+              class="inline-flex items-center gap-2 rounded-xl bg-sm-ink px-4 py-2 text-sm font-bold text-white dark:bg-white dark:text-sm-ink transition-colors hover:bg-black dark:hover:bg-gray-100 disabled:opacity-60"
               @click="onShare"
             >
               <ShareIcon class="h-4 w-4" /> Share
