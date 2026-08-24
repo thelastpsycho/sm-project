@@ -20,7 +20,7 @@
       <div class="flex-[3] min-w-0 flex items-center gap-2.5">
         <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="stageDot[deal.stage ?? 'New']"></span>
         <div class="min-w-0">
-          <p class="text-[15px] font-bold text-sm-ink dark:text-white truncate">{{ deal.company }}</p>
+          <p class="text-smd font-bold text-sm-ink dark:text-white truncate">{{ deal.company }}</p>
           <p class="sm:hidden text-xs text-sm-muted truncate">
             {{ deal.stage ?? 'New' }} · {{ deal.segment }} · {{ deal.ownerName || 'Unassigned' }}
           </p>

@@ -12,7 +12,7 @@
         </button>
         <div class="min-w-0">
           <span class="sm-eyebrow">Pipeline report<span v-if="activeFilterCount"> · filtered</span></span>
-          <h1 class="sm-display text-[30px] mt-2 truncate">{{ formatMoney(kpis.totalValue) }}</h1>
+          <h1 class="sm-display text-display mt-2 truncate">{{ formatMoney(kpis.totalValue) }}</h1>
           <p class="mt-1.5 text-sm text-sm-muted truncate">{{ deals.length }} deals · all owners</p>
         </div>
       </div>
@@ -51,7 +51,7 @@
         <div v-for="c in kpiCards" :key="c.label">
           <p class="sm-eyebrow truncate">{{ c.label }}</p>
           <p class="mt-1.5 text-xl font-extrabold tracking-[-0.02em] leading-tight truncate" :class="c.accent">{{ c.value }}</p>
-          <p class="text-[11px] text-sm-faint truncate">{{ c.sub }}</p>
+          <p class="text-eyebrow text-sm-faint truncate">{{ c.sub }}</p>
         </div>
       </div>
 
@@ -60,7 +60,7 @@
         <h2 class="sm-eyebrow">Value by outcome</h2>
         <div class="mt-4 space-y-3">
           <div v-for="r in byOutcome" :key="r.key">
-            <div class="flex items-baseline justify-between text-[13px]">
+            <div class="flex items-baseline justify-between text-xsm">
               <span class="font-bold text-sm-ink dark:text-white">{{ outcomeLabel[r.key] ?? r.key }}</span>
               <span class="text-sm-muted">{{ r.count }} deals · {{ formatMoney(r.value) }}</span>
             </div>
@@ -76,7 +76,7 @@
         <h2 class="sm-eyebrow">Funnel by stage</h2>
         <div class="mt-4 space-y-3">
           <div v-for="r in byStage" :key="r.key">
-            <div class="flex items-baseline justify-between text-[13px]">
+            <div class="flex items-baseline justify-between text-xsm">
               <span class="font-bold text-sm-ink dark:text-white">{{ r.key }}</span>
               <span class="text-sm-muted">{{ r.count }} deals · {{ formatMoney(r.value) }}</span>
             </div>
@@ -98,7 +98,7 @@
       >
         <h2 class="sm-eyebrow">{{ tbl.title }}</h2>
         <div class="overflow-x-auto mt-3">
-          <table class="w-full text-[13px]">
+          <table class="w-full text-xsm">
             <thead>
               <tr class="sm-eyebrow text-left border-b border-sm-line dark:border-white/10">
                 <th class="pb-2.5 font-extrabold">{{ tbl.name }}</th>
@@ -128,7 +128,7 @@
         <h2 class="sm-eyebrow">Sales owner leaderboard</h2>
         <div class="mt-4 space-y-4">
           <div v-for="(r, i) in byOwner" :key="r.key">
-            <div class="flex items-baseline justify-between text-[13px]">
+            <div class="flex items-baseline justify-between text-xsm">
               <span class="font-bold text-sm-ink dark:text-white">
                 <span class="text-sm-faint mr-1">{{ i + 1 }}.</span>{{ r.key }}
               </span>
@@ -147,10 +147,10 @@
       <!-- Lost reasons -->
       <section v-if="lostReasons.length" class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
         <h2 class="sm-eyebrow">Why deals are lost</h2>
-        <p class="mt-1 text-[13px] text-sm-muted">{{ kpis.lost }} lost deals · {{ formatMoney(kpis.lostValue) }} value forfeited</p>
+        <p class="mt-1 text-xsm text-sm-muted">{{ kpis.lost }} lost deals · {{ formatMoney(kpis.lostValue) }} value forfeited</p>
         <div class="mt-4 space-y-3">
           <div v-for="r in lostReasons" :key="r.key">
-            <div class="flex items-baseline justify-between text-[13px]">
+            <div class="flex items-baseline justify-between text-xsm">
               <span class="font-bold text-sm-ink dark:text-white">{{ r.key }}</span>
               <span class="text-sm-muted">{{ r.count }} · {{ formatMoney(r.value) }}</span>
             </div>
@@ -164,15 +164,15 @@
       <!-- Monthly trend -->
       <section v-if="byMonth.length" class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
         <h2 class="sm-eyebrow">Deals by arrival month</h2>
-        <p class="mt-1 text-[13px] text-sm-muted">Value of events by month (won portion in green).</p>
+        <p class="mt-1 text-xsm text-sm-muted">Value of events by month (won portion in green).</p>
         <div class="mt-4 flex items-end gap-1.5 overflow-x-auto scr pb-1" style="min-height: 8rem">
           <div v-for="m in byMonth" :key="m.key" class="shrink-0 w-10 flex flex-col items-center gap-1">
             <div class="w-full h-24 flex flex-col justify-end rounded-t-md bg-sm-surface dark:bg-white/5 overflow-hidden relative">
               <div class="w-full bg-sm-ink/70 dark:bg-white/50" :style="{ height: pct(m.value, maxMonthValue) + '%' }"></div>
               <div class="w-full bg-sm-won absolute bottom-0" :style="{ height: pct(m.won, maxMonthValue) + '%' }"></div>
             </div>
-            <span class="text-[9px] text-sm-faint whitespace-nowrap">{{ monthLabel(m.key) }}</span>
-            <span class="text-[9px] font-bold text-sm-ink-soft dark:text-gray-300">{{ m.count }}</span>
+            <span class="text-2xs text-sm-faint whitespace-nowrap">{{ monthLabel(m.key) }}</span>
+            <span class="text-2xs font-bold text-sm-ink-soft dark:text-gray-300">{{ m.count }}</span>
           </div>
         </div>
       </section>
@@ -186,7 +186,7 @@
             <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="stageClass(d.stage ?? 'New')"></span>
             <div class="min-w-0 flex-1">
               <p class="text-sm font-bold text-sm-ink dark:text-white truncate">{{ d.company }}</p>
-              <p class="text-[11px] text-sm-muted truncate">{{ d.segment }} · {{ d.stage ?? 'New' }} · {{ d.ownerName || 'Unassigned' }}</p>
+              <p class="text-eyebrow text-sm-muted truncate">{{ d.segment }} · {{ d.stage ?? 'New' }} · {{ d.ownerName || 'Unassigned' }}</p>
             </div>
             <span class="text-sm font-bold text-sm-ink dark:text-white tabular-nums shrink-0">{{ formatMoney(d.actualRevenue ?? d.totalRevenue, d.currency) }}</span>
           </div>
@@ -202,9 +202,9 @@
             <div v-for="d in overdue" :key="d.id" class="py-2.5 border-t border-sm-hair dark:border-white/5">
               <div class="flex items-center justify-between gap-2">
                 <p class="text-sm font-bold text-sm-ink dark:text-white truncate">{{ d.company }}</p>
-                <span class="text-[11px] font-bold text-sm-bad shrink-0">{{ formatDate(d.actionDueDate) }}</span>
+                <span class="text-eyebrow font-bold text-sm-bad shrink-0">{{ formatDate(d.actionDueDate) }}</span>
               </div>
-              <p class="text-[11px] text-sm-muted truncate">{{ d.nextAction || 'No action noted' }} · {{ d.ownerName || 'Unassigned' }}</p>
+              <p class="text-eyebrow text-sm-muted truncate">{{ d.nextAction || 'No action noted' }} · {{ d.ownerName || 'Unassigned' }}</p>
             </div>
           </div>
         </div>
@@ -216,9 +216,9 @@
             <div v-for="d in upcoming" :key="d.id" class="py-2.5 border-t border-sm-hair dark:border-white/5">
               <div class="flex items-center justify-between gap-2">
                 <p class="text-sm font-bold text-sm-ink dark:text-white truncate">{{ d.company }}</p>
-                <span class="text-[11px] text-sm-muted shrink-0">{{ formatDate(d.actionDueDate) }}</span>
+                <span class="text-eyebrow text-sm-muted shrink-0">{{ formatDate(d.actionDueDate) }}</span>
               </div>
-              <p class="text-[11px] text-sm-muted truncate">{{ d.nextAction || 'No action noted' }} · {{ d.ownerName || 'Unassigned' }}</p>
+              <p class="text-eyebrow text-sm-muted truncate">{{ d.nextAction || 'No action noted' }} · {{ d.ownerName || 'Unassigned' }}</p>
             </div>
           </div>
         </div>

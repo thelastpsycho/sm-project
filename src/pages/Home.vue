@@ -13,7 +13,7 @@
             :title="isOnline ? 'Online' : 'Offline'"
           ></span>
         </div>
-        <h1 class="sm-display text-[32px] leading-[1.08] mt-3">
+        <h1 class="sm-display text-display leading-[1.1] mt-3">
           Good {{ timeOfDay }},<br />{{ sessionStore.currentUser?.name || 'Experience SM' }}
         </h1>
 
@@ -25,7 +25,7 @@
               v-model="searchQuery"
               type="text"
               placeholder="Search menus, decks, pages"
-              class="flex-1 bg-transparent border-0 p-0 text-[15px] text-sm-ink dark:text-white placeholder:text-sm-faint focus:outline-none focus:ring-0"
+              class="flex-1 bg-transparent border-0 p-0 text-smd text-sm-ink dark:text-white placeholder:text-sm-faint focus:outline-none focus:ring-0"
             />
             <button
               v-if="searchQuery"
@@ -48,7 +48,7 @@
               class="w-full flex items-center gap-3 px-1 py-3 border-t border-sm-hair dark:border-white/5 text-left group"
             >
               <div class="flex-1 min-w-0">
-                <span class="text-[15px] font-semibold text-sm-ink dark:text-white block truncate">{{ result.name }}</span>
+                <span class="text-smd font-semibold text-sm-ink dark:text-white block truncate">{{ result.name }}</span>
                 <span class="sm-eyebrow">{{ result.type }}</span>
               </div>
               <ChevronRightIcon class="h-4 w-4 text-sm-faint group-hover:text-sm-ink dark:group-hover:text-white transition-colors shrink-0" />
@@ -56,7 +56,7 @@
           </div>
           <div
             v-if="searchQuery && filteredResults.length === 0"
-            class="mt-3 text-[13px] text-sm-muted"
+            class="mt-3 text-xsm text-sm-muted"
           >
             No matches for “{{ searchQuery }}”.
           </div>
@@ -72,8 +72,8 @@
           :to="q.to"
           class="flex items-center justify-between gap-3 py-3.5 border-t border-sm-hair dark:border-white/5"
         >
-          <span class="text-[15px] font-bold text-sm-ink dark:text-white">{{ q.label }}</span>
-          <span class="text-[13px] font-bold text-sm-primary shrink-0">{{ q.cta }}</span>
+          <span class="text-smd font-bold text-sm-ink dark:text-white">{{ q.label }}</span>
+          <span class="text-xsm font-bold text-sm-primary shrink-0">{{ q.cta }}</span>
         </RouterLink>
       </div>
 
@@ -92,7 +92,7 @@
             rel="noopener noreferrer"
             class="flex-1 min-w-0 active:opacity-60 transition-opacity"
           >
-            <div class="text-[15px] font-semibold text-sm-ink dark:text-white truncate">{{ link.name }}</div>
+            <div class="text-smd font-semibold text-sm-ink dark:text-white truncate">{{ link.name }}</div>
             <div class="mt-0.5 text-xs text-sm-muted">{{ link.meta }}</div>
           </a>
           <button
@@ -116,7 +116,7 @@
             class="w-full flex items-center gap-3.5 py-3.5 text-left"
           >
             <div class="flex-1 min-w-0">
-              <div class="text-[15px] font-semibold text-sm-ink dark:text-white">Menus</div>
+              <div class="text-smd font-semibold text-sm-ink dark:text-white">Menus</div>
               <div class="mt-0.5 text-xs text-sm-muted">27 PDFs · buffet, BBQ, set</div>
             </div>
             <ChevronDownIcon
@@ -137,7 +137,7 @@
                 class="flex-1 flex items-center gap-2.5 py-2.5 min-w-0 active:opacity-60"
               >
                 <span class="w-1.5 h-1.5 rounded-full bg-sm-ink dark:bg-white shrink-0"></span>
-                <span class="text-[13px] font-medium text-sm-ink dark:text-gray-200 truncate">{{ menu.displayName }}</span>
+                <span class="text-xsm font-medium text-sm-ink dark:text-gray-200 truncate">{{ menu.displayName }}</span>
               </a>
               <button
                 @click="copyLink(`/menus/${menu.file}`)"
@@ -156,12 +156,12 @@
       <div v-if="!searchQuery" class="px-6 pt-7">
         <div class="sm-eyebrow pb-1.5">Appearance</div>
         <div class="flex items-center justify-between py-3.5 border-t border-sm-hair dark:border-white/5">
-          <span class="text-[15px] font-semibold text-sm-ink dark:text-white">Theme</span>
+          <span class="text-smd font-semibold text-sm-ink dark:text-white">Theme</span>
           <ThemeToggle />
         </div>
         <div class="flex items-center justify-between py-3.5 border-t border-sm-hair dark:border-white/5">
-          <span class="text-[15px] text-sm-muted">Version</span>
-          <span class="text-[13px] font-semibold text-sm-muted">v1.0.0</span>
+          <span class="text-smd text-sm-muted">Version</span>
+          <span class="text-xsm font-semibold text-sm-muted">v1.0.0</span>
         </div>
       </div>
     </div>

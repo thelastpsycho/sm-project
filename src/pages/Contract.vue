@@ -2,7 +2,7 @@
   <div class="pb-32 bg-white dark:bg-sm-bg-dark min-h-screen">
     <!-- Header -->
     <div class="px-6 py-6 border-b border-sm-line dark:border-white/10 sticky top-0 z-30 safe-area-top bg-white/90 dark:bg-sm-bg-dark/90 backdrop-blur">
-      <h1 class="sm-display text-[26px]">New Contract</h1>
+      <h1 class="sm-display text-title">New Contract</h1>
       <p class="text-xs text-sm-muted mt-1.5">Fill in the details below</p>
     </div>
 
@@ -101,7 +101,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             </div>
             <span class="block font-bold text-sm-ink dark:text-white text-sm">Request Allotment</span>
-            <span class="block text-[10px] text-sm-muted mt-1">Add to contract request</span>
+            <span class="block text-2xs text-sm-muted mt-1">Add to contract request</span>
           </div>
           <div class="absolute top-4 right-4 w-5 h-5 rounded-full border-2 border-gray-200 peer-checked:border-blue-500 peer-checked:bg-blue-500 transition-all"></div>
         </label>
@@ -116,7 +116,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
             </div>
             <span class="block font-bold text-sm-ink dark:text-white text-sm">Notifications</span>
-            <span class="block text-[10px] text-sm-muted mt-1">Get email updates</span>
+            <span class="block text-2xs text-sm-muted mt-1">Get email updates</span>
           </div>
           <div class="absolute top-4 right-4 w-5 h-5 rounded-full border-2 border-gray-200 peer-checked:border-green-500 peer-checked:bg-green-500 transition-all"></div>
         </label>

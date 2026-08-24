@@ -2,7 +2,7 @@
   <div class="pb-32 bg-white dark:bg-sm-bg-dark min-h-screen">
     <!-- Header -->
     <div class="px-6 py-6 border-b border-sm-line dark:border-white/10 sticky top-0 z-30 safe-area-top bg-white/90 dark:bg-sm-bg-dark/90 backdrop-blur">
-      <h1 class="sm-display text-[26px]">{{ isEditing ? 'Edit RFP' : 'New RFP' }}</h1>
+      <h1 class="sm-display text-title">{{ isEditing ? 'Edit RFP' : 'New RFP' }}</h1>
       <p class="text-xs text-sm-muted mt-1.5">{{ isEditing ? 'Update proposal details' : 'Create a new proposal request' }}</p>
     </div>
 
@@ -199,7 +199,7 @@
               <button
                 type="button"
                 @click="showAdditionalRooms = true"
-                class="px-5 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all"
+                class="px-5 py-1.5 rounded-lg text-2xs font-black tracking-widest transition-all"
                 :class="showAdditionalRooms ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink scale-105' : 'text-gray-400 dark:text-gray-500'"
               >
                 YES
@@ -207,7 +207,7 @@
               <button
                 type="button"
                 @click="showAdditionalRooms = false; clearAdditionalRooms()"
-                class="px-5 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all"
+                class="px-5 py-1.5 rounded-lg text-2xs font-black tracking-widest transition-all"
                 :class="!showAdditionalRooms ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink scale-105' : 'text-gray-400 dark:text-gray-500'"
               >
                 NO

@@ -4,7 +4,7 @@
     <div class="flex items-end justify-between gap-4 mb-6">
       <div>
         <span class="sm-eyebrow">Access</span>
-        <h1 class="sm-display text-[30px] mt-2">Team <span class="text-sm-faint font-semibold">/ {{ store.activeUsers.length }} active of {{ store.users.length }}</span></h1>
+        <h1 class="sm-display text-display mt-2">Team <span class="text-sm-faint font-semibold">/ {{ store.activeUsers.length }} active of {{ store.users.length }}</span></h1>
       </div>
       <SmButton size="sm" @click="openCreate">
         <PlusIcon class="w-4 h-4 mr-1" /> Add user
@@ -33,15 +33,15 @@
         <!-- Name (+ mobile meta/badges) -->
         <div class="min-w-0 flex-1 lg:flex-[1.6]">
           <div class="flex items-center gap-2">
-            <p class="text-[15px] font-bold text-sm-ink dark:text-white truncate">{{ u.name }}</p>
+            <p class="text-smd font-bold text-sm-ink dark:text-white truncate">{{ u.name }}</p>
             <span
               v-if="u.role && u.role !== 'sales'"
-              class="lg:hidden text-[10px] font-bold uppercase tracking-[0.06em]"
+              class="lg:hidden text-2xs font-bold uppercase tracking-[0.06em]"
               :class="roleBadgeClass(u.role)"
               >{{ labelFor(u.role) }}</span
             >
             <span
-              class="lg:hidden text-[10px] font-bold uppercase tracking-[0.06em]"
+              class="lg:hidden text-2xs font-bold uppercase tracking-[0.06em]"
               :class="u.status === 'disabled' ? 'text-sm-faint' : 'text-sm-won'"
               >{{ u.status === 'disabled' ? 'Deactivated' : 'Active' }}</span
             >
@@ -52,8 +52,8 @@
         <!-- Desktop columns -->
         <span class="hidden lg:block flex-[1.6] text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ u.position }}</span>
         <span class="hidden lg:block flex-[2.2] text-sm text-sm-ink-soft dark:text-gray-300 truncate">{{ u.email }}</span>
-        <span class="hidden lg:block flex-[0.9] text-[11px] font-bold uppercase tracking-[0.06em]" :class="roleBadgeClass(u.role || 'sales')">{{ labelFor(u.role || 'sales') }}</span>
-        <span class="hidden lg:block flex-[0.9] text-right text-[11px] font-bold uppercase tracking-[0.06em]" :class="u.status === 'disabled' ? 'text-sm-faint' : 'text-sm-won'">{{ u.status === 'disabled' ? 'Deactivated' : 'Active' }}</span>
+        <span class="hidden lg:block flex-[0.9] text-eyebrow font-bold uppercase tracking-[0.06em]" :class="roleBadgeClass(u.role || 'sales')">{{ labelFor(u.role || 'sales') }}</span>
+        <span class="hidden lg:block flex-[0.9] text-right text-eyebrow font-bold uppercase tracking-[0.06em]" :class="u.status === 'disabled' ? 'text-sm-faint' : 'text-sm-won'">{{ u.status === 'disabled' ? 'Deactivated' : 'Active' }}</span>
 
         <div class="flex items-center shrink-0 lg:w-[76px] lg:justify-end">
           <button
@@ -87,7 +87,7 @@
     <section class="mt-8">
       <div class="flex items-start justify-between gap-3 mb-3">
         <div>
-          <h2 class="sm-display text-[20px]">Roles &amp; Permissions</h2>
+          <h2 class="sm-display text-lg">Roles &amp; Permissions</h2>
           <p class="text-sm text-sm-muted mt-1">
             Tick exactly what each role can do — per feature. Admins always have full access.
           </p>
@@ -124,7 +124,7 @@
           <div v-for="role in permissions.roles" :key="role.id" class="flex-1 flex justify-center">
             <button
               type="button"
-              class="text-[15px] font-bold leading-none transition-colors"
+              class="text-smd font-bold leading-none transition-colors"
               :class="[
                 cell(role, row).granted ? 'text-sm-ink dark:text-white' : 'text-sm-line dark:text-white/20',
                 cell(role, row).editable ? 'cursor-pointer hover:opacity-70' : 'cursor-default'
@@ -147,7 +147,7 @@
         >
           <div class="flex items-center gap-2 mb-3">
             <span
-              class="text-[10px] font-bold uppercase tracking-[0.06em]"
+              class="text-2xs font-bold uppercase tracking-[0.06em]"
               :class="roleBadgeClass(role.id)"
               >{{ role.label }}</span
             >
@@ -185,8 +185,8 @@
                 />
                 <span>{{ action.label }}</span>
               </label>
-              <span v-if="group.locked" class="text-[10px] text-sm-faint self-center">always on</span>
-              <span v-else-if="group.adminOnly" class="text-[10px] text-sm-faint self-center">admin only</span>
+              <span v-if="group.locked" class="text-2xs text-sm-faint self-center">always on</span>
+              <span v-else-if="group.adminOnly" class="text-2xs text-sm-faint self-center">admin only</span>
             </div>
           </div>
         </div>

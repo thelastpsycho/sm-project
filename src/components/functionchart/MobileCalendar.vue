@@ -5,7 +5,7 @@
       <div
         v-for="(w, i) in weekdayLabels"
         :key="'wd' + i"
-        class="py-1.5 text-center text-[10px] font-medium uppercase tracking-wider text-sm-secondary"
+        class="py-1.5 text-center text-2xs font-medium uppercase tracking-wider text-sm-secondary"
       >
         {{ w }}
       </div>
@@ -25,7 +25,7 @@
         >
           <template v-if="cell">
             <span
-              class="flex h-7 w-7 items-center justify-center rounded-full text-[13px] font-normal"
+              class="flex h-7 w-7 items-center justify-center rounded-full text-xsm font-normal"
               :class="
                 cell.date === selectedDay
                   ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink'
@@ -73,14 +73,14 @@
                 v-if="conflictIds.has(b.id)"
                 class="h-4 w-4 shrink-0 text-red-600 dark:text-red-400"
               />
-              <div class="text-[14px] font-semibold leading-tight">{{ b.eventName || '(untitled)' }}</div>
+              <div class="text-sm font-semibold leading-tight">{{ b.eventName || '(untitled)' }}</div>
             </div>
-            <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium" :class="STATUS_STYLE[b.status].chip">{{
+            <span class="shrink-0 rounded-full px-2 py-0.5 text-2xs font-medium" :class="STATUS_STYLE[b.status].chip">{{
               STATUS_META[b.status].label
             }}</span>
           </div>
-          <div class="text-[12px] font-medium uppercase tracking-wide opacity-80">{{ comboName(b.venues) }}</div>
-          <div class="flex items-center gap-1.5 text-[11px] font-normal opacity-70">
+          <div class="text-xs font-medium uppercase tracking-wide opacity-80">{{ comboName(b.venues) }}</div>
+          <div class="flex items-center gap-1.5 text-eyebrow font-normal opacity-70">
             <span v-if="b.pax">{{ b.pax }} pax</span>
             <span v-if="b.pax && b.salesOwner">·</span>
             <span v-if="b.salesOwner">{{ b.salesOwner }}</span>

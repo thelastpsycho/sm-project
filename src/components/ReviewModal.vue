@@ -38,7 +38,7 @@
              </div>
              <div class="bg-sm-surface dark:bg-white/5 rounded-2xl p-4 flex items-center justify-between">
                 <span class="text-sm font-bold text-sm-muted">Language</span>
-                <span class="px-3 py-1 bg-sm-ink text-white dark:bg-white dark:text-sm-ink text-[10px] font-black rounded-lg">{{ form.lang }}</span>
+                <span class="px-3 py-1 bg-sm-ink text-white dark:bg-white dark:text-sm-ink text-2xs font-black rounded-lg">{{ form.lang }}</span>
              </div>
           </div>
 
@@ -50,19 +50,19 @@
              </div>
              <div class="grid grid-cols-2 gap-4">
                 <div class="bg-sm-surface dark:bg-white/5 rounded-2xl p-4">
-                   <p class="text-[10px] font-black text-sm-faint uppercase tracking-widest mb-1">Company</p>
+                   <p class="text-2xs font-black text-sm-faint uppercase tracking-widest mb-1">Company</p>
                    <p class="text-sm font-bold text-sm-ink dark:text-white">{{ form.full_company_name }}</p>
                 </div>
                 <div class="bg-sm-surface dark:bg-white/5 rounded-2xl p-4">
-                   <p class="text-[10px] font-black text-sm-faint uppercase tracking-widest mb-1">PIC Name</p>
+                   <p class="text-2xs font-black text-sm-faint uppercase tracking-widest mb-1">PIC Name</p>
                    <p class="text-sm font-bold text-sm-ink dark:text-white">{{ form.title }} {{ form.pic_name }}</p>
                 </div>
                 <div class="bg-sm-surface dark:bg-white/5 rounded-2xl p-4 overflow-hidden">
-                   <p class="text-[10px] font-black text-sm-faint uppercase tracking-widest mb-1">Email</p>
+                   <p class="text-2xs font-black text-sm-faint uppercase tracking-widest mb-1">Email</p>
                    <p class="text-xs font-bold text-sm-ink dark:text-white truncate">{{ form.client_email || '-' }}</p>
                 </div>
                 <div class="bg-sm-surface dark:bg-white/5 rounded-2xl p-4">
-                   <p class="text-[10px] font-black text-sm-faint uppercase tracking-widest mb-1">Phone</p>
+                   <p class="text-2xs font-black text-sm-faint uppercase tracking-widest mb-1">Phone</p>
                    <p class="text-sm font-bold text-sm-ink dark:text-white">{{ form.client_phone || '-' }}</p>
                 </div>
              </div>
@@ -80,17 +80,17 @@
                 </div>
                 <div class="flex items-center justify-between relative z-10">
                    <div>
-                      <p class="text-[10px] font-black text-sm-faint uppercase tracking-widest mb-1">Arrival</p>
+                      <p class="text-2xs font-black text-sm-faint uppercase tracking-widest mb-1">Arrival</p>
                       <p class="text-lg font-black text-sm-ink dark:text-white">{{ formatDate(form.event_date_start) }}</p>
                    </div>
                    <ArrowLongRightIcon class="w-8 h-8 text-sm-primary" />
                    <div class="text-right">
-                      <p class="text-[10px] font-black text-sm-faint uppercase tracking-widest mb-1">Departure</p>
+                      <p class="text-2xs font-black text-sm-faint uppercase tracking-widest mb-1">Departure</p>
                       <p class="text-lg font-black text-sm-ink dark:text-white">{{ formatDate(form.event_date_end) }}</p>
                    </div>
                 </div>
                 <div class="mt-4 pt-4 border-t border-sm-line dark:border-white/5 flex items-center justify-between">
-                   <span class="text-[10px] font-black text-sm-faint uppercase tracking-widest">Proposal Valid Until</span>
+                   <span class="text-2xs font-black text-sm-faint uppercase tracking-widest">Proposal Valid Until</span>
                    <span class="text-sm font-bold text-sm-ink dark:text-white">{{ formatDate(form.proposal_validity_date) }}</span>
                 </div>
              </div>
@@ -161,17 +161,17 @@
                    </div>
                    <div>
                       <p class="text-sm font-black">{{ form.sales_pic_name }}</p>
-                      <p class="text-[10px] text-sm-faint uppercase font-bold tracking-widest">{{ form.sales_pic_position }}</p>
+                      <p class="text-2xs text-sm-faint uppercase font-bold tracking-widest">{{ form.sales_pic_position }}</p>
                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
                    <div>
-                      <p class="text-[8px] font-black text-sm-muted uppercase mb-0.5">Email</p>
-                      <p class="text-[10px] font-bold truncate">{{ form.sales_pic_email }}</p>
+                      <p class="text-2xs font-black text-sm-muted uppercase mb-0.5">Email</p>
+                      <p class="text-2xs font-bold truncate">{{ form.sales_pic_email }}</p>
                    </div>
                    <div class="text-right">
-                      <p class="text-[8px] font-black text-sm-muted uppercase mb-0.5">Phone</p>
-                      <p class="text-[10px] font-bold">{{ form.sales_pic_phone_number }}</p>
+                      <p class="text-2xs font-black text-sm-muted uppercase mb-0.5">Phone</p>
+                      <p class="text-2xs font-bold">{{ form.sales_pic_phone_number }}</p>
                    </div>
                 </div>
              </div>
@@ -184,14 +184,14 @@
           <button 
              type="button" 
              @click="$emit('close')"
-             class="flex-1 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-sm-muted bg-white dark:bg-white/5 border border-sm-line dark:border-white/5 hover:bg-sm-surface dark:hover:bg-white/10 transition-all active:scale-95"
+             class="flex-1 px-6 py-4 rounded-2xl font-black text-2xs uppercase tracking-widest text-sm-muted bg-white dark:bg-white/5 border border-sm-line dark:border-white/5 hover:bg-sm-surface dark:hover:bg-white/10 transition-all active:scale-95"
           >
             Edit Data
           </button>
           <button 
              type="button" 
              @click="$emit('confirm')"
-             class="flex-1 px-6 py-4 rounded-2xl bg-sm-ink text-white dark:bg-white dark:text-sm-ink font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all text-center"
+             class="flex-1 px-6 py-4 rounded-2xl bg-sm-ink text-white dark:bg-white dark:text-sm-ink font-black text-2xs uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all text-center"
           >
             Generate RFP
           </button>

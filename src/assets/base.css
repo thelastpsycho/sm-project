@@ -52,12 +52,12 @@
   /* Editorial micro-label — uppercase, wide tracking, muted ink.
      Used for section eyebrows across every screen. */
   .sm-eyebrow {
-    @apply text-[11px] font-extrabold uppercase tracking-[0.14em] text-sm-muted;
+    @apply text-eyebrow font-bold uppercase tracking-[0.12em] text-sm-muted;
   }
 
-  /* Big tight-tracked headline used for page titles. */
+  /* Tight-tracked headline used for page titles. */
   .sm-display {
-    @apply font-extrabold tracking-[-0.035em] text-sm-ink dark:text-white;
+    @apply font-bold tracking-[-0.02em] text-sm-ink dark:text-white;
   }
 
   /* Hairline row divider — the workhorse separator replacing cards. */

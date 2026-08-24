@@ -27,7 +27,7 @@
             <span class="text-sm font-bold text-sm-ink dark:text-white truncate">
               {{ c.authorName || 'Unknown' }}
             </span>
-            <span class="text-[11px] text-sm-faint shrink-0">{{ relativeTime(c.createdAt) }}</span>
+            <span class="text-eyebrow text-sm-faint shrink-0">{{ relativeTime(c.createdAt) }}</span>
             <button
               v-if="canDelete(c)"
               type="button"

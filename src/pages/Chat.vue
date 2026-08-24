@@ -80,10 +80,10 @@
                 : 'bg-sm-surface dark:bg-white/10 text-sm-ink dark:text-white rounded-bl-sm'
             ]"
           >
-            <p class="text-[15px] leading-relaxed">{{ message.text }}</p>
+            <p class="text-smd leading-relaxed">{{ message.text }}</p>
             
             <div 
-              class="flex items-center justify-end space-x-1 mt-1 text-[10px]"
+              class="flex items-center justify-end space-x-1 mt-1 text-2xs"
               :class="message.sender === 'user' ? 'text-white/70' : 'text-gray-400'"
             >
               <span>{{ formatTime(message.timestamp) }}</span>

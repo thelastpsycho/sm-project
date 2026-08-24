@@ -18,7 +18,7 @@
       <!-- Weekdays -->
       <div class="grid grid-cols-7 mb-2">
         <div v-for="day in ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']" :key="day" 
-             class="text-center text-[10px] font-bold text-sm-faint uppercase tracking-tighter py-2">
+             class="text-center text-2xs font-bold text-sm-faint uppercase tracking-tighter py-2">
           {{ day }}
         </div>
       </div>
@@ -68,13 +68,13 @@
           <template v-if="mode === 'range'">
             <span
               v-if="isStart(day.dateString)"
-              class="relative z-20 text-[8px] font-black uppercase tracking-tighter text-white/90 -mt-1"
+              class="relative z-20 text-2xs font-black uppercase tracking-tighter text-white/90 -mt-1"
             >
               {{ startLabel }}
             </span>
             <span
               v-if="isEnd(day.dateString)"
-              class="relative z-20 text-[8px] font-black uppercase tracking-tighter text-white/90 -mt-1"
+              class="relative z-20 text-2xs font-black uppercase tracking-tighter text-white/90 -mt-1"
             >
               {{ endLabel }}
             </span>
@@ -85,7 +85,7 @@
 
     <!-- Footer Action -->
     <div class="px-6 py-4 bg-sm-surface dark:bg-white/5 border-t border-sm-hair dark:border-white/5 flex items-center justify-between">
-      <div class="text-[10px] text-sm-faint">
+      <div class="text-2xs text-sm-faint">
         <div v-if="start" class="flex items-center gap-1">
           <span class="font-bold text-sm-ink-soft dark:text-gray-300">{{ formatDate(start) }}</span>
           <span v-if="mode === 'range' && end"> - <span class="font-bold text-sm-ink-soft dark:text-gray-300">{{ formatDate(end) }}</span></span>

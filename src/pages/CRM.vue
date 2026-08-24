@@ -7,7 +7,7 @@
         <!-- Queue view: action-first hero -->
         <template v-if="view === 'queue'">
           <span class="sm-eyebrow">{{ todayLabel }}</span>
-          <h1 class="sm-display text-[32px] leading-[1.05] mt-2.5">
+          <h1 class="sm-display text-display leading-[1.08] mt-2.5">
             {{ queueCount }} {{ queueCount === 1 ? 'deal' : 'deals' }}<br />{{ queueCount === 1 ? 'needs' : 'need' }} you today
           </h1>
           <p class="mt-3 text-sm text-sm-muted">
@@ -17,7 +17,7 @@
         <!-- Board / list: pipeline value -->
         <template v-else>
           <span class="sm-eyebrow">Pipeline</span>
-          <h1 class="sm-display text-[30px] mt-2">
+          <h1 class="sm-display text-display mt-2">
             {{ formatMoney(pipelineTotal) }}
             <span class="text-sm-faint font-semibold">/ {{ filteredDeals.length }}<span v-if="filteredDeals.length !== store.deals.length"> of {{ store.deals.length }}</span></span>
           </h1>
@@ -42,7 +42,7 @@
         v-for="c in queueChips"
         :key="c.key"
         @click="queueChip = c.key"
-        class="whitespace-nowrap text-[13px] font-bold px-3.5 py-1.5 rounded-full border transition-colors"
+        class="whitespace-nowrap text-xsm font-bold px-3.5 py-1.5 rounded-full border transition-colors"
         :class="queueChip === c.key
           ? 'bg-sm-ink text-white border-sm-ink dark:bg-white dark:text-sm-ink dark:border-white'
           : 'border-sm-line text-sm-ink dark:border-white/15 dark:text-gray-200'"
@@ -55,7 +55,7 @@
     <div v-else class="mt-6 flex flex-wrap gap-x-10 gap-y-4">
       <div v-for="s in summaryTiles" :key="s.key">
         <div class="sm-eyebrow">{{ s.label }} <span class="text-sm-faint">· {{ s.count }}</span></div>
-        <div class="mt-1 text-[17px] font-bold" :class="s.textClass">{{ formatMoney(s.value) }}</div>
+        <div class="mt-1 text-md font-bold" :class="s.textClass">{{ formatMoney(s.value) }}</div>
       </div>
     </div>
 
@@ -66,7 +66,7 @@
           v-for="v in (['queue', 'board', 'list'] as const)"
           :key="v"
           @click="view = v"
-          class="px-3.5 py-1.5 rounded-full text-[13px] font-bold capitalize transition-colors"
+          class="px-3.5 py-1.5 rounded-full text-xsm font-bold capitalize transition-colors"
           :class="view === v ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink' : 'text-sm-muted'"
         >
           {{ v }}
@@ -85,14 +85,14 @@
 
       <button
         @click="showFilters = !showFilters"
-        class="relative inline-flex items-center gap-1.5 text-[13px] font-bold transition-colors"
+        class="relative inline-flex items-center gap-1.5 text-xsm font-bold transition-colors"
         :class="activeFilterCount ? 'text-sm-primary' : 'text-sm-muted hover:text-sm-ink dark:hover:text-white'"
       >
         <FunnelIcon class="w-4 h-4" />
         <span class="hidden sm:inline">Filters</span>
         <span
           v-if="activeFilterCount"
-          class="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] text-[11px] rounded-full bg-sm-primary text-white"
+          class="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] text-eyebrow rounded-full bg-sm-primary text-white"
         >
           {{ activeFilterCount }}
         </span>
@@ -170,8 +170,8 @@
               class="flex items-start gap-3 py-3.5 border-t border-sm-hair dark:border-white/5"
             >
               <button type="button" class="flex-1 min-w-0 text-left" @click="openEdit(deal)">
-                <div class="text-[15px] font-bold tracking-[-0.01em] text-sm-ink dark:text-white truncate">{{ deal.company }}</div>
-                <div class="mt-1 text-[13px] text-sm-ink dark:text-gray-200 truncate">{{ deal.nextAction || 'No action noted' }}</div>
+                <div class="text-smd font-bold tracking-[-0.01em] text-sm-ink dark:text-white truncate">{{ deal.company }}</div>
+                <div class="mt-1 text-xsm text-sm-ink dark:text-gray-200 truncate">{{ deal.nextAction || 'No action noted' }}</div>
                 <div class="mt-1 text-xs text-sm-muted truncate">
                   {{ deal.stage ?? 'New' }} · {{ formatMoney(deal.actualRevenue ?? deal.totalRevenue, deal.currency) }} · {{ deal.ownerName || 'Unassigned' }}
                 </div>

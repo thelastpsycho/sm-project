@@ -8,7 +8,7 @@
           The Anvaya Bali · Sales &amp; Events
         </div>
         <div class="flex items-center gap-2">
-          <h1 class="m-0 sm-display text-[26px]">Function Charting</h1>
+          <h1 class="m-0 sm-display text-title">Function Charting</h1>
           <div class="flex items-center gap-1">
             <button
               type="button"
@@ -30,7 +30,7 @@
             <button
               v-if="!isViewingToday"
               type="button"
-              class="ml-1 rounded-md px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-sm-primary transition-colors hover:bg-sm-primary/10"
+              class="ml-1 rounded-md px-2 py-1 text-eyebrow font-bold uppercase tracking-wide text-sm-primary transition-colors hover:bg-sm-primary/10"
               @click="goToToday"
             >
               Today
@@ -61,14 +61,14 @@
             >
               <div class="flex items-center gap-2">
                 <span class="h-2 w-2 shrink-0 rounded-full" :class="STATUS_STYLE[r.status].dot"></span>
-                <span class="truncate text-[13px] font-semibold text-gray-900 dark:text-white">{{ r.eventName || '(untitled)' }}</span>
+                <span class="truncate text-xsm font-semibold text-gray-900 dark:text-white">{{ r.eventName || '(untitled)' }}</span>
               </div>
-              <div class="pl-4 text-[11px] font-medium text-sm-secondary">{{ searchDateLabel(r) }}</div>
+              <div class="pl-4 text-eyebrow font-medium text-sm-secondary">{{ searchDateLabel(r) }}</div>
             </button>
           </div>
           <div
             v-else-if="searchFocused && q.trim()"
-            class="absolute left-0 right-0 top-full z-40 mt-1.5 rounded-xl border border-sm-line bg-white px-3 py-2.5 text-[12px] text-sm-secondary shadow-xl dark:border-white/10 dark:bg-sm-card-dark"
+            class="absolute left-0 right-0 top-full z-40 mt-1.5 rounded-xl border border-sm-line bg-white px-3 py-2.5 text-xs text-sm-secondary shadow-xl dark:border-white/10 dark:bg-sm-card-dark"
           >
             No functions match “{{ q.trim() }}”
           </div>
@@ -111,7 +111,7 @@
         {{ label }}
       </button>
       <div class="flex-1"></div>
-      <div class="flex gap-4 whitespace-nowrap px-1 text-[11px] font-semibold tracking-wide text-sm-secondary">
+      <div class="flex gap-4 whitespace-nowrap px-1 text-eyebrow font-semibold tracking-wide text-sm-secondary">
         <span>{{ stats.functions }} functions</span>
         <span>{{ stats.venues }} venues booked</span>
         <span>{{ stats.occupancy }} slot use</span>
@@ -122,11 +122,11 @@
     <div class="mb-3 flex flex-wrap items-center gap-4">
       <div v-for="s in statuses" :key="s.value" class="flex items-center gap-1.5">
         <span class="h-3 w-3 rounded-sm" :class="s.dot"></span>
-        <span class="text-[11px] font-semibold text-sm-secondary">{{ s.label }}</span>
+        <span class="text-eyebrow font-semibold text-sm-secondary">{{ s.label }}</span>
       </div>
       <div v-if="conflictIds.size" class="flex items-center gap-1.5">
         <ExclamationTriangleIcon class="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
-        <span class="text-[11px] font-semibold text-red-600 dark:text-red-400"
+        <span class="text-eyebrow font-semibold text-red-600 dark:text-red-400"
           >{{ conflictIds.size }} double-booked</span
         >
       </div>
@@ -161,9 +161,9 @@
             :class="d.isWeekend ? 'bg-sm-surface dark:bg-white/5' : 'bg-sm-card dark:bg-sm-card-dark'"
             :style="{ gridRow: 1, gridColumn: i + 2, boxShadow: d.isToday ? 'inset 0 -2px 0 #0066CC' : undefined }"
           >
-            <span class="text-[10px] font-bold uppercase tracking-wider text-sm-secondary">{{ d.dow }}</span>
+            <span class="text-2xs font-bold uppercase tracking-wider text-sm-secondary">{{ d.dow }}</span>
             <span
-              class="text-[17px] font-extrabold tracking-tight"
+              class="text-md font-extrabold tracking-tight"
               :class="d.isToday ? 'text-sm-primary' : 'text-gray-900 dark:text-white'"
               >{{ d.num }}</span
             >
@@ -173,7 +173,7 @@
           <template v-for="line in lines" :key="line.key">
             <div
               v-if="line.kind === 'cat'"
-              class="sticky left-0 z-[12] flex h-[30px] items-center border-y border-sm-line bg-sm-surface px-3.5 text-[10px] font-bold uppercase tracking-widest text-sm-secondary dark:border-white/10 dark:bg-white/5"
+              class="sticky left-0 z-[12] flex h-[30px] items-center border-y border-sm-line bg-sm-surface px-3.5 text-2xs font-bold uppercase tracking-widest text-sm-secondary dark:border-white/10 dark:bg-white/5"
               :style="{ gridColumn: '1 / -1', gridRow: line.row }"
             >
               {{ line.label }}
@@ -186,7 +186,7 @@
                 :style="{ gridColumn: 1, gridRow: line.row, minHeight: rowH + 'px' }"
               >
                 <span>{{ line.label }}</span>
-                <span v-if="line.count" class="text-[10px] font-semibold text-sm-secondary">{{ line.count }}</span>
+                <span v-if="line.count" class="text-2xs font-semibold text-sm-secondary">{{ line.count }}</span>
               </div>
 
               <!-- Background day cells (click to create · drop target to reschedule) -->
@@ -239,10 +239,10 @@
               gridRow: b.rowStart + ' / span ' + b.rowSpan
             }"
           >
-            <div class="line-clamp-2 text-[12px] font-bold leading-[1.25]" :class="canEdit || b.conflict ? 'pr-5' : ''">
+            <div class="line-clamp-2 text-xs font-bold leading-[1.25]" :class="canEdit || b.conflict ? 'pr-5' : ''">
               <span v-if="b.company">{{ b.company }} - </span>{{ b.title }}
             </div>
-            <div class="flex items-center gap-1.5 text-[10px] font-semibold opacity-75">
+            <div class="flex items-center gap-1.5 text-2xs font-semibold opacity-75">
               <span v-if="b.pax">{{ b.pax }} pax</span>
               <span v-if="b.pax && b.owner">-</span>
               <span v-if="b.owner">{{ b.owner }}</span>
@@ -292,7 +292,7 @@
         class="fixed inset-0 z-50 flex w-full flex-col overflow-auto bg-sm-card dark:bg-sm-card-dark md:static md:z-auto md:max-h-[calc(100vh-240px)] md:w-[400px] md:flex-none md:rounded-2xl md:border md:border-gray-200 md:dark:border-white/10"
       >
         <div class="flex items-center justify-between gap-3 border-b border-sm-hair px-4 py-3 dark:border-white/5">
-          <div class="min-w-0 truncate text-[10px] font-bold uppercase tracking-widest text-sm-secondary">
+          <div class="min-w-0 truncate text-2xs font-bold uppercase tracking-widest text-sm-secondary">
             {{ editing ? comboName(editing.venues) : 'New Function' }}
           </div>
           <div class="flex shrink-0 items-center gap-1">
@@ -340,17 +340,17 @@
         <!-- Same-event context (existing bookings only) -->
         <div v-if="editing" class="flex flex-col gap-4 border-t border-sm-hair px-5 py-4 dark:border-white/5">
           <div class="flex flex-col gap-1">
-            <div class="text-[10px] font-bold uppercase tracking-widest text-sm-secondary">Duration</div>
+            <div class="text-2xs font-bold uppercase tracking-widest text-sm-secondary">Duration</div>
             <div class="text-sm text-gray-900 dark:text-white">{{ durationLabel }}</div>
           </div>
           <div v-if="sameDay.length" class="flex flex-col gap-1.5">
-            <div class="text-[10px] font-bold uppercase tracking-widest text-sm-secondary">Same day, other venues</div>
+            <div class="text-2xs font-bold uppercase tracking-widest text-sm-secondary">Same day, other venues</div>
             <div
               v-for="(s, i) in sameDay"
               :key="i"
               class="flex items-baseline gap-2 border-b border-sm-hair py-1.5 text-[12.5px] dark:border-white/5"
             >
-              <span class="min-w-[92px] text-[10px] font-bold uppercase tracking-wide text-sm-secondary">{{ s.venue }}</span>
+              <span class="min-w-[92px] text-2xs font-bold uppercase tracking-wide text-sm-secondary">{{ s.venue }}</span>
               <span class="text-gray-700 dark:text-gray-200">{{ s.title }}</span>
             </div>
           </div>
@@ -367,12 +367,12 @@
           :style="{ left: statusMenu.x + 'px', top: statusMenu.y + 'px', transform: 'translateX(-100%)' }"
           @click.stop
         >
-          <div class="px-3 pb-1 pt-0.5 text-[10px] font-bold uppercase tracking-widest text-sm-secondary">Set status</div>
+          <div class="px-3 pb-1 pt-0.5 text-2xs font-bold uppercase tracking-widest text-sm-secondary">Set status</div>
           <button
             v-for="s in statuses"
             :key="s.value"
             type="button"
-            class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] font-medium text-gray-800 transition-colors hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-white/5"
+            class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xsm font-medium text-gray-800 transition-colors hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-white/5"
             @click="setStatus(s.value)"
           >
             <span class="h-2.5 w-2.5 shrink-0 rounded-full" :class="s.dot"></span>

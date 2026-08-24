@@ -43,9 +43,9 @@ const buttonClasses = computed(() => {
   const baseClasses = 'inline-flex items-center justify-center font-bold rounded-xl transition-all active:scale-[0.98] focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100'
 
   const sizeClasses = {
-    sm: 'px-4 py-2 text-[13px]',
+    sm: 'px-4 py-2 text-xsm',
     md: 'px-5 py-3 text-sm',
-    lg: 'px-6 py-4 text-[15px]'
+    lg: 'px-6 py-4 text-smd'
   }
 
   // Ink-first: the one strong action per screen is near-black; blue is reserved

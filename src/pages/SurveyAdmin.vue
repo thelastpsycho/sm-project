@@ -234,7 +234,7 @@ function getScorePercentage(score: number): number {
                 alt="The Anvaya Beach Resort Bali"
                 class="h-6 sm:h-7 lg:h-9 w-auto mb-1"
               />
-              <p class="text-[10px] sm:text-xs text-sm-muted hidden xs:block">MICE Survey Admin</p>
+              <p class="text-2xs sm:text-xs text-sm-muted hidden xs:block">MICE Survey Admin</p>
             </div>
             <SmButton variant="secondary" @click="handleLogout" class="text-xs py-2 px-3 sm:px-4 text-sm-muted flex-shrink-0">
               <ArrowRightOnRectangleIcon class="h-4 w-4" />
@@ -293,7 +293,7 @@ function getScorePercentage(score: number): number {
                     <ChartBarIcon class="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-sm-muted">Total Responses</p>
+                    <p class="text-2xs sm:text-xs text-sm-muted">Total Responses</p>
                     <p class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white truncate">{{ stats.totalResponses }}</p>
                   </div>
                 </div>
@@ -305,7 +305,7 @@ function getScorePercentage(score: number): number {
                     <ChartBarIcon class="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-sm-muted">Average Score</p>
+                    <p class="text-2xs sm:text-xs text-sm-muted">Average Score</p>
                     <p class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white truncate">{{ formatScore(stats.averageScore) }}</p>
                   </div>
                 </div>
@@ -317,7 +317,7 @@ function getScorePercentage(score: number): number {
                     <CalendarDaysIcon class="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div class="min-w-0 flex-1">
-                    <p class="text-[10px] sm:text-xs text-sm-muted">Google Review Rate</p>
+                    <p class="text-2xs sm:text-xs text-sm-muted">Google Review Rate</p>
                     <p class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white truncate">{{ formatScore(stats.reviewRedirectRate, 0) }}%</p>
                   </div>
                 </div>
@@ -331,18 +331,18 @@ function getScorePercentage(score: number): number {
               </div>
               <div class="space-y-1.5 sm:space-y-2">
                 <div v-for="score in [5, 4, 3, 2, 1]" :key="score" class="flex items-center gap-1.5 sm:gap-3">
-                  <span class="w-6 sm:w-8 lg:w-10 text-[10px] sm:text-xs sm:text-sm font-medium text-sm-ink dark:text-white flex-shrink-0">{{ score }} ★</span>
+                  <span class="w-6 sm:w-8 lg:w-10 text-2xs sm:text-xs sm:text-sm font-medium text-sm-ink dark:text-white flex-shrink-0">{{ score }} ★</span>
                   <div class="flex-1 h-3 sm:h-4 lg:h-5 bg-sm-primary/10 rounded overflow-hidden min-w-0">
                     <div
                       class="h-full bg-sm-primary transition-all duration-300 flex items-center justify-end px-0.5 sm:px-1 lg:px-2"
                       :style="{ width: `${(getScoreCount(score) / Math.max(...stats.scoreDistribution, 1)) * 100}%` }"
                     >
-                      <span v-if="getScoreCount(score) > 0 && getScoreCount(score) / Math.max(...stats.scoreDistribution, 1) > 0.15" class="text-[8px] sm:text-[10px] lg:text-xs text-white font-medium">
+                      <span v-if="getScoreCount(score) > 0 && getScoreCount(score) / Math.max(...stats.scoreDistribution, 1) > 0.15" class="text-2xs sm:text-2xs lg:text-xs text-white font-medium">
                         {{ getScoreCount(score) }}
                       </span>
                     </div>
                   </div>
-                  <span class="w-8 sm:w-10 text-[9px] sm:text-xs sm:text-sm text-sm-muted text-right flex-shrink-0">
+                  <span class="w-8 sm:w-10 text-2xs sm:text-xs sm:text-sm text-sm-muted text-right flex-shrink-0">
                     {{ formatScore(getScorePercentage(score), 0) }}%
                   </span>
                 </div>
@@ -365,11 +365,11 @@ function getScorePercentage(score: number): number {
                 >
                   <div class="min-w-0 flex-1">
                     <p class="font-medium text-xs sm:text-sm text-sm-ink dark:text-white truncate">{{ response.event?.eventName }}</p>
-                    <p class="text-[10px] sm:text-xs text-sm-muted">{{ new Date(response.createdAt).toLocaleDateString() }}</p>
+                    <p class="text-2xs sm:text-xs text-sm-muted">{{ new Date(response.createdAt).toLocaleDateString() }}</p>
                   </div>
                   <div class="text-right flex-shrink-0">
                     <p class="text-sm sm:text-base font-semibold text-sm-primary">{{ formatScore(response.totalScore / 5) }}</p>
-                    <p class="text-[9px] sm:text-[10px] sm:text-xs text-sm-muted">out of 5</p>
+                    <p class="text-2xs sm:text-2xs sm:text-xs text-sm-muted">out of 5</p>
                   </div>
                 </div>
               </div>
@@ -457,12 +457,12 @@ function getScorePercentage(score: number): number {
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-1.5 sm:gap-2">
                       <p class="font-medium text-xs sm:text-sm text-sm-ink dark:text-white truncate flex-1">{{ event.eventName }}</p>
-                      <span class="px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-medium bg-sm-primary/10 text-sm-primary flex-shrink-0">
+                      <span class="px-1 sm:px-1.5 py-0.5 rounded text-2xs sm:text-2xs font-medium bg-sm-primary/10 text-sm-primary flex-shrink-0">
                         {{ event.language === 'en' ? '🇬🇧' : '🇮🇩' }}
                       </span>
                     </div>
-                    <p class="text-[10px] sm:text-xs text-sm-muted truncate">{{ event.companyName }}</p>
-                    <p class="text-[10px] sm:text-xs text-sm-muted mt-0.5">{{ new Date(event.createdAt).toLocaleDateString() }}</p>
+                    <p class="text-2xs sm:text-xs text-sm-muted truncate">{{ event.companyName }}</p>
+                    <p class="text-2xs sm:text-xs text-sm-muted mt-0.5">{{ new Date(event.createdAt).toLocaleDateString() }}</p>
                   </div>
                   <div class="flex items-center gap-1 sm:gap-1.5 sm:gap-2 flex-shrink-0">
                     <button
@@ -540,7 +540,7 @@ function getScorePercentage(score: number): number {
                       <div class="flex items-center gap-2 flex-shrink-0">
                         <div class="text-right">
                           <p class="text-base font-semibold text-sm-primary">{{ formatScore(response.averageScore || response.totalScore / 6) }}</p>
-                          <p class="text-[10px] text-sm-muted">/ 5</p>
+                          <p class="text-2xs text-sm-muted">/ 5</p>
                         </div>
                         <ChevronDownIcon
                           :class="['h-4 w-4 text-sm-muted transition-transform', expandedResponseId === response.id && 'rotate-180']"
@@ -552,11 +552,11 @@ function getScorePercentage(score: number): number {
                       <!-- Contact Info -->
                       <div class="grid grid-cols-2 gap-2">
                         <div>
-                          <p class="text-[10px] text-sm-muted uppercase tracking-wide">Email</p>
+                          <p class="text-2xs text-sm-muted uppercase tracking-wide">Email</p>
                           <p class="text-xs font-medium text-sm-ink dark:text-white break-all">{{ response.email }}</p>
                         </div>
                         <div>
-                          <p class="text-[10px] text-sm-muted uppercase tracking-wide">Role</p>
+                          <p class="text-2xs text-sm-muted uppercase tracking-wide">Role</p>
                           <p class="text-xs font-medium text-sm-ink dark:text-white capitalize">{{ getRoleLabel(response.role) }}</p>
                         </div>
                       </div>
@@ -570,7 +570,7 @@ function getScorePercentage(score: number): number {
                             :key="key"
                             class="text-center p-1.5 bg-sm-bg dark:bg-gray-700 rounded-lg"
                           >
-                            <p class="text-[9px] text-sm-muted truncate">{{ getQuestionLabel(key) }}</p>
+                            <p class="text-2xs text-sm-muted truncate">{{ getQuestionLabel(key) }}</p>
                             <p class="text-sm font-semibold text-sm-primary">{{ value }}</p>
                           </div>
                         </div>
@@ -584,7 +584,7 @@ function getScorePercentage(score: number): number {
                           v-show="value"
                           class="p-2.5 bg-sm-bg dark:bg-gray-700 rounded-lg"
                         >
-                          <p class="text-[10px] font-semibold text-sm-ink dark:text-white mb-1">{{ getQuestionLabel(key) }}</p>
+                          <p class="text-2xs font-semibold text-sm-ink dark:text-white mb-1">{{ getQuestionLabel(key) }}</p>
                           <p class="text-xs text-sm-muted">"{{ value }}"</p>
                         </div>
                       </div>
@@ -616,7 +616,7 @@ function getScorePercentage(score: number): number {
                     <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                       <div class="text-right">
                         <p class="text-sm sm:text-base font-semibold text-sm-primary">{{ formatScore(response.averageScore || response.totalScore / 6) }}</p>
-                        <p class="text-[10px] sm:text-xs text-sm-muted">/ 5</p>
+                        <p class="text-2xs sm:text-xs text-sm-muted">/ 5</p>
                       </div>
                       <ChevronDownIcon
                         :class="['h-4 w-4 sm:h-5 sm:w-5 text-sm-muted transition-transform', expandedResponseId === response.id && 'rotate-180']"
@@ -628,11 +628,11 @@ function getScorePercentage(score: number): number {
                     <!-- Contact Info -->
                     <div class="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
                       <div>
-                        <p class="text-[10px] sm:text-xs text-sm-muted uppercase tracking-wide">Email</p>
+                        <p class="text-2xs sm:text-xs text-sm-muted uppercase tracking-wide">Email</p>
                         <p class="text-xs sm:text-sm font-medium text-sm-ink dark:text-white break-all">{{ response.email }}</p>
                       </div>
                       <div>
-                        <p class="text-[10px] sm:text-xs text-sm-muted uppercase tracking-wide">Role</p>
+                        <p class="text-2xs sm:text-xs text-sm-muted uppercase tracking-wide">Role</p>
                         <p class="text-xs sm:text-sm font-medium text-sm-ink dark:text-white capitalize">{{ getRoleLabel(response.role) }}</p>
                       </div>
                     </div>
@@ -646,7 +646,7 @@ function getScorePercentage(score: number): number {
                           :key="key"
                           class="text-center p-1.5 sm:p-2 bg-sm-bg dark:bg-gray-700 rounded-lg"
                         >
-                          <p class="text-[10px] sm:text-xs text-sm-muted truncate">{{ getQuestionLabel(key) }}</p>
+                          <p class="text-2xs sm:text-xs text-sm-muted truncate">{{ getQuestionLabel(key) }}</p>
                           <p class="text-sm sm:text-base font-semibold text-sm-primary">{{ value }}</p>
                         </div>
                       </div>
@@ -660,7 +660,7 @@ function getScorePercentage(score: number): number {
                         v-show="value"
                         class="p-2.5 sm:p-3 bg-sm-bg dark:bg-gray-700 rounded-lg"
                       >
-                        <p class="text-[10px] sm:text-xs font-semibold text-sm-ink dark:text-white mb-1">{{ getQuestionLabel(key) }}</p>
+                        <p class="text-2xs sm:text-xs font-semibold text-sm-ink dark:text-white mb-1">{{ getQuestionLabel(key) }}</p>
                         <p class="text-xs sm:text-sm text-sm-muted">"{{ value }}"</p>
                       </div>
                     </div>
@@ -690,15 +690,15 @@ function getScorePercentage(score: number): number {
                 </div>
                 <div class="grid grid-cols-3 gap-2 pt-3 border-t border-sm-primary/10">
                   <div class="text-center">
-                    <p class="text-[10px] text-sm-muted uppercase">Responses</p>
+                    <p class="text-2xs text-sm-muted uppercase">Responses</p>
                     <p class="text-base font-semibold text-sm-ink dark:text-white">{{ getEventStats(event).count }}</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-[10px] text-sm-muted uppercase">Avg Score</p>
+                    <p class="text-2xs text-sm-muted uppercase">Avg Score</p>
                     <p class="text-sm font-semibold text-sm-primary">{{ formatScore(getEventStats(event).averageScore) }}</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-[10px] text-sm-muted uppercase">Review %</p>
+                    <p class="text-2xs text-sm-muted uppercase">Review %</p>
                     <p class="text-sm font-semibold text-sm-ink dark:text-white">{{ formatScore(getEventStats(event).reviewRedirectRate, 0) }}%</p>
                   </div>
                 </div>
@@ -721,7 +721,7 @@ function getScorePercentage(score: number): number {
                     <tr v-for="event in surveyStore.events" :key="event.id">
                       <td class="p-2 sm:p-3">
                         <p class="font-medium text-sm-ink dark:text-white text-xs sm:text-sm">{{ event.eventName }}</p>
-                        <p class="text-[10px] sm:text-xs text-sm-muted">{{ event.companyName }}</p>
+                        <p class="text-2xs sm:text-xs text-sm-muted">{{ event.companyName }}</p>
                       </td>
                       <td class="text-center p-2 sm:p-3 text-sm-ink dark:text-white">{{ getEventStats(event).count }}</td>
                       <td class="text-center p-2 sm:p-3">
@@ -809,7 +809,7 @@ function getScorePercentage(score: number): number {
             <SmCard class="bg-sm-bg dark:bg-gray-700 p-3 sm:p-4">
               <div class="pt-0 sm:pt-1">
                 <h3 class="font-semibold text-xs sm:text-sm text-sm-ink dark:text-white mb-2">How it works</h3>
-                <ul class="text-[10px] sm:text-xs text-sm-muted space-y-1 sm:space-y-1.5">
+                <ul class="text-2xs sm:text-xs text-sm-muted space-y-1 sm:space-y-1.5">
                   <li>• Guests complete the 5-question survey (each question is scored 1-5)</li>
                   <li>• Their average score is calculated (total score / 5)</li>
                   <li>• If average score >= threshold → Redirect to Google Reviews</li>

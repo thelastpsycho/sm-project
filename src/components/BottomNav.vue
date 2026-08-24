@@ -11,7 +11,7 @@
       <BellIcon class="w-5 h-5" />
       <span
         v-if="notifications.unreadCount"
-        class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sm-bad text-white text-[10px] font-bold flex items-center justify-center"
+        class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sm-bad text-white text-2xs font-bold flex items-center justify-center"
       >
         {{ notifications.unreadCount > 9 ? '9+' : notifications.unreadCount }}
       </span>

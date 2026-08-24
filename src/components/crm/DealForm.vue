@@ -25,7 +25,7 @@
       <SmSelect v-model="form.stage" label="Stage" :options="stageOptions" />
       <SmSelect v-model="ownerChoice" label="Sales Owner" :options="ownerOptions" />
     </div>
-    <p class="text-[11px] text-sm-faint -mt-3">
+    <p class="text-eyebrow text-sm-faint -mt-3">
       Confirmed = won · Lost = closed lost. The outcome follows the stage.
     </p>
 
@@ -98,7 +98,7 @@
         @update:model-value="v => (form.totalRevenue = toNum(v))"
       />
     </div>
-    <p v-if="!form.manualRevenue" class="text-[11px] text-sm-faint -mt-2">
+    <p v-if="!form.manualRevenue" class="text-eyebrow text-sm-faint -mt-2">
       Auto-calculated from Rooms × Nights × ADR (+ F&B).
     </p>
 

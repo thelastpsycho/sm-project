@@ -47,7 +47,7 @@
                 <ChevronRightIcon class="h-4 w-4 text-gray-300" />
               </button>
             </div>
-            <p v-if="capped" class="mb-2 mt-1.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+            <p v-if="capped" class="mb-2 mt-1.5 text-eyebrow font-semibold text-amber-600 dark:text-amber-400">
               Range capped at 14 days.
             </p>
 
@@ -59,7 +59,7 @@
               <img v-else-if="previewUrl" :src="previewUrl" alt="Function chart preview" class="block max-h-[52vh] w-full object-contain" />
               <div v-else class="flex items-center justify-center py-16 text-sm text-red-500">Could not render preview</div>
             </div>
-            <p class="mt-2 text-[11px] text-gray-400 dark:text-gray-500">
+            <p class="mt-2 text-eyebrow text-gray-400 dark:text-gray-500">
               All venues, up to 14 days. Sharing opens your phone's share sheet (pick WhatsApp); on desktop it downloads a JPG.
             </p>
           </div>

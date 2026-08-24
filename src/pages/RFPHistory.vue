@@ -5,7 +5,7 @@
       <div class="flex items-end justify-between gap-4">
         <div>
           <span class="sm-eyebrow">Requests for proposal</span>
-          <h1 class="sm-display text-[30px] mt-2">{{ rfps.length }} RFP{{ rfps.length === 1 ? '' : 's' }}</h1>
+          <h1 class="sm-display text-display mt-2">{{ rfps.length }} RFP{{ rfps.length === 1 ? '' : 's' }}</h1>
         </div>
         <router-link
           to="/rfp/new"
@@ -48,7 +48,7 @@
           >
             <div class="flex items-center gap-3 px-1 py-4">
               <div class="flex-[2.4] min-w-0">
-                <p class="text-[15px] font-bold text-sm-ink dark:text-white truncate">{{ rfp.full_company_name || 'Untitled Company' }}</p>
+                <p class="text-smd font-bold text-sm-ink dark:text-white truncate">{{ rfp.full_company_name || 'Untitled Company' }}</p>
                 <!-- mobile meta -->
                 <p class="sm:hidden text-xs text-sm-muted mt-0.5 truncate">
                   {{ rfp.pic_name }} · {{ rfp.number_of_participants || 0 }} pax · {{ formatDate(rfp.updatedAt) }}
@@ -68,7 +68,7 @@
                 :href="rfp.link_to_pdf"
                 target="_blank"
                 @click.stop
-                class="inline-flex items-center gap-1.5 text-[11px] font-bold text-sm-primary hover:underline"
+                class="inline-flex items-center gap-1.5 text-eyebrow font-bold text-sm-primary hover:underline"
               >
                 <DocumentTextIcon class="w-3.5 h-3.5" />
                 View PDF proposal

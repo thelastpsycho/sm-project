@@ -7,7 +7,7 @@
       <img src="/logo-theanvaya.svg" alt="The Anvaya" class="h-[34px] w-auto self-start dark:invert dark:brightness-0" />
 
       <div>
-        <h1 class="sm-display text-[34px] leading-[1.05] mb-10">Sales<br />Management</h1>
+        <h1 class="sm-display text-hero leading-[1.05] mb-10">Sales<br />Management</h1>
 
         <form class="space-y-7" @submit.prevent="onSubmit">
           <SmInput
@@ -31,10 +31,10 @@
             required
           />
 
-          <p v-if="error" class="text-sm-bad text-[13px] font-semibold">
+          <p v-if="error" class="text-sm-bad text-xsm font-semibold">
             {{ error }}
           </p>
-          <p v-if="resetSent" class="text-sm-won text-[13px] font-semibold">
+          <p v-if="resetSent" class="text-sm-won text-xsm font-semibold">
             Password reset link sent — check your email.
           </p>
           <!-- Keeps Enter-to-submit working now that the visible button lives in the footer. -->
@@ -46,7 +46,7 @@
         <SmButton type="submit" size="lg" :loading="loading" class="w-full" @click="onSubmit">Sign in</SmButton>
         <button
           type="button"
-          class="w-full text-center text-[13px] font-semibold text-sm-muted hover:text-sm-ink dark:hover:text-white transition-colors"
+          class="w-full text-center text-xsm font-semibold text-sm-muted hover:text-sm-ink dark:hover:text-white transition-colors"
           :disabled="loading"
           @click="onForgotPassword"
         >

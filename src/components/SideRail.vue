@@ -39,18 +39,18 @@
         Notifications
         <span
           v-if="notifications.unreadCount"
-          class="min-w-[18px] h-[18px] px-1 rounded-full bg-sm-bad text-white text-[10px] font-bold flex items-center justify-center"
+          class="min-w-[18px] h-[18px] px-1 rounded-full bg-sm-bad text-white text-2xs font-bold flex items-center justify-center"
         >{{ notifications.unreadCount > 9 ? '9+' : notifications.unreadCount }}</span>
       </button>
 
-      <div v-if="user" class="text-[13px] leading-snug text-sm-muted">
+      <div v-if="user" class="text-xsm leading-snug text-sm-muted">
         <div class="font-bold text-sm-ink dark:text-gray-100">{{ user.name }}</div>
         <div class="text-sm-faint dark:text-gray-500">{{ user.position || roleLabel }}</div>
       </div>
 
       <button
         type="button"
-        class="flex items-center gap-2 text-[13px] font-bold text-sm-bad hover:text-red-700 transition-colors"
+        class="flex items-center gap-2 text-xsm font-bold text-sm-bad hover:text-red-700 transition-colors"
         @click="handleLogout"
       >
         <ArrowRightOnRectangleIcon class="w-4 h-4" />

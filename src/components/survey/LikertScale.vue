@@ -64,7 +64,7 @@ function selectOption(value: number) {
           class="flex-1 text-center"
         >
           <span :class="[
-            'text-[11px] sm:text-xs transition-all leading-relaxed block capitalize',
+            'text-eyebrow sm:text-xs transition-all leading-relaxed block capitalize',
             modelValue === option.value ? 'text-teal-600 font-medium' : 'text-gray-400'
           ]">{{ option.label }}</span>
         </div>

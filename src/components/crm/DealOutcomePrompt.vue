@@ -50,7 +50,7 @@
               :placeholder="String(deal?.totalRevenue ?? 0)"
               @update:model-value="onActualInput"
             />
-            <p class="text-[11px] text-sm-faint">
+            <p class="text-eyebrow text-sm-faint">
               Estimated {{ formatMoney(deal?.totalRevenue, deal?.currency) }} — adjust to the real booked amount.
             </p>
           </div>

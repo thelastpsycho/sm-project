@@ -10,6 +10,27 @@ export default {
       fontFamily: {
         sans: ['"Nunito Sans"', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
       },
+      // Unified type scale — the single source of truth for every text size.
+      // Change a value here to resize everywhere that uses the matching class.
+      // Standard steps (xs..2xl) keep Tailwind's default line-heights so
+      // existing text is unchanged; the extra named steps absorb what used to
+      // be hardcoded arbitrary sizes (text-[13px], text-[26px]…).
+      fontSize: {
+        '2xs':     ['10px', '14px'], // tiny badges, chart ticks
+        'eyebrow': ['11px', '14px'], // uppercase micro-labels
+        'xs':      ['12px', '16px'],
+        'xsm':     ['13px', '18px'], // dense secondary text
+        'sm':      ['14px', '20px'], // body default
+        'smd':     ['15px', '22px'], // emphasized body / list titles
+        'base':    ['16px', '24px'],
+        'md':      ['17px', '24px'],
+        'lg':      ['18px', '28px'], // section subheads
+        'xl':      ['20px', '28px'],
+        'title':   ['23px', '27px'], // secondary page titles
+        '2xl':     ['24px', '32px'],
+        'display': ['26px', '29px'], // primary page titles
+        'hero':    ['30px', '32px'], // brand / splash headline
+      },
       screens: {
         'xs': '375px',
         'sm': '640px',

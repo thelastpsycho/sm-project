@@ -56,7 +56,7 @@
               <span class="mt-1.5 w-2 h-2 rounded-full shrink-0" :class="dotClass(a.severity)"></span>
               <div class="min-w-0 flex-1">
                 <p class="text-sm text-gray-800 dark:text-gray-100">{{ a.message }}</p>
-                <p class="text-[11px] text-gray-400 mt-0.5">
+                <p class="text-eyebrow text-gray-400 mt-0.5">
                   {{ typeLabel[a.type] }} · {{ formatDate(a.since) }}
                 </p>
               </div>
@@ -74,7 +74,7 @@
               <BellAlertIcon class="w-4 h-4" />
               {{ enabling ? 'Enabling…' : 'Enable push notifications' }}
             </button>
-            <p v-if="pushMessage" class="text-[11px] text-center text-gray-500 dark:text-gray-400">
+            <p v-if="pushMessage" class="text-eyebrow text-center text-gray-500 dark:text-gray-400">
               {{ pushMessage }}
             </p>
             <SmButton

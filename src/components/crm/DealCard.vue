@@ -6,10 +6,10 @@
     :class="{ 'drag-locked cursor-pointer': locked }"
   >
     <div class="flex items-start justify-between gap-2.5">
-      <h4 class="font-bold text-[15px] tracking-[-0.01em] text-sm-ink dark:text-white leading-snug line-clamp-2">
+      <h4 class="font-bold text-smd tracking-[-0.01em] text-sm-ink dark:text-white leading-snug line-clamp-2">
         {{ deal.company }}
       </h4>
-      <span class="shrink-0 text-[11px] font-bold uppercase tracking-[0.06em] mt-0.5" :class="segmentBadgeClass">
+      <span class="shrink-0 text-eyebrow font-bold uppercase tracking-[0.06em] mt-0.5" :class="segmentBadgeClass">
         {{ deal.segment }}
       </span>
     </div>
@@ -47,7 +47,7 @@
 
     <div
       v-if="deal.actionDueDate"
-      class="mt-1 flex items-center gap-1 text-[11px]"
+      class="mt-1 flex items-center gap-1 text-eyebrow"
       :class="overdue ? 'text-sm-bad font-bold' : 'text-sm-faint'"
     >
       <ClockIcon class="w-3 h-3 shrink-0" />
