@@ -9,8 +9,8 @@
 //  - `pipeline:edit` / `pipeline:delete` are ALSO enforced server-side via Firebase
 //    custom claims (`editAll` / `canDelete`) — see api/admin/users.ts + firestore.rules.
 //  - Function / Survey actions are UI-gated only, because those Firestore collections
-//    are public / PIN-based (see firestore.rules). The buttons hide, but the DB
-//    doesn't reject — acceptable for these internal, PIN-guarded tools.
+//    are public (see firestore.rules). The buttons/pages hide based on the signed-in
+//    user's role, but the DB doesn't reject — acceptable for these internal tools.
 
 export type Permission = string // `${resource}:${action}`
 

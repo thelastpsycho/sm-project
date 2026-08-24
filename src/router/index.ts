@@ -12,10 +12,8 @@ import Users from '@/pages/Users.vue'
 import FunctionChart from '@/pages/FunctionChart.vue'
 import Survey from '@/pages/Survey.vue'
 import SurveyThankYou from '@/pages/SurveyThankYou.vue'
-import SurveyAdminLogin from '@/pages/SurveyAdminLogin.vue'
 import SurveyAdmin from '@/pages/SurveyAdmin.vue'
 import { useSessionStore } from '@/stores/session'
-import { useAdminStore } from '@/stores/admin'
 import { usePermissionsStore } from '@/stores/permissions'
 import type { Permission } from '@/lib/permissions'
 
@@ -102,17 +100,12 @@ const router = createRouter({
       name: 'survey-thank-you',
       component: SurveyThankYou
     },
-    // Survey Routes (Admin)
-    {
-      path: '/survey/admin/login',
-      name: 'survey-admin-login',
-      component: SurveyAdminLogin
-    },
+    // Survey Admin — gated by the normal role/permission session (no separate PIN)
     {
       path: '/survey/admin',
       name: 'survey-admin',
       component: SurveyAdmin,
-      meta: { requiresAdminAuth: true }
+      meta: { requiresPermission: 'survey:view' }
     }
   ]
 })
@@ -120,19 +113,10 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const sessionStore = useSessionStore()
 
-  // Check for admin auth on survey admin routes
-  if (to.meta.requiresAdminAuth) {
-    const adminStore = useAdminStore()
-    adminStore.checkAuth()
-    if (!adminStore.isAuthenticated) {
-      next({ name: 'survey-admin-login' })
-      return
-    }
-  }
-
-  // Regular session auth for app routes
-  if (to.path.startsWith('/survey/')) {
-    // Survey routes don't need session auth
+  // Guest survey routes are public (no app session). The admin panel
+  // (survey-admin) is NOT public — it falls through to the normal session +
+  // permission gating below, using the signed-in user's role.
+  if (to.path.startsWith('/survey/') && to.name !== 'survey-admin') {
     next()
     return
   }

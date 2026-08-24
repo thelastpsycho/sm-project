@@ -6,7 +6,6 @@ import SmButton from '@/components/ui/SmButton.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmPage from '@/components/ui/SmPage.vue'
 import { useSurveyStore } from '@/stores/survey'
-import { useAdminStore } from '@/stores/admin'
 import { useSessionStore } from '@/stores/session'
 import { usePermissionsStore } from '@/stores/permissions'
 import { generateSurveyUrl, copyToClipboard, formatScore, getQuestionLabel, getRoleLabel } from '@/lib/surveyUtils'
@@ -38,13 +37,12 @@ useHead({
 
 const router = useRouter()
 const surveyStore = useSurveyStore()
-const adminStore = useAdminStore()
 const session = useSessionStore()
 const permissions = usePermissionsStore()
 
 // Granular Survey permissions (client-side gating; the survey collections are public
-// in firestore.rules). A PIN-only guest with no app session resolves to the default
-// role, preserving the prior open behavior.
+// in firestore.rules). Access to this page requires 'survey:view' (enforced by the
+// router), and each action is further gated by the signed-in user's role.
 const canCreate = computed(() => permissions.has(session.currentUser, 'survey:create'))
 const canEdit = computed(() => permissions.has(session.currentUser, 'survey:edit'))
 const canDelete = computed(() => permissions.has(session.currentUser, 'survey:delete'))
@@ -116,11 +114,6 @@ const stats = computed(() => {
 })
 
 onMounted(async () => {
-  adminStore.checkAuth()
-  if (!adminStore.isAuthenticated) {
-    router.push('/survey/admin/login')
-    return
-  }
   await surveyStore.loadAllData()
   permissions.load() // hydrate the role matrix so survey action gating is accurate
   settings.value = {
@@ -130,9 +123,8 @@ onMounted(async () => {
   }
 })
 
-function handleLogout() {
-  adminStore.logout()
-  router.push('/survey/admin/login')
+function handleExit() {
+  router.push('/')
 }
 
 async function handleCreateEvent() {
@@ -236,9 +228,9 @@ function getScorePercentage(score: number): number {
               />
               <p class="text-2xs sm:text-xs text-sm-muted hidden xs:block">MICE Survey Admin</p>
             </div>
-            <SmButton variant="secondary" @click="handleLogout" class="text-xs py-2 px-3 sm:px-4 text-sm-muted flex-shrink-0">
+            <SmButton variant="secondary" @click="handleExit" class="text-xs py-2 px-3 sm:px-4 text-sm-muted flex-shrink-0">
               <ArrowRightOnRectangleIcon class="h-4 w-4" />
-              <span class="hidden sm:inline ml-1.5">Logout</span>
+              <span class="hidden sm:inline ml-1.5">Back to app</span>
             </SmButton>
           </div>
         </div>
