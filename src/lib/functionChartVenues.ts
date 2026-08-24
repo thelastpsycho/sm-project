@@ -19,15 +19,11 @@ export const VENUE_STRUCTURE: VenueRow[] = [
   { type: 'venue', label: 'CELAGI' },
   { type: 'venue', label: 'CEMARA' },
   { type: 'venue', label: 'CEPAKA' },
-  { type: 'venue', label: 'EX GM' },
-  { type: 'venue', label: 'BUSINESS CENTER' },
   { type: 'cat', label: 'BALLROOM' },
   { type: 'venue', label: 'ANVAYA 1' },
   { type: 'venue', label: 'ANVAYA 2' },
   { type: 'venue', label: 'ANVAYA 3' },
-  { type: 'venue', label: 'MOCK UP ROOM' },
-  { type: 'venue', label: 'SECRETARIAT ROOM' },
-  { type: 'venue', label: 'SECRETARIAT 1' },
+  { type: 'venue', label: 'RUANG KACE' },
   { type: 'venue', label: 'SECRETARIAT 2' },
   { type: 'venue', label: 'HOLDING VIP' },
   { type: 'venue', label: 'CONCIERGE DELUXE' },
@@ -58,9 +54,19 @@ const norm = (s: string) => s.trim().toUpperCase().replace(/\s+/g, ' ')
 // resolves to the canonical label.
 const CANON_BY_NORM = new Map<string, string>(VENUE_LIST.map((v) => [norm(v), v]))
 
+// Aliases for retired/renamed venues, remapped onto a surviving room so their
+// existing bookings are preserved rather than dropped. BUSINESS CENTER was merged
+// into RUANG KACE, which was itself renamed from SECRETARIAT 1.
+const VENUE_ALIASES: Record<string, string> = {
+  'BUSINESS CENTER': 'RUANG KACE',
+  'SECRETARIAT 1': 'RUANG KACE'
+}
+
 /** Resolve a raw venue label to its canonical form, or null if unknown. */
 export function canonicalVenue(raw: string): string | null {
-  return CANON_BY_NORM.get(norm(raw)) ?? null
+  const key = norm(raw)
+  const aliased = VENUE_ALIASES[key]
+  return CANON_BY_NORM.get(aliased ? norm(aliased) : key) ?? null
 }
 
 // ---------------------------------------------------------------------------
@@ -83,7 +89,8 @@ export const COMBO_GROUPS: ComboGroup[] = [
   { rooms: ['KELAPA', 'KEMANGI'] },
   { rooms: ['JEPUN', 'PUCUK'] },
   { rooms: ['CELAGI', 'CEMARA', 'CEPAKA'] },
-  { rooms: ['ANVAYA 1', 'ANVAYA 2', 'ANVAYA 3'], comboLabel: 'GRAND BALLROOM' }
+  { rooms: ['ANVAYA 1', 'ANVAYA 2', 'ANVAYA 3'], comboLabel: 'GRAND BALLROOM' },
+  { rooms: ['SANDS PAVILLION', 'SANDS DECK'] }
 ]
 
 const GROUP_BY_ROOM = new Map<string, ComboGroup>()
