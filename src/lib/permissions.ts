@@ -39,7 +39,8 @@ export const PERMISSION_CATALOG: PermissionGroup[] = [
     actions: [
       { key: 'view', label: 'View' },
       { key: 'create', label: 'Create' },
-      { key: 'edit', label: 'Edit' },
+      { key: 'edit', label: 'Edit (all)' },
+      { key: 'edit-own', label: 'Edit (own)' },
       { key: 'delete', label: 'Delete' },
       { key: 'report', label: 'View report' }
     ]
@@ -114,8 +115,8 @@ export type RoleMatrix = Record<string, Permission[]>
 
 // ---- Built-in role defaults (starting points; admins reconfigure freely) ----
 // These preserve prior behavior: everyone reaches every screen; sales edits their
-// OWN leads (via the owner rule, so no `pipeline:edit`) and can't delete; manager
-// edits any lead; admin can do everything including delete + Team & Access.
+// OWN leads (`pipeline:edit-own`) and can't delete; manager edits any lead
+// (`pipeline:edit`); admin can do everything including delete + Team & Access.
 const VIEW_ALL: Permission[] = [
   'home:access',
   'chat:access',
@@ -136,7 +137,12 @@ const NON_PIPELINE_CRUD: Permission[] = [
   'rfp:create',
   'rfp:edit'
 ]
-const SALES_BASE: Permission[] = [...VIEW_ALL, 'pipeline:create', ...NON_PIPELINE_CRUD]
+const SALES_BASE: Permission[] = [
+  ...VIEW_ALL,
+  'pipeline:create',
+  'pipeline:edit-own',
+  ...NON_PIPELINE_CRUD
+]
 
 export const DEFAULT_ROLE_PERMISSIONS: RoleMatrix = {
   admin: [...ALL_PERMISSIONS],

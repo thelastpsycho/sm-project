@@ -76,11 +76,15 @@ export function canDeleteDeals(user: SessionUserLike): boolean {
 /**
  * Edit rights on a lead:
  *  - anyone with `pipeline:edit` can edit any lead (server-enforced via editAll claim);
- *  - an unassigned lead (no owner) can be edited/claimed by anyone logged in;
- *  - otherwise only the sales owner (matched by email) can edit their own lead.
+ *  - with `pipeline:edit-own`, the sales owner (matched by email) edits their own lead,
+ *    and an unassigned lead (no owner) can be edited/claimed;
+ *  - without either permission, the lead is read-only.
+ * Own-editing is a client gate; firestore.rules still enforces owner/unassigned writes.
  */
 export function canEditDeal(user: SessionUserLike, deal: Pick<Deal, 'ownerId'>): boolean {
-  if (roleHas(effectiveRole(user), 'pipeline:edit')) return true
+  const role = effectiveRole(user)
+  if (roleHas(role, 'pipeline:edit')) return true
+  if (!roleHas(role, 'pipeline:edit-own')) return false
   if (!deal.ownerId) return true
   return !!user?.email && deal.ownerId === user.email
 }
