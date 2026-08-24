@@ -7,12 +7,14 @@ import { useThemeStore } from '@/stores/theme'
 import { useSessionStore } from '@/stores/session'
 import { useCrmStore } from '@/stores/crm'
 import { usePermissionsStore } from '@/stores/permissions'
+import { useUiStore } from '@/stores/ui'
 import { listenForegroundPush } from '@/lib/push'
 
 const themeStore = useThemeStore()
 const session = useSessionStore()
 const crm = useCrmStore()
 const permissions = usePermissionsStore()
+const ui = useUiStore()
 const route = useRoute()
 
 onMounted(() => {
@@ -44,7 +46,7 @@ const showNav = computed(() => !['login', 'survey'].includes(route.name as strin
   <div class="relative min-h-screen overflow-x-hidden safe-area-top bg-sm-bg dark:bg-sm-bg-dark transition-colors duration-300">
     <SideRail v-if="showNav" />
 
-    <div :class="showNav ? 'lg:pl-[232px]' : ''">
+    <div class="transition-[padding] duration-200" :class="showNav ? (ui.railCollapsed ? 'lg:pl-[72px]' : 'lg:pl-[232px]') : ''">
       <router-view v-slot="{ Component }">
         <transition
           name="fade"
