@@ -5,6 +5,7 @@
 // depends on theme, scroll position, fonts, or Tailwind color parsing.
 
 import { VENUE_STRUCTURE, canonicalVenue, comboName } from '@/lib/functionChartVenues'
+import { baliToday } from '@/lib/time'
 import { FUNCTION_STATUSES, STATUS_META } from '@/types/functionChart'
 import type { FunctionBooking, FunctionStatus } from '@/types/functionChart'
 
@@ -98,7 +99,7 @@ export async function renderChartToBlob(opts: RenderOpts): Promise<Blob> {
   const subtitle = opts.subtitle ?? 'The Anvaya Bali · Sales & Events'
   const startDate = opts.startDate
   const endDate = shiftISO(startDate, days - 1)
-  const todayISO = new Date().toISOString().slice(0, 10)
+  const todayISO = baliToday()
 
   // Day columns for the window.
   const cols = Array.from({ length: days }, (_, i) => {

@@ -73,6 +73,7 @@
 <script setup lang="ts">
 import type { Deal, DealStage } from '@/types/crm'
 import { formatMoney, formatDate, dealOutcome } from '@/lib/crmUtils'
+import { baliToday } from '@/lib/time'
 
 defineProps<{ deals: Deal[] }>()
 const emit = defineEmits<{ open: [deal: Deal] }>()
@@ -95,11 +96,8 @@ function initials(name?: string): string {
   return (parts[0]![0]! + (parts[1]?.[0] ?? '')).toUpperCase()
 }
 
-// Local (not UTC) calendar day so "today"/"overdue" match the user's clock.
-const now = new Date()
-const todayIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-  .toISOString()
-  .slice(0, 10)
+// Bali calendar day so "today"/"overdue" match the property's clock.
+const todayIso = baliToday()
 
 const isOpen = (d: Deal) => dealOutcome(d) === 'open'
 const isOverdue = (d: Deal) => isOpen(d) && !!d.actionDueDate && d.actionDueDate < todayIso

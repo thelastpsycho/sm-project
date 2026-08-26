@@ -426,6 +426,7 @@ import ShareChartDialog from '@/components/functionchart/ShareChartDialog.vue'
 import MobileCalendar from '@/components/functionchart/MobileCalendar.vue'
 import { useFunctionChartStore } from '@/stores/functionChart'
 import { useSessionStore } from '@/stores/session'
+import { baliToday, baliDateParts } from '@/lib/time'
 import { usePermissionsStore } from '@/stores/permissions'
 import { comboName } from '@/lib/functionChartVenues'
 import { FUNCTION_STATUSES, STATUS_META, STATUS_STYLE } from '@/types/functionChart'
@@ -444,9 +445,9 @@ const canCreate = computed(() => permissions.has(session.currentUser, 'function:
 const canEdit = computed(() => permissions.has(session.currentUser, 'function:edit'))
 const canDelete = computed(() => permissions.has(session.currentUser, 'function:delete'))
 
-const now = new Date()
-const year = ref(now.getFullYear())
-const monthIndex = ref(now.getMonth())
+const nowParts = baliDateParts()
+const year = ref(nowParts.year)
+const monthIndex = ref(nowParts.monthIndex)
 const rowH = ROW_H
 
 const q = ref('')
@@ -456,9 +457,9 @@ const selectedDay = ref('') // shared with MobileCalendar (v-model); set on jump
 
 // `today` as a reactive ref so the highlight and the “Today” button stay correct
 // if the page is left open across midnight (refreshed when the tab regains focus).
-const todayISO = ref(new Date().toISOString().slice(0, 10))
+const todayISO = ref(baliToday())
 function syncToday() {
-  const t = new Date().toISOString().slice(0, 10)
+  const t = baliToday()
   if (t !== todayISO.value) todayISO.value = t
 }
 
@@ -516,9 +517,9 @@ const { days, monthStart, gridStyle, lines, bookingBlocks, stats } = useFunction
 // Is the visible month the current real-world month? Drives the “Today” button.
 const isViewingToday = computed(() => monthStart.value.slice(0, 7) === todayISO.value.slice(0, 7))
 async function goToToday() {
-  const t = new Date()
-  year.value = t.getFullYear()
-  monthIndex.value = t.getMonth()
+  const t = baliDateParts()
+  year.value = t.year
+  monthIndex.value = t.monthIndex
   selectedDay.value = todayISO.value // surfaces today in the mobile agenda
   // Desktop: scroll today's column into view (the grid is a horizontal scroller).
   await nextTick()

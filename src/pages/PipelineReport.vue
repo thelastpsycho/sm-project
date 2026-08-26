@@ -239,6 +239,7 @@ import { useCrmStore } from '@/stores/crm'
 import { DEAL_OUTCOMES, DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStage } from '@/types/crm'
 import { formatMoney, formatDate, isOverdue, dealOutcome, wonRevenue } from '@/lib/crmUtils'
+import { baliToday, toBaliISO } from '@/lib/time'
 import userData from '@/user.json'
 
 const store = useCrmStore()
@@ -481,13 +482,8 @@ const overdue = computed(() =>
     .sort((a, b) => (a.actionDueDate ?? '').localeCompare(b.actionDueDate ?? ''))
 )
 const upcoming = computed(() => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const in30 = new Date(today)
-  in30.setDate(in30.getDate() + 30)
-  const toIso = (d: Date) => d.toISOString().slice(0, 10)
-  const lo = toIso(today)
-  const hi = toIso(in30)
+  const lo = baliToday()
+  const hi = toBaliISO(Date.now() + 30 * 86_400_000)
   return deals.value
     .filter(d => isOpen(d) && d.actionDueDate && d.actionDueDate >= lo && d.actionDueDate <= hi)
     .sort((a, b) => (a.actionDueDate ?? '').localeCompare(b.actionDueDate ?? ''))

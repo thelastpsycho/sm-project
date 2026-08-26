@@ -4,6 +4,7 @@ import type { Deal, DealOutcome, DealStage } from '@/types/crm'
 import type { UserRole } from '@/types/user'
 import { roleHas } from '@/lib/roles'
 import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
+import { baliToday } from '@/lib/time'
 
 /**
  * Derived outcome of a deal from its stage (the single pipeline axis).
@@ -127,14 +128,11 @@ export function formatMoney(value?: number, currency = 'IDR'): string {
   return `${currency} ${Math.round(value).toLocaleString('en-US')}`
 }
 
-/** True when an action due date is in the past (compared by calendar day). */
+/** True when an action due date is in the past, by Bali calendar day. */
 export function isOverdue(actionDueDate?: string): boolean {
   if (!actionDueDate) return false
-  const due = new Date(actionDueDate)
-  if (isNaN(due.getTime())) return false
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  return due < today
+  // actionDueDate is a 'YYYY-MM-DD' day; lexical compare against Bali's today.
+  return actionDueDate.slice(0, 10) < baliToday()
 }
 
 /** Short human date, e.g. "19 Jan 2026". */

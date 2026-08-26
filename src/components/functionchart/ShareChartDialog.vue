@@ -110,6 +110,7 @@ import { ref, computed, watch } from 'vue'
 import { XMarkIcon, ShareIcon, CalendarIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import DateRangePicker from '@/components/DateRangePicker.vue'
 import { renderChartToBlob, shareOrDownload, dateRangeLabel, shiftISO, diffDays } from '@/lib/functionChartImage'
+import { baliToday } from '@/lib/time'
 import type { FunctionBooking } from '@/types/functionChart'
 
 const MAX_DAYS = 14
@@ -117,7 +118,7 @@ const MAX_DAYS = 14
 const props = defineProps<{ open: boolean; functions: FunctionBooking[] }>()
 const emit = defineEmits<{ close: [] }>()
 
-const today = new Date().toISOString().slice(0, 10)
+const today = baliToday()
 const startDate = ref(today)
 const endDate = ref(shiftISO(today, 6)) // default: a 7-day window
 const showPicker = ref(false)

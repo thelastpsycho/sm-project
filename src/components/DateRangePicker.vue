@@ -106,6 +106,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
+import { baliToday, baliDateParts } from '@/lib/time'
 
 const props = withDefaults(defineProps<{
   initialStart?: string
@@ -129,7 +130,14 @@ const monthNames = [
 ]
 
 // Open on the month of the already-selected date, else the current month.
-const currentDate = ref(props.initialStart ? new Date(props.initialStart + 'T00:00:00') : new Date())
+const currentDate = ref(
+  props.initialStart
+    ? new Date(props.initialStart + 'T00:00:00')
+    : (() => {
+        const { year, monthIndex, day } = baliDateParts()
+        return new Date(year, monthIndex, day)
+      })()
+)
 const start = ref<string>(props.initialStart || '')
 const end = ref<string>(props.initialEnd || '')
 
@@ -187,16 +195,12 @@ const handleDateClick = (dateString: string) => {
   }
 }
 
-const isToday = (dateString: string) => {
-  const today = new Date().toISOString().split('T')[0]
-  return dateString === today
-}
+const isToday = (dateString: string) => dateString === baliToday()
 
 const isPast = (dateString: string) => {
   if (props.allowPast) return false
-  const today = new Date()
-  today.setHours(0,0,0,0)
-  return new Date(dateString) < today
+  // Both sides are 'YYYY-MM-DD' Bali calendar days — lexical compare is correct.
+  return dateString < baliToday()
 }
 
 const isStart = (dateString: string) => start.value === dateString

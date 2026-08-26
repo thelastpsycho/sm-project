@@ -123,6 +123,7 @@ import { VENUE_LIST, comboGroupOf, comboName } from '@/lib/functionChartVenues'
 import userData from '@/user.json'
 import { useSessionStore } from '@/stores/session'
 import { useFunctionChartStore } from '@/stores/functionChart'
+import { baliToday } from '@/lib/time'
 
 const props = withDefaults(
   defineProps<{
@@ -139,7 +140,7 @@ const session = useSessionStore()
 const store = useFunctionChartStore()
 
 function today(): string {
-  return new Date().toISOString().slice(0, 10)
+  return baliToday()
 }
 
 function blank(): NewFunctionBooking {

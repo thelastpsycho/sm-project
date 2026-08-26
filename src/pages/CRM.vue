@@ -303,6 +303,7 @@ import { DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStage, NewDeal } from '@/types/crm'
 import { formatMoney, canDeleteDeals, canEditDeal, canCreateDeal, dealOutcome, isDealIdle, wonRevenue } from '@/lib/crmUtils'
 import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
+import { baliToday } from '@/lib/time'
 import userData from '@/user.json'
 import { useSessionStore } from '@/stores/session'
 
@@ -542,13 +543,14 @@ type QueueChip = 'all' | 'overdue' | 'stuck' | 'today' | 'mine'
 const queueChip = ref<QueueChip>('all')
 
 const todayLabel = computed(() =>
-  now.value.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })
+  now.value.toLocaleDateString('en-US', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'Asia/Makassar'
+  })
 )
 
-// Local (not UTC) YYYY-MM-DD so "today"/"overdue" match the user's calendar day.
-function localISO(d: Date): string {
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
-}
 function daysSince(iso: string): number {
   const a = new Date(iso + 'T00:00:00').getTime()
   return Math.floor((now.value.getTime() - a) / 86_400_000)
@@ -567,7 +569,7 @@ interface QueueDeal extends Deal {
 // Each open deal falls into the first bucket it matches: overdue action, else due
 // today, else "stuck" (in-stage longer than the stage SLA).
 const queueBuckets = computed(() => {
-  const todayIso = localISO(now.value)
+  const todayIso = baliToday()
   const overdue: QueueDeal[] = []
   const today: QueueDeal[] = []
   const stuck: QueueDeal[] = []
