@@ -83,8 +83,3 @@ export interface PipelineEvent {
   at: Date
 }
 export type NewPipelineEvent = Omit<PipelineEvent, 'id'>
-
-// A seed row from src/data/dealsSeed.json — same shape without id/timestamps,
-// and with optional fields possibly absent.
-export type SeedDeal = Partial<NewDeal> &
-  Pick<Deal, 'company' | 'segment' | 'leadSource' | 'ownerName' | 'currency'>

@@ -143,11 +143,9 @@
       </div>
     </div>
 
-    <!-- Empty state / import -->
+    <!-- Empty state -->
     <div v-if="store.deals.length === 0 && !store.loading" class="text-center py-16">
-      <p class="text-sm-muted mb-4">No deals yet.</p>
-      <SmButton :loading="store.importing" @click="runImport">Import existing pipeline</SmButton>
-      <p class="text-xs text-sm-faint mt-2">Loads your spreadsheet deals into the board (one time).</p>
+      <p class="text-sm-muted">No deals yet.</p>
     </div>
 
     <!-- Loading -->
@@ -745,11 +743,6 @@ function onDelete() {
       modalOpen.value = false
     }
   })
-}
-
-async function runImport() {
-  const count = await store.importSeedDeals()
-  if (count === 0) alert('Pipeline already has deals — import skipped.')
 }
 
 // ---- Lost / Won drag prompt ----

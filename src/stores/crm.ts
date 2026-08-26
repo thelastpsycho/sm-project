@@ -17,10 +17,9 @@ import {
 } from 'firebase/firestore'
 import { db, COLLECTIONS } from '@/lib/firebase'
 import { DEAL_STAGES } from '@/types/crm'
-import type { Deal, DealComment, DealStage, NewDeal, NewPipelineEvent, SeedDeal } from '@/types/crm'
+import type { Deal, DealComment, DealStage, NewDeal, NewPipelineEvent } from '@/types/crm'
 import { applyRevenueCalc } from '@/lib/crmUtils'
 import { useSessionStore } from './session'
-import dealsSeed from '@/data/dealsSeed.json'
 
 // Legacy status → stage mapping. Used to fill `stage` on any doc that predates the
 // status/stage merge (defensive; the real data is fixed by scripts/mergeStatusIntoStage.mjs).
@@ -34,7 +33,6 @@ export const useCrmStore = defineStore('crm', () => {
   // State
   const deals = ref<Deal[]>([])
   const loading = ref(false)
-  const importing = ref(false)
   const error = ref<string | null>(null)
   // Comments keyed by deal id (deals/{id}/comments subcollection).
   const comments = ref<Record<string, DealComment[]>>({})
@@ -339,47 +337,6 @@ export const useCrmStore = defineStore('crm', () => {
     }
   }
 
-  /**
-   * One-time bulk import of the team's existing pipeline (src/data/dealsSeed.json).
-   * Guarded: only runs when the collection is empty, so it never double-imports.
-   * Returns the number of deals imported (0 if skipped).
-   */
-  async function importSeedDeals(): Promise<number> {
-    importing.value = true
-    error.value = null
-    try {
-      // Guard against double-import.
-      const existing = await getDocs(collection(db, COLLECTIONS.DEALS))
-      if (!existing.empty) return 0
-
-      const seed = dealsSeed as (SeedDeal & { status?: string })[]
-      const now = new Date()
-      // Firestore batches are capped at 500 writes.
-      for (let i = 0; i < seed.length; i += 400) {
-        const batch = writeBatch(db)
-        for (const row of seed.slice(i, i + 400)) {
-          const { status, ...rest } = row
-          const ref = doc(collection(db, COLLECTIONS.DEALS))
-          batch.set(ref, {
-            ownerId: '',
-            ...rest,
-            stage: rest.stage ?? legacyStatusToStage(status),
-            createdAt: now,
-            updatedAt: now
-          })
-        }
-        await batch.commit()
-      }
-      return seed.length
-    } catch (err) {
-      error.value = 'Failed to import pipeline'
-      console.error('Error importing seed deals:', err)
-      throw err
-    } finally {
-      importing.value = false
-    }
-  }
-
   // ---- Comments (per-deal, team-visible) ----
   async function loadComments(dealId: string) {
     commentsLoading.value = true
@@ -453,7 +410,6 @@ export const useCrmStore = defineStore('crm', () => {
     // State
     deals,
     loading,
-    importing,
     error,
     comments,
     commentsLoading,
@@ -468,7 +424,6 @@ export const useCrmStore = defineStore('crm', () => {
     moveToLost,
     moveToWon,
     deleteDeal,
-    importSeedDeals,
     loadComments,
     addComment,
     deleteComment
