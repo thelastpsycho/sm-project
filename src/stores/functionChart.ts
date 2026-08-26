@@ -7,21 +7,15 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  deleteField,
-  writeBatch,
   query,
   orderBy
 } from 'firebase/firestore'
 import { db, COLLECTIONS } from '@/lib/firebase'
 import type { FunctionBooking, FunctionStatus, NewFunctionBooking } from '@/types/functionChart'
-import { buildSeedBookings, type Month } from '@/lib/functionChart'
-import { canonicalVenue } from '@/lib/functionChartVenues'
-import legacyChartData from '@/data/functionChart.json'
 
 export const useFunctionChartStore = defineStore('functionChart', () => {
   const functions = ref<FunctionBooking[]>([])
   const loading = ref(false)
-  const seeding = ref(false)
   const error = ref<string | null>(null)
 
   function mapDoc(d: { id: string; data: () => Record<string, any> }): FunctionBooking {
@@ -115,131 +109,14 @@ export const useFunctionChartStore = defineStore('functionChart', () => {
     }
   }
 
-  /**
-   * One-time cleanup: remove exact-duplicate bookings left behind by a double
-   * import. Two docs are "the same" when every business field matches (event,
-   * company, owner, pax, venues, start/end). Keeps the first of each group and
-   * deletes the rest. Idempotent — no-ops once the collection is clean. Returns
-   * the number of redundant docs removed.
-   */
-  async function dedupeFunctions(): Promise<number> {
-    try {
-      const snapshot = await getDocs(collection(db, COLLECTIONS.FUNCTIONS))
-      const seen = new Set<string>()
-      const toDelete: string[] = []
-      for (const d of snapshot.docs) {
-        const data = d.data()
-        const venues = Array.isArray(data.venues) ? data.venues : data.venue ? [data.venue] : []
-        const sig = [
-          data.eventName ?? '',
-          data.company ?? '',
-          data.salesOwner ?? '',
-          data.pax ?? 0,
-          venues.join('|'),
-          data.startDate ?? '',
-          data.endDate ?? data.startDate ?? ''
-        ].join('§')
-        if (seen.has(sig)) toDelete.push(d.id)
-        else seen.add(sig)
-      }
-      if (toDelete.length === 0) return 0
-
-      for (let i = 0; i < toDelete.length; i += 400) {
-        const batch = writeBatch(db)
-        for (const id of toDelete.slice(i, i + 400)) batch.delete(doc(db, COLLECTIONS.FUNCTIONS, id))
-        await batch.commit()
-      }
-      const removed = new Set(toDelete)
-      functions.value = functions.value.filter((f) => !removed.has(f.id))
-      return toDelete.length
-    } catch (err) {
-      error.value = 'Failed to remove duplicate functions'
-      console.error('Error deduping functions:', err)
-      throw err
-    }
-  }
-
-  /**
-   * One-time normalization: rewrite legacy docs that still carry a single `venue`
-   * string into the new `venues` array (and drop the old field). Idempotent and
-   * cheap — only docs missing a `venues` array are touched, so it no-ops once run.
-   * Returns the number of docs migrated.
-   */
-  async function normalizeVenues(): Promise<number> {
-    try {
-      const snapshot = await getDocs(collection(db, COLLECTIONS.FUNCTIONS))
-      const stale = snapshot.docs.filter((d) => {
-        const data = d.data()
-        return !Array.isArray(data.venues) && data.venue
-      })
-      if (stale.length === 0) return 0
-
-      for (let i = 0; i < stale.length; i += 400) {
-        const batch = writeBatch(db)
-        for (const d of stale.slice(i, i + 400)) {
-          const raw = String(d.data().venue)
-          batch.update(doc(db, COLLECTIONS.FUNCTIONS, d.id), {
-            venues: [canonicalVenue(raw) ?? raw],
-            venue: deleteField()
-          })
-        }
-        await batch.commit()
-      }
-      await loadFunctions()
-      return stale.length
-    } catch (err) {
-      error.value = 'Failed to normalize venues'
-      console.error('Error normalizing venues:', err)
-      return 0
-    }
-  }
-
-  /**
-   * One-time migration of the legacy spreadsheet chart (src/data/functionChart.json)
-   * into structured booking docs. Guarded: only runs when the collection is empty,
-   * so it never double-imports. Returns the number of bookings imported (0 if skipped).
-   */
-  async function importSeedFunctions(): Promise<number> {
-    seeding.value = true
-    error.value = null
-    try {
-      const existing = await getDocs(collection(db, COLLECTIONS.FUNCTIONS))
-      if (!existing.empty) return 0
-
-      const seed = buildSeedBookings(legacyChartData as unknown as Month[], canonicalVenue, 'tentative')
-      const now = new Date()
-      // Firestore batches are capped at 500 writes.
-      for (let i = 0; i < seed.length; i += 400) {
-        const batch = writeBatch(db)
-        for (const row of seed.slice(i, i + 400)) {
-          const ref = doc(collection(db, COLLECTIONS.FUNCTIONS))
-          batch.set(ref, { ...row, createdAt: now, updatedAt: now })
-        }
-        await batch.commit()
-      }
-      await loadFunctions()
-      return seed.length
-    } catch (err) {
-      error.value = 'Failed to import functions'
-      console.error('Error importing seed functions:', err)
-      throw err
-    } finally {
-      seeding.value = false
-    }
-  }
-
   return {
     functions,
     loading,
-    seeding,
     error,
     loadFunctions,
     createFunction,
     updateFunction,
     moveStatus,
-    deleteFunction,
-    dedupeFunctions,
-    importSeedFunctions,
-    normalizeVenues
+    deleteFunction
   }
 })

@@ -133,8 +133,8 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="store.loading || store.seeding" class="py-16 text-center text-sm text-sm-secondary">
-      {{ store.seeding ? 'Importing existing bookings…' : 'Loading…' }}
+    <div v-if="store.loading" class="py-16 text-center text-sm text-sm-secondary">
+      Loading…
     </div>
 
     <div v-else class="md:flex md:min-h-0 md:gap-4">
@@ -482,11 +482,6 @@ onMounted(async () => {
   document.addEventListener('visibilitychange', syncToday)
   window.addEventListener('focus', syncToday)
   await store.loadFunctions()
-  if (store.functions.length === 0) {
-    await store.importSeedFunctions() // fresh: already seeds the new `venues` shape
-  } else {
-    await store.normalizeVenues() // existing data: upgrade any legacy `venue` docs
-  }
 })
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', syncToday)
