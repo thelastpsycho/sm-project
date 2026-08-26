@@ -306,18 +306,21 @@ function drawBlock(
     ctx.fillText(line, tx, ty)
     ty += 15
   }
-  // Company — 1 line, muted.
-  if (b.company && ty + 12 <= bottom) {
+  // Company + pax on one muted line (e.g. "BRI · 100 pax"). Sharing a line means
+  // pax survives on short blocks where a separate pax row wouldn't fit; the
+  // company is truncated to leave room so the pax count is never clipped.
+  const paxStr = b.pax ? `${b.pax} pax` : ''
+  if ((b.company || paxStr) && ty + 12 <= bottom) {
     ctx.fillStyle = MUTED
     ctx.font = '600 11px "Nunito Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
-    ctx.fillText(truncate(ctx, b.company, tw), tx, ty)
-    ty += 13
-  }
-  // Pax — small, muted.
-  if (b.pax && ty + 11 <= bottom) {
-    ctx.fillStyle = MUTED
-    ctx.font = '600 10px "Nunito Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
-    ctx.fillText(`${b.pax} pax`, tx, ty)
+    let line: string
+    if (b.company && paxStr) {
+      const tail = ' · ' + paxStr
+      line = truncate(ctx, b.company, tw - ctx.measureText(tail).width) + tail
+    } else {
+      line = b.company || paxStr
+    }
+    ctx.fillText(line, tx, ty)
   }
 }
 
