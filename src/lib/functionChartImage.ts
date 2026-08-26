@@ -133,7 +133,6 @@ export async function renderChartToBlob(opts: RenderOpts): Promise<Blob> {
     eventName: string
     company: string
     pax: number
-    salesOwner: string
   }
   const blocks: Block[] = []
   for (const f of opts.functions) {
@@ -154,8 +153,7 @@ export async function renderChartToBlob(opts: RenderOpts): Promise<Blob> {
       status: f.status,
       eventName: f.eventName || '(untitled)',
       company: f.company || '',
-      pax: f.pax || 0,
-      salesOwner: f.salesOwner || ''
+      pax: f.pax || 0
     })
   }
 
@@ -278,7 +276,7 @@ export async function renderChartToBlob(opts: RenderOpts): Promise<Blob> {
 
 function drawBlock(
   ctx: CanvasRenderingContext2D,
-  b: { x: number; y: number; w: number; h: number; status: FunctionStatus; eventName: string; company: string; pax: number; salesOwner: string }
+  b: { x: number; y: number; w: number; h: number; status: FunctionStatus; eventName: string; company: string; pax: number }
 ) {
   const color = STATUS_META[b.status].color
   const pad = 3
@@ -315,12 +313,11 @@ function drawBlock(
     ctx.fillText(truncate(ctx, b.company, tw), tx, ty)
     ty += 13
   }
-  // Pax + sales owner — small, muted, one line (e.g. "100 pax - Linda Permata").
-  const meta = [b.pax ? `${b.pax} pax` : '', b.salesOwner].filter(Boolean).join(' - ')
-  if (meta && ty + 11 <= bottom) {
+  // Pax — small, muted.
+  if (b.pax && ty + 11 <= bottom) {
     ctx.fillStyle = MUTED
     ctx.font = '600 10px "Nunito Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
-    ctx.fillText(truncate(ctx, meta, tw), tx, ty)
+    ctx.fillText(`${b.pax} pax`, tx, ty)
   }
 }
 
