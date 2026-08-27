@@ -8,7 +8,7 @@
           The Anvaya Bali · Sales &amp; Events
         </div>
         <div class="flex items-center gap-2">
-          <h1 class="m-0 sm-display text-title">Function Charting</h1>
+          <h1 class="m-0 sm-display text-title">Function Chart</h1>
           <div class="flex items-center gap-1">
             <button
               type="button"
