@@ -36,3 +36,26 @@ export function baliDateParts(at: Date | number = Date.now()): {
 export function toBaliISO(at: Date | number): string {
   return baliShifted(at).toISOString().slice(0, 10)
 }
+
+/** The Bali calendar day containing `at`, as absolute instants `[startMs, endMs)`. */
+export function baliDayWindow(at: Date | number = Date.now()): { startMs: number; endMs: number } {
+  const { year, monthIndex, day } = baliDateParts(at)
+  const startMs = Date.UTC(year, monthIndex, day) - BALI_OFFSET_MS // Bali-midnight as an instant
+  return { startMs, endMs: startMs + 86_400_000 }
+}
+
+/**
+ * The most-recently-completed Bali week as absolute instants: `[startMs, endMs)` where
+ * `endMs` is the start of the current Bali **Monday** (00:00 WITA) and `startMs` is the
+ * Monday before that. Run on a Monday morning it yields the full previous Mon–Sun week.
+ * Returned as absolute instants so they compare directly against Firestore `at` timestamps.
+ */
+export function baliWeekWindow(at: Date | number = Date.now()): { startMs: number; endMs: number } {
+  const { year, monthIndex, day } = baliDateParts(at)
+  const utcMidnight = Date.UTC(year, monthIndex, day) // UTC midnight of the Bali calendar date
+  const weekday = new Date(utcMidnight).getUTCDay() // 0=Sun … 1=Mon … 6=Sat
+  const daysSinceMonday = (weekday + 6) % 7
+  const mondayUtcMidnight = utcMidnight - daysSinceMonday * 86_400_000
+  const endMs = mondayUtcMidnight - BALI_OFFSET_MS // Bali-midnight Monday as an absolute instant
+  return { startMs: endMs - 7 * 86_400_000, endMs }
+}
