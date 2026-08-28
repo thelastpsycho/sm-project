@@ -1,5 +1,10 @@
 import { initializeApp, getApps } from 'firebase/app'
-import { getFirestore } from 'firebase/firestore'
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager
+} from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 import type { FirebaseApp } from 'firebase/app'
 import type { Firestore } from 'firebase/firestore'
@@ -29,7 +34,17 @@ try {
   } else {
     app = initializeApp(firebaseConfig)
   }
-  db = getFirestore(app)
+  // Enable Firestore offline persistence (cache-first, then live-sync — same data).
+  // initializeFirestore must run before any getFirestore(app) for this app and can only
+  // run once; if it was already initialized (e.g. an existing app / a hot reload), fall
+  // back to the existing instance rather than throwing "Firestore already initialized".
+  try {
+    db = initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    })
+  } catch {
+    db = getFirestore(app)
+  }
   auth = getAuth(app)
 } catch (error) {
   console.error('Error initializing Firebase:', error)

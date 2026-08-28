@@ -42,6 +42,8 @@ export const useSurveyStore = defineStore('survey', () => {
     loading.value = true
     error.value = null
     try {
+      // TODO(perf): needs pagination before limiting — events are joined to responses and
+      // listed in full, so a limit(N) would break the response->event join and the list.
       const eventsSnapshot = await getDocs(
         query(collection(db, COLLECTIONS.EVENTS), orderBy('createdAt', 'desc'))
       )
@@ -62,6 +64,8 @@ export const useSurveyStore = defineStore('survey', () => {
     loading.value = true
     error.value = null
     try {
+      // TODO(perf): needs pagination before limiting — analytics/aggregates are computed
+      // over all responses, so a limit(N) would silently change the reported numbers.
       const responsesSnapshot = await getDocs(
         query(collection(db, COLLECTIONS.RESPONSES), orderBy('createdAt', 'desc'))
       )

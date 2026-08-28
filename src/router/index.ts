@@ -1,18 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
+// Home and Login stay eager so the landing/login route paints instantly.
+// Every other page is lazy-loaded (Vite splits each into its own chunk,
+// fetched only when the route is visited). Routes resolve identically.
 import Home from '@/pages/Home.vue'
-import Chat from '@/pages/Chat.vue'
-import Contract from '@/pages/Contract.vue'
-import TacticalOffer from '@/pages/TacticalOffer.vue'
 import Login from '@/pages/Login.vue'
-import RFP from '@/pages/RFP.vue'
-import RFPHistory from '@/pages/RFPHistory.vue'
-import CRM from '@/pages/CRM.vue'
-import PipelineReport from '@/pages/PipelineReport.vue'
-import Users from '@/pages/Users.vue'
-import FunctionChart from '@/pages/FunctionChart.vue'
-import Survey from '@/pages/Survey.vue'
-import SurveyThankYou from '@/pages/SurveyThankYou.vue'
-import SurveyAdmin from '@/pages/SurveyAdmin.vue'
 import { useSessionStore } from '@/stores/session'
 import { usePermissionsStore } from '@/stores/permissions'
 import type { Permission } from '@/lib/permissions'
@@ -28,60 +19,60 @@ const router = createRouter({
     {
       path: '/chat',
       name: 'chat',
-      component: Chat,
+      component: () => import('@/pages/Chat.vue'),
       meta: { requiresPermission: 'chat:access' }
     },
     {
       path: '/contract',
       name: 'contract',
-      component: Contract,
+      component: () => import('@/pages/Contract.vue'),
       meta: { requiresPermission: 'contract:access' }
     },
     {
       path: '/tactical-offer',
       name: 'tactical-offer',
-      component: TacticalOffer
+      component: () => import('@/pages/TacticalOffer.vue')
     },
     {
       path: '/rfp',
       name: 'rfp-history',
-      component: RFPHistory,
+      component: () => import('@/pages/RFPHistory.vue'),
       meta: { requiresPermission: 'rfp:view' }
     },
     {
       path: '/rfp/new',
       name: 'rfp-new',
-      component: RFP,
+      component: () => import('@/pages/RFP.vue'),
       meta: { requiresPermission: 'rfp:create' }
     },
     {
       path: '/rfp/:id',
       name: 'rfp-edit',
-      component: RFP,
+      component: () => import('@/pages/RFP.vue'),
       meta: { requiresPermission: 'rfp:edit' }
     },
     {
       path: '/crm',
       name: 'crm',
-      component: CRM,
+      component: () => import('@/pages/CRM.vue'),
       meta: { requiresPermission: 'pipeline:view' }
     },
     {
       path: '/crm/report',
       name: 'crm-report',
-      component: PipelineReport,
+      component: () => import('@/pages/PipelineReport.vue'),
       meta: { requiresPermission: 'pipeline:report' }
     },
     {
       path: '/users',
       name: 'users',
-      component: Users,
+      component: () => import('@/pages/Users.vue'),
       meta: { requiresPermission: 'users:access' }
     },
     {
       path: '/function-chart',
       name: 'function-chart',
-      component: FunctionChart,
+      component: () => import('@/pages/FunctionChart.vue'),
       meta: { requiresPermission: 'function:view' }
     },
     {
@@ -93,18 +84,18 @@ const router = createRouter({
     {
       path: '/survey/:eventId',
       name: 'survey',
-      component: Survey
+      component: () => import('@/pages/Survey.vue')
     },
     {
       path: '/survey/thank-you',
       name: 'survey-thank-you',
-      component: SurveyThankYou
+      component: () => import('@/pages/SurveyThankYou.vue')
     },
     // Survey Admin — gated by the normal role/permission session (no separate PIN)
     {
       path: '/survey/admin',
       name: 'survey-admin',
-      component: SurveyAdmin,
+      component: () => import('@/pages/SurveyAdmin.vue'),
       meta: { requiresPermission: 'survey:view' }
     }
   ]

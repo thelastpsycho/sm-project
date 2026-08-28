@@ -18,19 +18,14 @@ app.use(head)
 
 app.mount('#app')
 
+// Reveal the app as soon as Vue has mounted (interactive) rather than waiting for
+// the window 'load' event (which blocks on fonts/images/manifest). Same visual
+// outcome — spinner removed, #app shown — just earlier.
+document.getElementById('loading')?.remove()
+document.getElementById('app')?.style.removeProperty('display')
+
 // Register the FCM service worker (production only) so background push works and the
 // app is installable. It has no fetch handler, so it does not cache the app shell.
 if (import.meta.env.PROD) {
   registerPushSw()
 }
-
-// Hide loading spinner and show app
-window.addEventListener('load', () => {
-  const loading = document.getElementById('loading')
-  const appElement = document.getElementById('app')
-
-  if (loading && appElement) {
-    loading.style.display = 'none'
-    appElement.style.display = 'block'
-  }
-})

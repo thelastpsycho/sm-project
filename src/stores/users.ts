@@ -34,6 +34,8 @@ export const useUsersStore = defineStore('users', () => {
     loading.value = true
     error.value = null
     try {
+      // TODO(perf): needs pagination before limiting — the admin roster and the owner
+      // picker both need the full user list, so a limit(N) would drop selectable users.
       const snap = await getDocs(collection(db, COLLECTIONS.USERS))
       users.value = snap.docs
         .map(d => mapUser(d.id, d.data()))

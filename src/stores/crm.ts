@@ -84,6 +84,9 @@ export const useCrmStore = defineStore('crm', () => {
     if (unsub) return
     loading.value = true
     error.value = null
+    // TODO(perf): needs pagination before limiting — the /crm board and /crm/report render
+    // every deal (no pagination) and the bell badge depends on the full set, so a limit(N)
+    // here would drop visible records and undercount the badge.
     unsub = onSnapshot(
       query(collection(db, COLLECTIONS.DEALS), orderBy('updatedAt', 'desc')),
       snapshot => {
@@ -341,6 +344,7 @@ export const useCrmStore = defineStore('crm', () => {
   async function loadComments(dealId: string) {
     commentsLoading.value = true
     try {
+      // TODO(perf): needs pagination before limiting — the deal thread renders all comments.
       const snapshot = await getDocs(
         query(
           collection(db, COLLECTIONS.DEALS, dealId, 'comments'),

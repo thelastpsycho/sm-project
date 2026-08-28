@@ -41,6 +41,8 @@ export const useFunctionChartStore = defineStore('functionChart', () => {
     loading.value = true
     error.value = null
     try {
+      // TODO(perf): needs pagination before limiting — the function chart positions every
+      // booking on a date grid, so a limit(N) would hide bookings from the calendar.
       const snapshot = await getDocs(
         query(collection(db, COLLECTIONS.FUNCTIONS), orderBy('startDate', 'asc'))
       )

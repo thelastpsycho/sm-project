@@ -26,6 +26,19 @@ onMounted(() => {
 
 // Keep deals streaming app-wide once signed in, so the notification bell badge is live
 // on every screen (not just /crm). The listener is idempotent and self-syncing.
+//
+// TODO(perf): this boot-time full-collection stream is the ~600ms Firestore channel cost
+// on Home. It is intentionally NOT narrowed/limited here. The bell badge count comes from
+// notifications.unreadCount -> computeUserAlerts(crm.deals) (see src/lib/crmAlerts.ts),
+// whose alerts (untouched >=7d, stuck-in-stage, action-due, arrival-risk) are weighted
+// toward the STALEST deals. Since crm.subscribe() orders by updatedAt desc, any limit(N)
+// would drop the oldest-updated deals — exactly the ones generating those alerts — and
+// UNDERCOUNT the badge. A where('ownerId','==',me) narrowing would preserve the count but
+// crm.deals is the SAME shared state the /crm board and /crm/report render for ALL owners,
+// and subscribe() is idempotent (first caller wins), so a narrowed boot query would leave
+// those pages showing only the current user's deals. Safely narrowing would require a
+// separate badge-only ref wired into src/stores/notifications.ts (out of scope here).
+// Correctness of the badge > optimization: boot behavior left unchanged.
 watch(
   () => session.isAuthenticated,
   isAuth => {
