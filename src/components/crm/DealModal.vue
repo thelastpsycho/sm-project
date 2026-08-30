@@ -36,6 +36,31 @@
           </div>
 
           <div class="flex items-center gap-1 shrink-0">
+            <!-- View generated proposal PDF, if this deal has one -->
+            <a
+              v-if="deal && deal.link_to_pdf"
+              :href="deal.link_to_pdf"
+              target="_blank"
+              rel="noopener"
+              aria-label="View proposal PDF"
+              title="View proposal PDF"
+              class="p-2 rounded-full text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
+            >
+              <DocumentTextIcon class="w-5 h-5" />
+            </a>
+
+            <!-- Generate RFP: opens the RFP form pre-filled from this deal -->
+            <button
+              v-if="deal && canGenerateRfp"
+              type="button"
+              aria-label="Generate RFP"
+              :title="deal.link_to_pdf ? 'Regenerate RFP' : 'Generate RFP'"
+              class="p-2 rounded-full text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
+              @click="goToRfp"
+            >
+              <DocumentPlusIcon class="w-5 h-5" />
+            </button>
+
             <!-- Delete (Andi only, edit mode) -->
             <button
               v-if="deal && canDelete"
@@ -98,12 +123,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { XMarkIcon, TrashIcon, CheckIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
+import { useRouter } from 'vue-router'
+import { XMarkIcon, TrashIcon, CheckIcon, LockClosedIcon, DocumentTextIcon, DocumentPlusIcon } from '@heroicons/vue/24/outline'
 import DealForm from './DealForm.vue'
 import DealComments from './DealComments.vue'
 import type { Deal, NewDeal } from '@/types/crm'
 import { useSessionStore } from '@/stores/session'
-import { canDeleteDeals, canEditDeal } from '@/lib/crmUtils'
+import { canDeleteDeals, canEditDeal, effectiveRole } from '@/lib/crmUtils'
+import { roleHas } from '@/lib/roles'
 
 const props = defineProps<{
   isOpen: boolean
@@ -117,8 +144,20 @@ const emit = defineEmits<{
   delete: []
 }>()
 
+const router = useRouter()
 const session = useSessionStore()
 const canDelete = computed(() => canDeleteDeals(session.currentUser))
 // Creating a new deal is always allowed; editing an existing one is owner/admin-gated.
 const canEdit = computed(() => !props.deal || canEditDeal(session.currentUser, props.deal))
+// Generating an RFP touches the deal, so it follows the same edit rights, plus the
+// separate rfp:create permission (the /rfp/new route itself is gated on it).
+const canGenerateRfp = computed(
+  () => canEdit.value && roleHas(effectiveRole(session.currentUser), 'rfp:create')
+)
+
+function goToRfp() {
+  if (!props.deal) return
+  router.push({ name: 'rfp-new', query: { dealId: props.deal.id } })
+  emit('close')
+}
 </script>

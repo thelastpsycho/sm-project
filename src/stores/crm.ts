@@ -123,6 +123,7 @@ export const useCrmStore = defineStore('crm', () => {
       })
       appendEvent(batch, { dealId: ref.id, company: payload.company, type: 'created', to: stage, byId, byName, at: now })
       await batch.commit()
+      return ref.id
     } catch (err) {
       error.value = 'Failed to create deal'
       console.error('Error creating deal:', err)
@@ -329,6 +330,31 @@ export const useCrmStore = defineStore('crm', () => {
     }
   }
 
+  /**
+   * Attach a generated proposal PDF to a deal (from the "Generate RFP" flow). A plain
+   * field patch — deliberately bypasses updateDeal/applyRevenueCalc, since a partial
+   * patch of just these two fields would otherwise recompute revenue from undefined
+   * rooms/nights/ADR and zero it out.
+   */
+  async function attachRfp(id: string, payload: { link_to_pdf: string; rfpId: string }) {
+    try {
+      await updateDoc(doc(db, COLLECTIONS.DEALS, id), {
+        link_to_pdf: payload.link_to_pdf,
+        rfpId: payload.rfpId,
+        updatedAt: new Date()
+      })
+      const local = deals.value.find(d => d.id === id)
+      if (local) {
+        local.link_to_pdf = payload.link_to_pdf
+        local.rfpId = payload.rfpId
+      }
+    } catch (err) {
+      error.value = 'Failed to link RFP to deal'
+      console.error('Error attaching RFP to deal:', err)
+      throw err
+    }
+  }
+
   async function deleteDeal(id: string) {
     try {
       await deleteDoc(doc(db, COLLECTIONS.DEALS, id))
@@ -427,6 +453,7 @@ export const useCrmStore = defineStore('crm', () => {
     moveStage,
     moveToLost,
     moveToWon,
+    attachRfp,
     deleteDeal,
     loadComments,
     addComment,

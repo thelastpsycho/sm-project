@@ -50,6 +50,8 @@ export interface Deal {
   actionDueDate?: string
   notes?: string
   commentCount?: number // denormalized count of deals/{id}/comments
+  link_to_pdf?: string // generated proposal PDF link, from the most recent RFP run for this deal
+  rfpId?: string // id of the linked rfps/{id} doc that produced link_to_pdf
   currency: string // e.g. 'IDR'
   createdAt: Date
   updatedAt: Date

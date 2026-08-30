@@ -346,6 +346,7 @@ import { db, ensureAuth } from '@/utils/firebase'
 import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore'
 import { useHead } from '@vueuse/head'
 import { useSessionStore } from '@/stores/session'
+import { useCrmStore } from '@/stores/crm'
 import userData from '@/user.json'
 
 useHead({
@@ -361,6 +362,7 @@ useHead({
 const route = useRoute()
 const router = useRouter()
 const sessionStore = useSessionStore()
+const crmStore = useCrmStore()
 const isEditing = computed(() => !!route.params.id)
 
 const titleOptions = [
@@ -439,6 +441,9 @@ const showModal = ref(false)
 const showReviewModal = ref(false)
 const responseContent = ref<any>(null)
 const lastCreatedId = ref<string | null>(null)
+// Set when this RFP was launched from a CRM deal ("Generate RFP") — on success, the
+// resulting PDF link is written back onto that deal.
+const linkedDealId = ref<string | null>(null)
 
 // Basic validation
 const isFormValid = computed(() => {
@@ -462,6 +467,13 @@ const loadRFP = async () => {
       form.value.sales_pic_email = sessionStore.currentUser.email
       form.value.sales_pic_phone_number = sessionStore.currentUser.phone
     }
+    // Launched from a CRM deal ("Generate RFP") — prefill what the deal already knows
+    // and remember the deal so the resulting PDF link can be written back onto it.
+    const dealId = route.query.dealId
+    if (typeof dealId === 'string' && dealId) {
+      linkedDealId.value = dealId
+      await prefillFromDeal(dealId)
+    }
     return
   }
 
@@ -473,12 +485,31 @@ const loadRFP = async () => {
       const data = docSnap.data()
       // Merge with default form to ensure all fields exist
       form.value = { ...form.value, ...data }
+      // Reuse the deal this RFP already created/linked, so regenerating it doesn't
+      // spawn a duplicate deal on the pipeline.
+      if (typeof data.dealId === 'string' && data.dealId) {
+        linkedDealId.value = data.dealId
+      }
     } else {
       errorMessage.value = 'RFP not found'
     }
   } catch (e) {
     console.error('Error loading RFP:', e)
     errorMessage.value = 'Failed to load RFP'
+  }
+}
+
+const prefillFromDeal = async (dealId: string) => {
+  try {
+    const dealSnap = await getDoc(doc(db, 'deals', dealId))
+    if (!dealSnap.exists()) return
+    const deal = dealSnap.data()
+    if (deal.company) form.value.full_company_name = deal.company
+    if (deal.arrivalDate) form.value.event_date_start = deal.arrivalDate
+    if (deal.checkoutDate) form.value.event_date_end = deal.checkoutDate
+    if (deal.rooms != null) form.value.number_of_rooms_required = String(deal.rooms)
+  } catch (e) {
+    console.error('Error prefilling from deal:', e)
   }
 }
 
@@ -568,6 +599,33 @@ const handleFinalSubmit = async () => {
       await setDoc(doc(db, 'rfps', id), {
         link_to_pdf: linkToPdf
       }, { merge: true })
+
+      // Attach to a deal — reuse the linked one, or for a standalone RFP (no dealId in
+      // the query, none stored on this rfp doc from a prior generation) create one so
+      // every proposal ends up on the pipeline. Best-effort: a failure here shouldn't
+      // hide the successful PDF from the user.
+      try {
+        if (!linkedDealId.value) {
+          linkedDealId.value = await crmStore.createDeal({
+            company: form.value.full_company_name,
+            segment: 'MICE',
+            leadSource: 'Whatsapp',
+            ownerId: sessionStore.currentUser?.email ?? '',
+            ownerName: sessionStore.currentUser?.name ?? '',
+            stage: 'Proposal',
+            currency: 'IDR',
+            manualRevenue: true
+          }) ?? null
+          if (linkedDealId.value) {
+            await setDoc(doc(db, 'rfps', id), { dealId: linkedDealId.value }, { merge: true })
+          }
+        }
+        if (linkedDealId.value) {
+          await crmStore.attachRfp(linkedDealId.value, { link_to_pdf: linkToPdf, rfpId: id })
+        }
+      } catch (e) {
+        console.error('Error linking RFP to deal:', e)
+      }
     }
 
     // Pass the link back to responseContent for the modal
