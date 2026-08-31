@@ -11,7 +11,7 @@ import {
   type Attention
 } from '../../src/lib/crmReport.js'
 import { baliWeekWindow } from '../../src/lib/time.js'
-import type { Deal, PipelineEvent } from '../../src/types/crm'
+import type { Deal, PipelineEvent } from '../../src/types/crm.js'
 import {
   db,
   loadDeals,

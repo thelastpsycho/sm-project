@@ -148,8 +148,21 @@
       <p class="text-sm-muted">No deals yet.</p>
     </div>
 
-    <!-- Loading -->
-    <div v-else-if="store.loading" class="text-center py-16 text-sm-faint">Loading…</div>
+    <!-- Loading — skeleton rows mirroring the deal list shape -->
+    <div v-else-if="store.loading" class="mt-6">
+      <div
+        v-for="n in 7"
+        :key="n"
+        class="flex items-start gap-3 py-3.5 border-t border-sm-hair dark:border-white/5"
+      >
+        <div class="flex-1 min-w-0 space-y-2">
+          <SmSkeleton class="h-3.5 w-40 max-w-[45%]" />
+          <SmSkeleton class="h-3 w-56 max-w-[70%]" />
+          <SmSkeleton class="h-2.5 w-32 max-w-[38%]" />
+        </div>
+        <SmSkeleton class="h-4 w-12 shrink-0" />
+      </div>
+    </div>
 
     <!-- Action queue — deals grouped by urgency (Overdue / Stuck past SLA / Due today).
          Desktop: queue rail on the left, full deals table on the right. -->
@@ -291,6 +304,7 @@ import { PlusIcon, MagnifyingGlassIcon, FunnelIcon, ChartBarIcon } from '@heroic
 import SmButton from '@/components/ui/SmButton.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import SmInput from '@/components/ui/SmInput.vue'
+import SmSkeleton from '@/components/ui/SmSkeleton.vue'
 import DealCard from '@/components/crm/DealCard.vue'
 import DealTable from '@/components/crm/DealTable.vue'
 import DealModal from '@/components/crm/DealModal.vue'

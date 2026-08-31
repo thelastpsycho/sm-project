@@ -132,9 +132,12 @@
       </div>
     </div>
 
-    <!-- Loading -->
-    <div v-if="store.loading" class="py-16 text-center text-sm text-sm-secondary">
-      Loading…
+    <!-- Loading — skeleton rows mirroring the schedule grid -->
+    <div v-if="store.loading" class="py-8 space-y-3">
+      <div v-for="n in 8" :key="n" class="flex items-center gap-3">
+        <SmSkeleton class="h-4 w-24 shrink-0" />
+        <SmSkeleton class="h-8 flex-1" />
+      </div>
     </div>
 
     <div v-else class="md:flex md:min-h-0 md:gap-4">
@@ -420,6 +423,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { PlusIcon, TrashIcon, XMarkIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ExclamationTriangleIcon, ShareIcon } from '@heroicons/vue/24/outline'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
+import SmSkeleton from '@/components/ui/SmSkeleton.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import FunctionForm from '@/components/functionchart/FunctionForm.vue'
 import ShareChartDialog from '@/components/functionchart/ShareChartDialog.vue'

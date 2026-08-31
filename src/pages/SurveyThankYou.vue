@@ -26,7 +26,9 @@ useHead({
         <img
           src="/logo-theanvaya.svg"
           alt="The Anvaya Beach Resort Bali"
-          class="h-12 w-auto"
+          width="1558"
+          height="410"
+          class="h-12 w-auto aspect-[1558/410]"
         />
       </div>
 

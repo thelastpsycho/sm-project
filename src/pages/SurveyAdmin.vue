@@ -224,7 +224,9 @@ function getScorePercentage(score: number): number {
               <img
                 src="/logo-theanvaya.svg"
                 alt="The Anvaya Beach Resort Bali"
-                class="h-6 sm:h-7 lg:h-9 w-auto mb-1"
+                width="1558"
+                height="410"
+                class="h-6 sm:h-7 lg:h-9 w-auto aspect-[1558/410] mb-1"
               />
               <p class="text-2xs sm:text-xs text-sm-muted hidden xs:block">MICE Survey Admin</p>
             </div>

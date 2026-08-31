@@ -2,7 +2,7 @@
 // Imported by BOTH the Vue app (in-app inbox) and the Vercel cron function (push),
 // so it must stay free of Vue/Firestore imports — pure functions over plain data.
 
-import type { Deal, DealStage } from '../types/crm'
+import type { Deal, DealStage } from '../types/crm.js'
 
 export type AlertType = 'untouched' | 'stuck' | 'action-due' | 'arrival-risk'
 export type AlertSeverity = 'info' | 'warning' | 'danger'

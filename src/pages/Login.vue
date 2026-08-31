@@ -4,7 +4,7 @@
       class="w-full max-w-[420px] min-h-screen flex flex-col justify-between px-8 pt-14 pb-10"
       :class="{ 'animate-shake': error }"
     >
-      <img src="/logo-theanvaya.svg" alt="The Anvaya" class="h-[34px] w-auto self-start dark:invert dark:brightness-0" />
+      <img src="/logo-theanvaya.svg" alt="The Anvaya" width="1558" height="410" class="h-[34px] w-auto aspect-[1558/410] self-start dark:invert dark:brightness-0" />
 
       <div>
         <h1 class="sm-display text-hero leading-[1.05] mb-10">Sales<br />Management</h1>

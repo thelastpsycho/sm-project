@@ -3,7 +3,7 @@ import { getMessaging } from 'firebase-admin/messaging'
 import { computeUserAlerts, DEFAULT_ALERT_CONFIG } from '../../src/lib/crmAlerts.js'
 import { activityInWindow } from '../../src/lib/crmReport.js'
 import { baliToday, baliDayWindow, toBaliISO } from '../../src/lib/time.js'
-import type { Deal } from '../../src/types/crm'
+import type { Deal } from '../../src/types/crm.js'
 import {
   db,
   loadDeals,

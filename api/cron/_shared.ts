@@ -5,8 +5,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { getApps, initializeApp, cert } from 'firebase-admin/app'
 import { getFirestore, type Firestore } from 'firebase-admin/firestore'
 import * as nodemailer from 'nodemailer'
-import type { Deal, PipelineEvent } from '../../src/types/crm'
-import type { Alert } from '../../src/lib/crmAlerts'
+import type { Deal, PipelineEvent } from '../../src/types/crm.js'
+import type { Alert } from '../../src/lib/crmAlerts.js'
 
 // ---- Firebase Admin ----
 

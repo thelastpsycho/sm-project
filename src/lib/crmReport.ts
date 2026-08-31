@@ -3,8 +3,8 @@
 // (daily + weekly email reports), so — like `crmAlerts.ts` — it must stay free of Vue,
 // Firestore and `@/` path aliases: pure functions over plain data, relative imports only.
 
-import type { Deal, DealStage, PipelineEvent } from '../types/crm'
-import type { Alert } from './crmAlerts'
+import type { Deal, DealStage, PipelineEvent } from '../types/crm.js'
+import type { Alert } from './crmAlerts.js'
 import { computeDealAlerts, DEFAULT_ALERT_CONFIG } from './crmAlerts.js'
 import { toBaliISO } from './time.js'
 

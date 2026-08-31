@@ -9,7 +9,9 @@
     <img
       src="/logo-theanvaya.svg"
       alt="The Anvaya"
-      class="h-[22px] w-auto mt-8 mb-7 dark:invert dark:brightness-0"
+      width="1558"
+      height="410"
+      class="h-[22px] w-auto aspect-[1558/410] mt-8 mb-7 dark:invert dark:brightness-0"
       :class="collapsed ? 'mx-auto' : 'mx-6'"
     />
 

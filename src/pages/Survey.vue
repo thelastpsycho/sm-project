@@ -284,7 +284,9 @@ async function handleSubmit() {
               <img
                 src="/logo-theanvaya.svg"
                 alt="The Anvaya Beach Resort Bali"
-                class="relative h-10 sm:h-12 w-auto"
+                width="1558"
+                height="410"
+                class="relative h-10 sm:h-12 w-auto aspect-[1558/410]"
               />
             </div>
           </div>
