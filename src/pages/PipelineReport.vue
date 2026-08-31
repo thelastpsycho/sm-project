@@ -26,17 +26,19 @@
     </div>
 
     <!-- Filter bar -->
-    <div class="no-print mt-6 rounded-2xl border border-sm-line dark:border-white/10 p-3">
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <SmSelect v-model="filters.owner" :options="ownerOptions" label="Owner" size="sm" />
-        <SmSelect v-model="filters.segment" :options="segmentOptions" label="Segment" size="sm" />
-        <SmSelect v-model="filters.dateField" :options="dateFieldOptions" label="Date field" size="sm" />
-        <SmInput v-model="filters.from" type="date" label="From" size="sm" />
-        <SmInput v-model="filters.to" type="date" label="To" size="sm" />
-        <div class="flex items-end">
-          <SmButton variant="ghost" size="sm" :disabled="!activeFilterCount" @click="clearFilters">Clear</SmButton>
-        </div>
+    <div class="no-print mt-4 rounded-xl border border-sm-line dark:border-white/10 p-2">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 items-center">
+        <SmSelect v-model="filters.owner" :options="ownerOptions" size="sm" />
+        <SmSelect v-model="filters.segment" :options="segmentOptions" size="sm" />
+        <SmSelect v-model="filters.dateField" :options="dateFieldOptions" size="sm" />
+        <SmSelect v-model="filters.range" :options="rangeOptions" size="sm" />
+        <template v-if="filters.range === 'custom'">
+          <SmInput v-model="filters.from" type="date" size="sm" />
+          <SmInput v-model="filters.to" type="date" size="sm" />
+        </template>
+        <SmButton variant="ghost" size="sm" :disabled="!activeFilterCount" @click="clearFilters">Clear</SmButton>
       </div>
+      <p v-if="rangeLabel" class="mt-1.5 text-eyebrow text-sm-muted truncate">{{ rangeLabel }}</p>
     </div>
 
     <!-- Loading / empty -->
@@ -229,7 +231,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted } from 'vue'
+import { reactive, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, PrinterIcon } from '@heroicons/vue/24/outline'
 import SmSelect from '@/components/ui/SmSelect.vue'
@@ -240,6 +242,7 @@ import { DEAL_OUTCOMES, DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStage } from '@/types/crm'
 import { formatMoney, formatDate, isOverdue, dealOutcome, wonRevenue } from '@/lib/crmUtils'
 import { baliToday, toBaliISO } from '@/lib/time'
+import { RANGE_OPTIONS, presetRange, type RangePreset } from '@/lib/dateRange'
 import userData from '@/user.json'
 
 const store = useCrmStore()
@@ -251,13 +254,36 @@ const filters = reactive({
   owner: '',
   segment: '',
   dateField: 'arrivalDate' as DateField,
+  range: 'all' as RangePreset,
   from: '',
   to: ''
 })
+const rangeOptions = RANGE_OPTIONS
+
+watch(
+  () => filters.range,
+  range => {
+    if (range === 'custom') return
+    const resolved = presetRange(range)
+    filters.from = resolved?.from ?? ''
+    filters.to = resolved?.to ?? ''
+  },
+  { immediate: true }
+)
+
+const rangeLabel = computed(() => {
+  if (filters.range === 'all') return 'All dates'
+  if (filters.from && filters.to) return `${formatDate(filters.from)} – ${formatDate(filters.to)}`
+  if (filters.from) return `From ${formatDate(filters.from)}`
+  if (filters.to) return `Until ${formatDate(filters.to)}`
+  return ''
+})
+
 function clearFilters() {
   filters.owner = ''
   filters.segment = ''
   filters.dateField = 'arrivalDate'
+  filters.range = 'all'
   filters.from = ''
   filters.to = ''
 }

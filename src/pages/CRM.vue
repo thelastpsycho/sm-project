@@ -102,9 +102,9 @@
     <!-- Filter panel -->
     <div
       v-if="showFilters"
-      class="mt-4 rounded-2xl border border-sm-line dark:border-white/10 p-3 space-y-3 animate-fade-in-up"
+      class="mt-4 rounded-xl border border-sm-line dark:border-white/10 p-2 space-y-1.5 animate-fade-in-up"
     >
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         <SmSelect v-model="filters.outcome" :options="outcomeFilterOptions" size="sm" />
         <SmSelect v-model="filters.stage" :options="stageFilterOptions" size="sm" />
         <SmSelect v-model="filters.owner" :options="ownerFilterOptions" size="sm" />
@@ -114,33 +114,32 @@
       </div>
 
       <!-- Date range + revenue range -->
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 items-end">
-        <SmSelect v-model="filters.dateField" :options="dateFieldOptions" label="Date field" size="sm" />
-        <SmInput v-model="filters.dateFrom" type="date" label="From" size="sm" />
-        <SmInput v-model="filters.dateTo" type="date" label="To" size="sm" />
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 items-center">
+        <SmSelect v-model="filters.dateField" :options="dateFieldOptions" size="sm" />
+        <SmSelect v-model="filters.range" :options="rangeOptions" size="sm" />
+        <template v-if="filters.range === 'custom'">
+          <SmInput v-model="filters.dateFrom" type="date" size="sm" />
+          <SmInput v-model="filters.dateTo" type="date" size="sm" />
+        </template>
         <SmInput
           :model-value="filters.minRevenue ?? ''"
           type="number"
-          label="Min rev."
-          placeholder="0"
+          placeholder="Min revenue"
           size="sm"
           @update:model-value="v => (filters.minRevenue = toNum(v))"
         />
         <SmInput
           :model-value="filters.maxRevenue ?? ''"
           type="number"
-          label="Max rev."
-          placeholder="Any"
+          placeholder="Max revenue"
           size="sm"
           @update:model-value="v => (filters.maxRevenue = toNum(v))"
         />
-      </div>
-
-      <div class="flex justify-end">
         <SmButton variant="ghost" size="sm" :disabled="!activeFilterCount" @click="clearFilters">
           Clear all
         </SmButton>
       </div>
+      <p v-if="rangeLabel" class="text-eyebrow text-sm-muted truncate">{{ rangeLabel }}</p>
     </div>
 
     <!-- Empty state -->
@@ -313,9 +312,10 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useCrmStore } from '@/stores/crm'
 import { DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStage, NewDeal } from '@/types/crm'
-import { formatMoney, canDeleteDeals, canEditDeal, canCreateDeal, dealOutcome, isDealIdle, wonRevenue } from '@/lib/crmUtils'
+import { formatMoney, formatDate, canDeleteDeals, canEditDeal, canCreateDeal, dealOutcome, isDealIdle, wonRevenue } from '@/lib/crmUtils'
 import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
 import { baliToday } from '@/lib/time'
+import { RANGE_OPTIONS, presetRange, type RangePreset } from '@/lib/dateRange'
 import userData from '@/user.json'
 import { useSessionStore } from '@/stores/session'
 
@@ -410,10 +410,31 @@ const filters = reactive({
   leadSource: '',
   reason: '',
   dateField: 'arrivalDate' as DateField,
+  range: 'all' as RangePreset,
   dateFrom: '',
   dateTo: '',
   minRevenue: undefined as number | undefined,
   maxRevenue: undefined as number | undefined
+})
+const rangeOptions = RANGE_OPTIONS
+
+watch(
+  () => filters.range,
+  range => {
+    if (range === 'custom') return
+    const resolved = presetRange(range)
+    filters.dateFrom = resolved?.from ?? ''
+    filters.dateTo = resolved?.to ?? ''
+  },
+  { immediate: true }
+)
+
+const rangeLabel = computed(() => {
+  if (filters.range === 'all') return 'All dates'
+  if (filters.dateFrom && filters.dateTo) return `${formatDate(filters.dateFrom)} – ${formatDate(filters.dateTo)}`
+  if (filters.dateFrom) return `From ${formatDate(filters.dateFrom)}`
+  if (filters.dateTo) return `Until ${formatDate(filters.dateTo)}`
+  return ''
 })
 
 function clearFilters() {
@@ -425,6 +446,7 @@ function clearFilters() {
   filters.leadSource = ''
   filters.reason = ''
   filters.dateField = 'arrivalDate'
+  filters.range = 'all'
   filters.dateFrom = ''
   filters.dateTo = ''
   filters.minRevenue = undefined
