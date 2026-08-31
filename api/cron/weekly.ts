@@ -9,8 +9,8 @@ import {
   type Kpis,
   type OwnerRow,
   type Attention
-} from '../../src/lib/crmReport'
-import { baliWeekWindow } from '../../src/lib/time'
+} from '../../src/lib/crmReport.js'
+import { baliWeekWindow } from '../../src/lib/time.js'
 import type { Deal, PipelineEvent } from '../../src/types/crm'
 import {
   db,
@@ -25,7 +25,7 @@ import {
   section,
   statRow,
   alertTable
-} from './_shared'
+} from './_shared.js'
 
 // Team-report recipients: managers/admins (plus the admin-email fallback, mirrored from
 // crmUtils.ADMIN_EMAILS — which can't be imported here because of its `@/` alias chain).

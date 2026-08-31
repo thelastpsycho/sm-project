@@ -5,8 +5,8 @@
 
 import type { Deal, DealStage, PipelineEvent } from '../types/crm'
 import type { Alert } from './crmAlerts'
-import { computeDealAlerts, DEFAULT_ALERT_CONFIG } from './crmAlerts'
-import { toBaliISO } from './time'
+import { computeDealAlerts, DEFAULT_ALERT_CONFIG } from './crmAlerts.js'
+import { toBaliISO } from './time.js'
 
 // ---- tiny helpers (kept inline to avoid pulling `@/`-aliased crmUtils into the api build) ----
 

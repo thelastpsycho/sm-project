@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { getMessaging } from 'firebase-admin/messaging'
-import { computeUserAlerts, DEFAULT_ALERT_CONFIG } from '../../src/lib/crmAlerts'
-import { activityInWindow } from '../../src/lib/crmReport'
-import { baliToday, baliDayWindow, toBaliISO } from '../../src/lib/time'
+import { computeUserAlerts, DEFAULT_ALERT_CONFIG } from '../../src/lib/crmAlerts.js'
+import { activityInWindow } from '../../src/lib/crmReport.js'
+import { baliToday, baliDayWindow, toBaliISO } from '../../src/lib/time.js'
 import type { Deal } from '../../src/types/crm'
 import {
   db,
@@ -16,7 +16,7 @@ import {
   section,
   statRow,
   alertTable
-} from './_shared'
+} from './_shared.js'
 
 /** Small "today's numbers" block shown above the alerts in the daily email. */
 function buildDaily(name: string, stats: { created: number; won: number; due: number }, alerts: ReturnType<typeof computeUserAlerts>) {
