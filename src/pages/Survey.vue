@@ -33,7 +33,7 @@ const submitting = ref(false)
 useHead(computed(() => ({
   title: event.value
     ? `${event.value.companyName} - ${event.value.eventName}`
-    : 'Event Survey - SM Mobile App',
+    : 'Event Survey',
   meta: [
     {
       name: 'description',

@@ -91,7 +91,7 @@ import { PlusIcon, DocumentTextIcon, CalendarIcon, UserGroupIcon, ArrowTopRightO
 import { useHead } from '@vueuse/head'
 
 useHead({
-  title: 'RFP History - SM Mobile App',
+  title: 'RFP History',
   meta: [
     {
       name: 'description',

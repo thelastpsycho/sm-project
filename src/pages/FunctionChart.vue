@@ -438,6 +438,17 @@ import type { FunctionBooking, FunctionStatus, NewFunctionBooking } from '@/type
 import { useConflicts } from '@/composables/functionChart/useConflicts'
 import { useFunctionGrid, ROW_H } from '@/composables/functionChart/useFunctionGrid'
 import { useDragReschedule } from '@/composables/functionChart/useDragReschedule'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'Function Chart',
+  meta: [
+    {
+      name: 'description',
+      content: 'View and manage event and function room bookings, availability, and scheduling conflicts for The Anvaya Beach Resort Bali.'
+    }
+  ]
+})
 
 const store = useFunctionChartStore()
 const session = useSessionStore()

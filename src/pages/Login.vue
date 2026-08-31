@@ -66,7 +66,7 @@ import SmButton from '@/components/ui/SmButton.vue'
 import { useHead } from '@vueuse/head'
 
 useHead({
-  title: 'Login - SM Mobile App',
+  title: 'Login',
   meta: [
     {
       name: 'description',

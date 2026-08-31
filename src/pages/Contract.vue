@@ -189,7 +189,7 @@ import type { ContractForm } from '@/types/contract'
 import { useHead } from '@vueuse/head'
 
 useHead({
-  title: 'Submit Contract - SM Mobile App',
+  title: 'Submit Contract',
   meta: [
     {
       name: 'description',

@@ -403,7 +403,7 @@ import { useHead } from '@vueuse/head'
 import DateRangePicker from '@/components/DateRangePicker.vue'
 
 useHead({
-  title: 'Submit Tactical Offer - SM Mobile App',
+  title: 'Submit Tactical Offer',
   meta: [
     {
       name: 'description',

@@ -244,6 +244,17 @@ import { formatMoney, formatDate, isOverdue, dealOutcome, wonRevenue } from '@/l
 import { baliToday, toBaliISO } from '@/lib/time'
 import { RANGE_OPTIONS, presetRange, type RangePreset } from '@/lib/dateRange'
 import userData from '@/user.json'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'Pipeline Report',
+  meta: [
+    {
+      name: 'description',
+      content: 'Filter and analyze sales pipeline performance across owners, stages, and date ranges for The Anvaya Beach Resort Bali.'
+    }
+  ]
+})
 
 const store = useCrmStore()
 const router = useRouter()

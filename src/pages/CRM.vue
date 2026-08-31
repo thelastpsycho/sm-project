@@ -298,6 +298,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useHead } from '@vueuse/head'
 import draggable from 'vuedraggable'
 import { PlusIcon, MagnifyingGlassIcon, FunnelIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
 import SmButton from '@/components/ui/SmButton.vue'
@@ -318,6 +319,16 @@ import { baliToday } from '@/lib/time'
 import { RANGE_OPTIONS, presetRange, type RangePreset } from '@/lib/dateRange'
 import userData from '@/user.json'
 import { useSessionStore } from '@/stores/session'
+
+useHead({
+  title: 'CRM Pipeline',
+  meta: [
+    {
+      name: 'description',
+      content: 'Manage sales deals, track pipeline value, and monitor deal stages from queue to close for The Anvaya Beach Resort Bali.'
+    }
+  ]
+})
 
 const store = useCrmStore()
 const session = useSessionStore()

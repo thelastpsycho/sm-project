@@ -350,7 +350,7 @@ import { useCrmStore } from '@/stores/crm'
 import userData from '@/user.json'
 
 useHead({
-  title: 'New RFP - SM Mobile App',
+  title: 'New RFP',
   meta: [
     {
       name: 'description',

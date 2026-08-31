@@ -177,7 +177,7 @@ import { usePermissionsStore } from '@/stores/permissions'
 import type { Permission } from '@/lib/permissions'
 
 useHead({
-  title: 'Home - SM Mobile App',
+  title: 'Home',
   meta: [
     {
       name: 'description',

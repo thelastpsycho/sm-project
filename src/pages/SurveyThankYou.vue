@@ -9,7 +9,7 @@ onMounted(() => {
 })
 
 useHead({
-  title: 'Thank You - SM Mobile App',
+  title: 'Thank You',
   meta: [
     {
       name: 'description',

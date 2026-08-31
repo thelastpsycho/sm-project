@@ -310,6 +310,17 @@ import {
 } from '@/lib/permissions'
 import type { RoleDef } from '@/lib/roles'
 import type { User, UserRole } from '@/types/user'
+import { useHead } from '@vueuse/head'
+
+useHead({
+  title: 'Team & Access',
+  meta: [
+    {
+      name: 'description',
+      content: 'Manage team members, roles, and permissions for The Anvaya Beach Resort Bali sales management system.'
+    }
+  ]
+})
 
 const store = useUsersStore()
 const permissions = usePermissionsStore()

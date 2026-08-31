@@ -135,7 +135,7 @@ import type { Message } from '@/types/chat' // Ensure type is imported
 import { useHead } from '@vueuse/head'
 
 useHead({
-  title: 'Chat Assistant - SM Mobile App',
+  title: 'Chat Assistant',
   meta: [
     {
       name: 'description',
