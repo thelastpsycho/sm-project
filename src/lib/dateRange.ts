@@ -31,11 +31,11 @@ export const RANGE_OPTIONS: { value: RangePreset; label: string }[] = [
 ]
 
 function isoAddDays(iso: string, days: number): string {
-  const [y, m, d] = iso.split('-').map(Number)
+  const [y, m, d] = iso.split('-').map(Number) as [number, number, number]
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10)
 }
 function isoWeekday(iso: string): number {
-  const [y, m, d] = iso.split('-').map(Number)
+  const [y, m, d] = iso.split('-').map(Number) as [number, number, number]
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay() // 0=Sun … 6=Sat
 }
 function pad2(n: number): string {
@@ -68,7 +68,7 @@ export function presetRange(preset: RangePreset): { from: string; to: string } |
     case 'mtd':
       return { from: `${today.slice(0, 7)}-01`, to: today }
     case 'lastMonth': {
-      const [ty, tm] = today.split('-').map(Number)
+      const [ty, tm] = today.split('-').map(Number) as [number, number, number]
       const first = new Date(Date.UTC(ty, tm - 2, 1))
       const lmYear = first.getUTCFullYear()
       const lmMonthIndex0 = first.getUTCMonth()
