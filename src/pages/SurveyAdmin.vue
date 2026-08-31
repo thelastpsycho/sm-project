@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import SmCard from '@/components/ui/SmCard.vue'
 import SmButton from '@/components/ui/SmButton.vue'
 import SmInput from '@/components/ui/SmInput.vue'
-import SmPage from '@/components/ui/SmPage.vue'
+import SmSelect from '@/components/ui/SmSelect.vue'
 import { useSurveyStore } from '@/stores/survey'
 import { useSessionStore } from '@/stores/session'
 import { usePermissionsStore } from '@/stores/permissions'
@@ -12,21 +10,17 @@ import { generateSurveyUrl, copyToClipboard, formatScore, getQuestionLabel, getR
 import { DEFAULT_REVIEW_THRESHOLD } from '@/lib/surveyConstants'
 import type { AdminTab, Event, UserRole } from '@/types/survey'
 import {
-  ChartBarIcon,
-  CalendarDaysIcon,
-  ArrowRightOnRectangleIcon,
   PlusIcon,
   TrashIcon,
   ClipboardDocumentIcon,
   CheckIcon,
   ChevronDownIcon,
-  Cog6ToothIcon,
   QrCodeIcon
 } from '@heroicons/vue/24/outline'
 import { useHead } from '@vueuse/head'
 
 useHead({
-  title: 'Survey Admin - SM Mobile App',
+  title: 'Survey Admin',
   meta: [
     {
       name: 'description',
@@ -35,7 +29,6 @@ useHead({
   ]
 })
 
-const router = useRouter()
 const surveyStore = useSurveyStore()
 const session = useSessionStore()
 const permissions = usePermissionsStore()
@@ -46,6 +39,14 @@ const permissions = usePermissionsStore()
 const canCreate = computed(() => permissions.has(session.currentUser, 'survey:create'))
 const canEdit = computed(() => permissions.has(session.currentUser, 'survey:edit'))
 const canDelete = computed(() => permissions.has(session.currentUser, 'survey:delete'))
+
+const tabs: { key: AdminTab; label: string }[] = [
+  { key: 'dashboard', label: 'Dashboard' },
+  { key: 'events', label: 'Events' },
+  { key: 'results', label: 'Results' },
+  { key: 'stats', label: 'Statistics' },
+  { key: 'settings', label: 'Settings' }
+]
 
 const activeTab = ref<AdminTab>('dashboard')
 const copiedEventId = ref<string | null>(null)
@@ -67,6 +68,11 @@ const settings = ref({
   webhookUrl: 'https://workflow.anvayabali.com/webhook-test/2f86e433-6aac-42ab-a482-457777b45318'
 })
 
+const eventFilterOptions = computed(() => [
+  { value: 'all', label: 'All events' },
+  ...surveyStore.events.map(e => ({ value: e.id, label: e.eventName }))
+])
+
 const filteredResponses = computed(() => {
   return selectedEventId.value === 'all'
     ? surveyStore.responsesWithEvents
@@ -85,20 +91,15 @@ const stats = computed(() => {
   }
 
   const totalResponses = responses.length
-  const totalScore = responses.reduce((sum, r) => sum + r.totalScore, 0)
-  const averageScore = (totalScore / (totalResponses * 5)) * 5
+  const averageScore = responses.reduce((sum, r) => sum + r.averageScore, 0) / totalResponses
 
   const threshold = surveyStore.adminSettings.reviewThreshold
-  const highScoreCount = responses.filter(r => {
-    const avg = r.totalScore / 5
-    return avg >= threshold
-  }).length
+  const highScoreCount = responses.filter(r => r.averageScore >= threshold).length
   const reviewRedirectRate = (highScoreCount / totalResponses) * 100
 
   const scoreDistribution = [0, 0, 0, 0, 0]
   responses.forEach(response => {
-    const avgScore = response.totalScore / 5
-    const bucket = Math.round(avgScore) - 1
+    const bucket = Math.round(response.averageScore) - 1
     if (bucket >= 0 && bucket < 5) {
       const idx = bucket as 0 | 1 | 2 | 3 | 4
       scoreDistribution[idx] = (scoreDistribution[idx] ?? 0) + 1
@@ -107,7 +108,7 @@ const stats = computed(() => {
 
   return {
     totalResponses,
-    averageScore: averageScore / 5,
+    averageScore,
     reviewRedirectRate,
     scoreDistribution
   }
@@ -122,10 +123,6 @@ onMounted(async () => {
     webhookUrl: surveyStore.adminSettings.webhookUrl
   }
 })
-
-function handleExit() {
-  router.push('/')
-}
 
 async function handleCreateEvent() {
   if (!canCreate.value) return // defensive: create form is hidden without permission
@@ -190,9 +187,8 @@ function getEventStats(event: Event) {
     return { count, averageScore: 0, reviewRedirectRate: 0 }
   }
 
-  const totalScore = eventResponses.reduce((sum, r) => sum + r.totalScore, 0)
-  const averageScore = totalScore / count / 5
-  const highScoreCount = eventResponses.filter(r => r.totalScore / 5 >= 4.0).length
+  const averageScore = eventResponses.reduce((sum, r) => sum + r.averageScore, 0) / count
+  const highScoreCount = eventResponses.filter(r => r.averageScore >= 4.0).length
   const reviewRedirectRate = (highScoreCount / count) * 100
 
   return { count, averageScore, reviewRedirectRate }
@@ -214,685 +210,419 @@ function getScorePercentage(score: number): number {
 </script>
 
 <template>
-  <SmPage max-width="full">
-    <div class="min-h-screen bg-sm-bg dark:bg-sm-bg-dark pb-safe-bottom">
+  <div class="min-h-screen bg-white dark:bg-sm-bg-dark">
+    <div class="max-w-[1100px] mx-auto lg:mx-0 px-6 lg:px-12 pt-10 lg:pt-9 pb-32">
       <!-- Header -->
-      <header class="bg-white dark:bg-gray-800 border-b border-sm-primary/15 sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
-          <div class="flex items-center justify-between gap-3">
-            <div class="min-w-0 flex-1">
-              <img
-                src="/logo-theanvaya.svg"
-                alt="The Anvaya Beach Resort Bali"
-                width="1558"
-                height="410"
-                class="h-6 sm:h-7 lg:h-9 w-auto aspect-[1558/410] mb-1"
-              />
-              <p class="text-2xs sm:text-xs text-sm-muted hidden xs:block">MICE Survey Admin</p>
-            </div>
-            <SmButton variant="secondary" @click="handleExit" class="text-xs py-2 px-3 sm:px-4 text-sm-muted flex-shrink-0">
-              <ArrowRightOnRectangleIcon class="h-4 w-4" />
-              <span class="hidden sm:inline ml-1.5">Back to app</span>
-            </SmButton>
-          </div>
-        </div>
-      </header>
-
-      <!-- Loading State -->
-      <div v-if="surveyStore.loading" class="min-h-[50vh] flex items-center justify-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-sm-primary"></div>
+      <div>
+        <span class="sm-eyebrow">Survey admin</span>
+        <h1 class="sm-display text-display mt-2">MICE Guest Feedback</h1>
       </div>
 
-      <!-- Content -->
+      <!-- Tabs -->
+      <div class="mt-6 flex flex-wrap gap-2 border-b border-sm-line dark:border-white/10 pb-3" role="tablist" aria-label="Survey admin sections">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === tab.key"
+          @click="activeTab = tab.key"
+          class="rounded-lg px-3.5 py-2 text-xs font-bold tracking-wide transition-colors"
+          :class="
+            activeTab === tab.key
+              ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink'
+              : 'text-sm-muted hover:bg-sm-surface dark:hover:bg-white/5'
+          "
+        >
+          {{ tab.label }}
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div v-if="surveyStore.loading" class="flex justify-center py-16">
+        <div class="animate-spin rounded-full h-7 w-7 border-b-2 border-sm-ink dark:border-white"></div>
+      </div>
+
       <template v-else>
-        <!-- Navigation Tabs -->
-        <div class="bg-white dark:bg-gray-800 border-b border-sm-primary/15 sticky top-[56px] sm:top-[64px] z-10">
-          <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-            <nav class="flex gap-0.5 overflow-x-auto scrollbar-hide -mx-2 sm:mx-0 px-2 sm:px-0">
-              <button
-                v-for="tab in [
-                  { key: 'dashboard' as AdminTab, label: 'Dashboard', icon: ChartBarIcon },
-                  { key: 'events' as AdminTab, label: 'Events', icon: CalendarDaysIcon },
-                  { key: 'results' as AdminTab, label: 'Results', icon: ChartBarIcon },
-                  { key: 'stats' as AdminTab, label: 'Statistics', icon: ChartBarIcon },
-                  { key: 'settings' as AdminTab, label: 'Settings', icon: Cog6ToothIcon }
-                ]"
-                :key="tab.key"
-                @click="activeTab = tab.key"
-                :class="[
-                  'flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0',
-                  activeTab === tab.key
-                    ? 'text-sm-primary border-b-2 border-sm-primary bg-sm-primary/5'
-                    : 'text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-gray-700'
-                ]"
-              >
-                <component :is="tab.icon" class="h-4 w-4 flex-shrink-0" />
-                <span class="hidden sm:inline">{{ tab.label }}</span>
-              </button>
-            </nav>
+        <!-- Dashboard Tab -->
+        <div v-if="activeTab === 'dashboard'" class="mt-8">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-6">
+            <div>
+              <p class="sm-eyebrow">Total responses</p>
+              <p class="mt-1.5 text-xl font-extrabold tracking-[-0.02em] text-sm-ink dark:text-white">{{ stats.totalResponses }}</p>
+            </div>
+            <div>
+              <p class="sm-eyebrow">Average score</p>
+              <p class="mt-1.5 text-xl font-extrabold tracking-[-0.02em] text-sm-primary">{{ formatScore(stats.averageScore) }}</p>
+            </div>
+            <div>
+              <p class="sm-eyebrow">Google review rate</p>
+              <p class="mt-1.5 text-xl font-extrabold tracking-[-0.02em] text-sm-ink dark:text-white">{{ formatScore(stats.reviewRedirectRate, 0) }}%</p>
+            </div>
           </div>
+
+          <section class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
+            <h2 class="sm-eyebrow">Score distribution</h2>
+            <div class="mt-4 space-y-3">
+              <div v-for="score in [5, 4, 3, 2, 1]" :key="score">
+                <div class="flex items-baseline justify-between text-xsm">
+                  <span class="font-bold text-sm-ink dark:text-white">{{ score }} ★</span>
+                  <span class="text-sm-muted">{{ getScoreCount(score) }} · {{ formatScore(getScorePercentage(score), 0) }}%</span>
+                </div>
+                <div class="mt-2 h-1.5 rounded-full bg-sm-hair dark:bg-white/10 overflow-hidden">
+                  <div
+                    class="h-full rounded-full bg-sm-ink dark:bg-white"
+                    :style="{ width: `${(getScoreCount(score) / Math.max(...stats.scoreDistribution, 1)) * 100}%` }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
+            <h2 class="sm-eyebrow">Latest responses</h2>
+            <p v-if="!surveyStore.responsesWithEvents.length" class="mt-3 text-sm text-sm-faint">No responses yet.</p>
+            <div v-else class="mt-2">
+              <div
+                v-for="response in surveyStore.responsesWithEvents.slice(0, 5)"
+                :key="response.id"
+                class="flex items-center justify-between gap-3 py-3 border-t border-sm-hair dark:border-white/5"
+              >
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-bold text-sm-ink dark:text-white truncate">{{ response.event?.eventName }}</p>
+                  <p class="text-eyebrow text-sm-muted">{{ new Date(response.createdAt).toLocaleDateString() }}</p>
+                </div>
+                <p class="text-sm font-bold text-sm-primary shrink-0">
+                  {{ formatScore(response.averageScore) }} <span class="text-sm-faint font-normal">/ 5</span>
+                </p>
+              </div>
+            </div>
+          </section>
         </div>
 
-        <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-          <!-- Dashboard Tab -->
-          <div v-if="activeTab === 'dashboard'" class="space-y-4 sm:space-y-5">
-            <h2 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white">Dashboard Overview</h2>
-
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              <SmCard class="p-3 sm:p-4 lg:p-5">
-                <div class="flex items-center gap-2 sm:gap-3">
-                  <div class="h-8 w-8 sm:h-9 sm:h-10 sm:w-9 sm:w-10 rounded-full bg-sm-primary/10 flex items-center justify-center text-sm-primary flex-shrink-0">
-                    <ChartBarIcon class="h-4 w-4 sm:h-5 sm:w-5" />
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="text-2xs sm:text-xs text-sm-muted">Total Responses</p>
-                    <p class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white truncate">{{ stats.totalResponses }}</p>
-                  </div>
-                </div>
-              </SmCard>
-
-              <SmCard class="p-3 sm:p-4 lg:p-5">
-                <div class="flex items-center gap-2 sm:gap-3">
-                  <div class="h-8 w-8 sm:h-9 sm:h-10 sm:w-9 sm:w-10 rounded-full bg-sm-primary/10 flex items-center justify-center text-sm-primary flex-shrink-0">
-                    <ChartBarIcon class="h-4 w-4 sm:h-5 sm:w-5" />
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="text-2xs sm:text-xs text-sm-muted">Average Score</p>
-                    <p class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white truncate">{{ formatScore(stats.averageScore) }}</p>
-                  </div>
-                </div>
-              </SmCard>
-
-              <SmCard class="p-3 sm:p-4 lg:p-5">
-                <div class="flex items-center gap-2 sm:gap-3">
-                  <div class="h-8 w-8 sm:h-9 sm:h-10 sm:w-9 sm:w-10 rounded-full bg-sm-primary/10 flex items-center justify-center text-sm-primary flex-shrink-0">
-                    <CalendarDaysIcon class="h-4 w-4 sm:h-5 sm:w-5" />
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="text-2xs sm:text-xs text-sm-muted">Google Review Rate</p>
-                    <p class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white truncate">{{ formatScore(stats.reviewRedirectRate, 0) }}%</p>
-                  </div>
-                </div>
-              </SmCard>
-            </div>
-
-            <!-- Score Distribution -->
-            <SmCard class="p-3 sm:p-4">
-              <div class="mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white">Score Distribution</h3>
-              </div>
-              <div class="space-y-1.5 sm:space-y-2">
-                <div v-for="score in [5, 4, 3, 2, 1]" :key="score" class="flex items-center gap-1.5 sm:gap-3">
-                  <span class="w-6 sm:w-8 lg:w-10 text-2xs sm:text-xs sm:text-sm font-medium text-sm-ink dark:text-white flex-shrink-0">{{ score }} ★</span>
-                  <div class="flex-1 h-3 sm:h-4 lg:h-5 bg-sm-primary/10 rounded overflow-hidden min-w-0">
-                    <div
-                      class="h-full bg-sm-primary transition-all duration-300 flex items-center justify-end px-0.5 sm:px-1 lg:px-2"
-                      :style="{ width: `${(getScoreCount(score) / Math.max(...stats.scoreDistribution, 1)) * 100}%` }"
-                    >
-                      <span v-if="getScoreCount(score) > 0 && getScoreCount(score) / Math.max(...stats.scoreDistribution, 1) > 0.15" class="text-2xs sm:text-2xs lg:text-xs text-white font-medium">
-                        {{ getScoreCount(score) }}
-                      </span>
-                    </div>
-                  </div>
-                  <span class="w-8 sm:w-10 text-2xs sm:text-xs sm:text-sm text-sm-muted text-right flex-shrink-0">
-                    {{ formatScore(getScorePercentage(score), 0) }}%
-                  </span>
-                </div>
-              </div>
-            </SmCard>
-
-            <!-- Latest Responses -->
-            <SmCard class="p-3 sm:p-4">
-              <div class="mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white">Latest Responses</h3>
-              </div>
-              <div v-if="surveyStore.responsesWithEvents.length === 0" class="p-3 sm:p-4">
-                <p class="text-sm-muted text-center text-sm">No responses yet</p>
-              </div>
-              <div v-else class="space-y-2">
-                <div
-                  v-for="response in surveyStore.responsesWithEvents.slice(0, 5)"
-                  :key="response.id"
-                  class="flex items-center justify-between gap-2 p-2 sm:p-2.5 lg:p-3 bg-sm-bg dark:bg-gray-700 rounded-lg"
-                >
-                  <div class="min-w-0 flex-1">
-                    <p class="font-medium text-xs sm:text-sm text-sm-ink dark:text-white truncate">{{ response.event?.eventName }}</p>
-                    <p class="text-2xs sm:text-xs text-sm-muted">{{ new Date(response.createdAt).toLocaleDateString() }}</p>
-                  </div>
-                  <div class="text-right flex-shrink-0">
-                    <p class="text-sm sm:text-base font-semibold text-sm-primary">{{ formatScore(response.totalScore / 5) }}</p>
-                    <p class="text-2xs sm:text-2xs sm:text-xs text-sm-muted">out of 5</p>
-                  </div>
-                </div>
-              </div>
-            </SmCard>
-          </div>
-
-          <!-- Events Tab -->
-          <div v-if="activeTab === 'events'" class="space-y-4 sm:space-y-5">
-            <h2 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white">Event Management</h2>
-
-            <!-- Create Event Form -->
-            <SmCard v-if="canCreate" class="p-3 sm:p-4">
-              <div class="mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white">Create New Event</h3>
-              </div>
-              <form @submit.prevent="handleCreateEvent" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <SmInput
-                  label="Event Name"
-                  placeholder="e.g., Annual Company Meeting 2025"
-                  v-model="newEvent.eventName"
-                  required
-                />
-                <SmInput
-                  label="Company Name"
-                  placeholder="e.g., PT Teknologi Indonesia"
-                  v-model="newEvent.companyName"
-                  required
-                />
-                <div class="sm:col-span-2">
-                  <label class="label">Survey Language</label>
-                  <div class="flex gap-2">
-                    <button
-                      type="button"
-                      @click="newEvent.language = 'en'"
-                      :class="[
-                        'flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border-2 text-xs sm:text-sm font-medium transition-all',
-                        newEvent.language === 'en'
-                          ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink border-sm-primary'
-                          : 'bg-white dark:bg-gray-800 text-sm-ink dark:text-white border-sm-primary/30 hover:border-sm-primary hover:bg-sm-primary/5'
-                      ]"
-                    >
-                      🇬🇧 <span class="hidden xs:inline ml-1">English</span>
-                    </button>
-                    <button
-                      type="button"
-                      @click="newEvent.language = 'id'"
-                      :class="[
-                        'flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border-2 text-xs sm:text-sm font-medium transition-all',
-                        newEvent.language === 'id'
-                          ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink border-sm-primary'
-                          : 'bg-white dark:bg-gray-800 text-sm-ink dark:text-white border-sm-primary/30 hover:border-sm-primary hover:bg-sm-primary/5'
-                      ]"
-                    >
-                      🇮🇩 <span class="hidden xs:inline ml-1">Indonesia</span>
-                    </button>
-                  </div>
-                </div>
-                <div class="sm:col-span-2">
-                  <SmButton
-                    type="submit"
-                    :disabled="!newEvent.eventName || !newEvent.companyName"
-                    class="w-full sm:w-auto text-xs sm:text-sm py-2 sm:py-2.5"
+        <!-- Events Tab -->
+        <div v-if="activeTab === 'events'">
+          <section v-if="canCreate" class="mt-8">
+            <h2 class="sm-eyebrow mb-4">Create event</h2>
+            <form @submit.prevent="handleCreateEvent" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 max-w-2xl">
+              <SmInput
+                label="Event name"
+                placeholder="e.g., Annual Company Meeting 2025"
+                v-model="newEvent.eventName"
+                required
+              />
+              <SmInput
+                label="Company name"
+                placeholder="e.g., PT Teknologi Indonesia"
+                v-model="newEvent.companyName"
+                required
+              />
+              <div class="sm:col-span-2">
+                <p class="sm-eyebrow mb-2">Survey language</p>
+                <div class="inline-flex p-1 bg-sm-surface dark:bg-white/5 rounded-2xl">
+                  <button
+                    type="button"
+                    @click="newEvent.language = 'en'"
+                    class="px-6 py-1.5 rounded-xl text-xs font-bold transition-all"
+                    :class="newEvent.language === 'en' ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink' : 'text-sm-muted'"
                   >
-                    <PlusIcon class="h-4 w-4 mr-1 sm:mr-2" />
-                    Create Event
-                  </SmButton>
-                </div>
-              </form>
-            </SmCard>
-
-            <!-- Events List -->
-            <SmCard class="p-3 sm:p-4">
-              <div class="mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white">All Events</h3>
-              </div>
-              <div v-if="surveyStore.events.length === 0" class="p-3 sm:p-4">
-                <p class="text-sm-muted text-center text-sm">No events created yet</p>
-              </div>
-              <div v-else class="space-y-2">
-                <div
-                  v-for="event in surveyStore.events"
-                  :key="event.id"
-                  class="flex items-center justify-between gap-2 p-2.5 sm:p-3 bg-sm-bg dark:bg-gray-700 rounded-lg"
-                >
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-1.5 sm:gap-2">
-                      <p class="font-medium text-xs sm:text-sm text-sm-ink dark:text-white truncate flex-1">{{ event.eventName }}</p>
-                      <span class="px-1 sm:px-1.5 py-0.5 rounded text-2xs sm:text-2xs font-medium bg-sm-primary/10 text-sm-primary flex-shrink-0">
-                        {{ event.language === 'en' ? '🇬🇧' : '🇮🇩' }}
-                      </span>
-                    </div>
-                    <p class="text-2xs sm:text-xs text-sm-muted truncate">{{ event.companyName }}</p>
-                    <p class="text-2xs sm:text-xs text-sm-muted mt-0.5">{{ new Date(event.createdAt).toLocaleDateString() }}</p>
-                  </div>
-                  <div class="flex items-center gap-1 sm:gap-1.5 sm:gap-2 flex-shrink-0">
-                    <button
-                      @click="handleShowQR(event)"
-                      class="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-teal-600 dark:text-teal-400"
-                      title="Show QR code"
-                    >
-                      <QrCodeIcon class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </button>
-                    <button
-                      @click="handleCopyUrl(event.id)"
-                      class="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
-                      title="Copy survey link"
-                    >
-                      <CheckIcon v-if="copiedEventId === event.id" class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600" />
-                      <ClipboardDocumentIcon v-else class="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sm-muted" />
-                    </button>
-                    <button
-                      v-if="canDelete"
-                      @click="handleDeleteEvent(event.id)"
-                      class="p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors text-rose-600 hover:text-rose-700"
-                      title="Delete event"
-                    >
-                      <TrashIcon class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </SmCard>
-          </div>
-
-          <!-- Results Tab -->
-          <div v-if="activeTab === 'results'" class="space-y-4 sm:space-y-5">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h2 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white">Survey Results</h2>
-
-              <div class="relative w-full sm:w-auto">
-                <select
-                  v-model="selectedEventId"
-                  class="appearance-none bg-white dark:bg-gray-800 border border-sm-primary/20 px-3 py-2 pr-8 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sm-primary/30 w-full"
-                >
-                  <option value="all">All Events</option>
-                  <option v-for="event in surveyStore.events" :key="event.id" :value="event.id">
-                    {{ event.eventName }}
-                  </option>
-                </select>
-                <ChevronDownIcon class="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-sm-muted pointer-events-none" />
-              </div>
-            </div>
-
-            <!-- Mobile Cards / Desktop Table -->
-            <SmCard class="p-0 sm:p-0 overflow-hidden">
-              <div v-if="filteredResponses.length === 0" class="p-6 sm:p-8">
-                <p class="text-sm-muted text-center text-sm">No responses found</p>
-              </div>
-
-              <template v-else>
-                <!-- Mobile Card View -->
-                <div class="sm:hidden divide-y divide-sm-primary/10">
-                  <div
-                    v-for="response in filteredResponses"
-                    :key="response.id"
-                    class="p-3"
+                    English
+                  </button>
+                  <button
+                    type="button"
+                    @click="newEvent.language = 'id'"
+                    class="px-6 py-1.5 rounded-xl text-xs font-bold transition-all"
+                    :class="newEvent.language === 'id' ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink' : 'text-sm-muted'"
                   >
-                    <div
-                      class="flex items-center justify-between gap-2 cursor-pointer mb-2"
-                      @click="toggleExpand(response.id)"
-                    >
-                      <div class="min-w-0 flex-1">
-                        <p class="font-medium text-sm text-sm-ink dark:text-white truncate">
-                          {{ response.name || 'Anonymous' }}
-                        </p>
-                        <p class="text-xs text-sm-muted truncate">{{ response.event?.eventName || 'Unknown Event' }}</p>
-                      </div>
-                      <div class="flex items-center gap-2 flex-shrink-0">
-                        <div class="text-right">
-                          <p class="text-base font-semibold text-sm-primary">{{ formatScore(response.averageScore || response.totalScore / 6) }}</p>
-                          <p class="text-2xs text-sm-muted">/ 5</p>
-                        </div>
-                        <ChevronDownIcon
-                          :class="['h-4 w-4 text-sm-muted transition-transform', expandedResponseId === response.id && 'rotate-180']"
-                        />
-                      </div>
-                    </div>
-
-                    <div v-if="expandedResponseId === response.id" class="mt-3 pt-3 border-t border-sm-primary/10 space-y-3">
-                      <!-- Contact Info -->
-                      <div class="grid grid-cols-2 gap-2">
-                        <div>
-                          <p class="text-2xs text-sm-muted uppercase tracking-wide">Email</p>
-                          <p class="text-xs font-medium text-sm-ink dark:text-white break-all">{{ response.email }}</p>
-                        </div>
-                        <div>
-                          <p class="text-2xs text-sm-muted uppercase tracking-wide">Role</p>
-                          <p class="text-xs font-medium text-sm-ink dark:text-white capitalize">{{ getRoleLabel(response.role) }}</p>
-                        </div>
-                      </div>
-
-                      <!-- Rating Scores -->
-                      <div>
-                        <p class="text-xs font-semibold text-sm-ink dark:text-white mb-2">Ratings</p>
-                        <div class="grid grid-cols-3 gap-1.5">
-                          <div
-                            v-for="[key, value] in Object.entries(response.scores)"
-                            :key="key"
-                            class="text-center p-1.5 bg-sm-bg dark:bg-gray-700 rounded-lg"
-                          >
-                            <p class="text-2xs text-sm-muted truncate">{{ getQuestionLabel(key) }}</p>
-                            <p class="text-sm font-semibold text-sm-primary">{{ value }}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Text Answers -->
-                      <div v-if="response.textAnswers && Object.keys(response.textAnswers).length > 0" class="space-y-2">
-                        <div
-                          v-for="[key, value] in Object.entries(response.textAnswers)"
-                          :key="key"
-                          v-show="value"
-                          class="p-2.5 bg-sm-bg dark:bg-gray-700 rounded-lg"
-                        >
-                          <p class="text-2xs font-semibold text-sm-ink dark:text-white mb-1">{{ getQuestionLabel(key) }}</p>
-                          <p class="text-xs text-sm-muted">"{{ value }}"</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Desktop Table View -->
-                <div class="hidden sm:block divide-y divide-sm-primary/10">
-                <div
-                  v-for="response in filteredResponses"
-                  :key="response.id"
-                  class="p-3 sm:p-4"
-                >
-                  <div
-                    class="flex items-center justify-between gap-2 cursor-pointer"
-                    @click="toggleExpand(response.id)"
-                  >
-                    <div class="min-w-0 flex-1">
-                      <p class="font-medium text-xs sm:text-sm text-sm-ink dark:text-white truncate">
-                        {{ response.name || 'Anonymous' }}
-                      </p>
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <p class="text-xs text-sm-muted">{{ response.event?.eventName || 'Unknown Event' }}</p>
-                        <span class="text-sm-primary/50">•</span>
-                        <p class="text-xs text-sm-muted capitalize">{{ getRoleLabel(response.role) }}</p>
-                      </div>
-                    </div>
-                    <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-                      <div class="text-right">
-                        <p class="text-sm sm:text-base font-semibold text-sm-primary">{{ formatScore(response.averageScore || response.totalScore / 6) }}</p>
-                        <p class="text-2xs sm:text-xs text-sm-muted">/ 5</p>
-                      </div>
-                      <ChevronDownIcon
-                        :class="['h-4 w-4 sm:h-5 sm:w-5 text-sm-muted transition-transform', expandedResponseId === response.id && 'rotate-180']"
-                      />
-                    </div>
-                  </div>
-
-                  <div v-if="expandedResponseId === response.id" class="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-sm-primary/10">
-                    <!-- Contact Info -->
-                    <div class="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
-                      <div>
-                        <p class="text-2xs sm:text-xs text-sm-muted uppercase tracking-wide">Email</p>
-                        <p class="text-xs sm:text-sm font-medium text-sm-ink dark:text-white break-all">{{ response.email }}</p>
-                      </div>
-                      <div>
-                        <p class="text-2xs sm:text-xs text-sm-muted uppercase tracking-wide">Role</p>
-                        <p class="text-xs sm:text-sm font-medium text-sm-ink dark:text-white capitalize">{{ getRoleLabel(response.role) }}</p>
-                      </div>
-                    </div>
-
-                    <!-- Rating Scores -->
-                    <div class="mb-3 sm:mb-4">
-                      <p class="text-xs font-semibold text-sm-ink dark:text-white mb-2">Ratings</p>
-                      <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2">
-                        <div
-                          v-for="[key, value] in Object.entries(response.scores)"
-                          :key="key"
-                          class="text-center p-1.5 sm:p-2 bg-sm-bg dark:bg-gray-700 rounded-lg"
-                        >
-                          <p class="text-2xs sm:text-xs text-sm-muted truncate">{{ getQuestionLabel(key) }}</p>
-                          <p class="text-sm sm:text-base font-semibold text-sm-primary">{{ value }}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Text Answers -->
-                    <div v-if="response.textAnswers && Object.keys(response.textAnswers).length > 0" class="space-y-2 sm:space-y-3">
-                      <div
-                        v-for="[key, value] in Object.entries(response.textAnswers)"
-                        :key="key"
-                        v-show="value"
-                        class="p-2.5 sm:p-3 bg-sm-bg dark:bg-gray-700 rounded-lg"
-                      >
-                        <p class="text-2xs sm:text-xs font-semibold text-sm-ink dark:text-white mb-1">{{ getQuestionLabel(key) }}</p>
-                        <p class="text-xs sm:text-sm text-sm-muted">"{{ value }}"</p>
-                      </div>
-                    </div>
-                  </div>
+                    Indonesia
+                  </button>
                 </div>
               </div>
-              </template>
-            </SmCard>
-          </div>
+              <div class="sm:col-span-2">
+                <SmButton type="submit" :disabled="!newEvent.eventName || !newEvent.companyName">
+                  <PlusIcon class="w-4 h-4 mr-1.5" /> Create event
+                </SmButton>
+              </div>
+            </form>
+          </section>
 
-          <!-- Statistics Tab -->
-          <div v-if="activeTab === 'stats'" class="space-y-4 sm:space-y-5">
-            <h2 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white">Event Statistics</h2>
-
-            <!-- Mobile Cards View -->
-            <div class="sm:hidden space-y-3">
+          <section :class="canCreate ? 'mt-10 pt-8 border-t border-sm-line dark:border-white/10' : 'mt-8'">
+            <h2 class="sm-eyebrow mb-2">{{ surveyStore.events.length }} event{{ surveyStore.events.length === 1 ? '' : 's' }}</h2>
+            <p v-if="!surveyStore.events.length" class="py-16 text-center text-sm-faint">No events created yet.</p>
+            <div v-else>
               <div
                 v-for="event in surveyStore.events"
                 :key="event.id"
-                class="bg-white dark:bg-gray-800 rounded-xl border border-sm-primary/10 p-4"
+                class="flex items-center justify-between gap-3 py-3.5 border-t border-sm-hair dark:border-white/5"
               >
-                <div class="flex items-start justify-between mb-3">
-                  <div class="flex-1">
-                    <p class="font-semibold text-sm text-sm-ink dark:text-white">{{ event.eventName }}</p>
-                    <p class="text-xs text-sm-muted">{{ event.companyName }}</p>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    <p class="text-smd font-bold text-sm-ink dark:text-white truncate">{{ event.eventName }}</p>
+                    <span class="text-eyebrow text-sm-muted shrink-0">{{ event.language === 'en' ? 'EN' : 'ID' }}</span>
+                  </div>
+                  <p class="text-xs text-sm-muted truncate">{{ event.companyName }} · {{ new Date(event.createdAt).toLocaleDateString() }}</p>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    @click="handleShowQR(event)"
+                    class="p-2 rounded-full text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
+                    title="Show QR code"
+                  >
+                    <QrCodeIcon class="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    @click="handleCopyUrl(event.id)"
+                    class="p-2 rounded-full text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
+                    title="Copy survey link"
+                  >
+                    <CheckIcon v-if="copiedEventId === event.id" class="w-4 h-4 text-sm-won" />
+                    <ClipboardDocumentIcon v-else class="w-4 h-4" />
+                  </button>
+                  <button
+                    v-if="canDelete"
+                    type="button"
+                    @click="handleDeleteEvent(event.id)"
+                    class="p-2 rounded-full text-sm-muted hover:text-sm-bad hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    title="Delete event"
+                  >
+                    <TrashIcon class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Results Tab -->
+        <div v-if="activeTab === 'results'" class="mt-8">
+          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-2">
+            <h2 class="sm-eyebrow">{{ filteredResponses.length }} response{{ filteredResponses.length === 1 ? '' : 's' }}</h2>
+            <div class="w-full sm:w-56">
+              <SmSelect v-model="selectedEventId" size="sm" :options="eventFilterOptions" />
+            </div>
+          </div>
+
+          <p v-if="!filteredResponses.length" class="py-16 text-center text-sm-faint">No responses found.</p>
+
+          <div v-else>
+            <div
+              v-for="response in filteredResponses"
+              :key="response.id"
+              class="border-t border-sm-hair dark:border-white/5"
+            >
+              <div class="flex items-center justify-between gap-3 py-3.5 cursor-pointer" @click="toggleExpand(response.id)">
+                <div class="min-w-0 flex-1">
+                  <p class="text-smd font-bold text-sm-ink dark:text-white truncate">{{ response.name || 'Anonymous' }}</p>
+                  <p class="text-xs text-sm-muted truncate">{{ response.event?.eventName || 'Unknown event' }} · {{ getRoleLabel(response.role) }}</p>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <div class="text-right">
+                    <p class="text-sm font-bold text-sm-primary">{{ formatScore(response.averageScore || response.totalScore / 6) }}</p>
+                    <p class="text-2xs text-sm-faint">/ 5</p>
+                  </div>
+                  <ChevronDownIcon
+                    class="w-4 h-4 text-sm-muted transition-transform"
+                    :class="expandedResponseId === response.id && 'rotate-180'"
+                  />
+                </div>
+              </div>
+
+              <div v-if="expandedResponseId === response.id" class="pb-5 -mt-1">
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                  <div>
+                    <p class="sm-eyebrow mb-1">Email</p>
+                    <p class="text-sm font-medium text-sm-ink dark:text-white break-all">{{ response.email }}</p>
+                  </div>
+                  <div>
+                    <p class="sm-eyebrow mb-1">Role</p>
+                    <p class="text-sm font-medium text-sm-ink dark:text-white capitalize">{{ getRoleLabel(response.role) }}</p>
                   </div>
                 </div>
-                <div class="grid grid-cols-3 gap-2 pt-3 border-t border-sm-primary/10">
-                  <div class="text-center">
-                    <p class="text-2xs text-sm-muted uppercase">Responses</p>
-                    <p class="text-base font-semibold text-sm-ink dark:text-white">{{ getEventStats(event).count }}</p>
+
+                <p class="sm-eyebrow mb-2">Ratings</p>
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-4">
+                  <div
+                    v-for="[key, value] in Object.entries(response.scores)"
+                    :key="key"
+                    class="text-center py-2 rounded-lg bg-sm-surface dark:bg-white/5"
+                  >
+                    <p class="text-2xs text-sm-muted truncate">{{ getQuestionLabel(key) }}</p>
+                    <p class="text-sm font-bold text-sm-ink dark:text-white">{{ value }}</p>
                   </div>
-                  <div class="text-center">
-                    <p class="text-2xs text-sm-muted uppercase">Avg Score</p>
-                    <p class="text-sm font-semibold text-sm-primary">{{ formatScore(getEventStats(event).averageScore) }}</p>
-                  </div>
-                  <div class="text-center">
-                    <p class="text-2xs text-sm-muted uppercase">Review %</p>
-                    <p class="text-sm font-semibold text-sm-ink dark:text-white">{{ formatScore(getEventStats(event).reviewRedirectRate, 0) }}%</p>
+                </div>
+
+                <div v-if="response.textAnswers && Object.keys(response.textAnswers).length > 0" class="space-y-2">
+                  <div
+                    v-for="[key, value] in Object.entries(response.textAnswers)"
+                    :key="key"
+                    v-show="value"
+                    class="p-3 rounded-lg bg-sm-surface dark:bg-white/5"
+                  >
+                    <p class="sm-eyebrow font-bold mb-1">{{ getQuestionLabel(key) }}</p>
+                    <p class="text-sm text-sm-muted">"{{ value }}"</p>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <!-- Desktop Table View -->
-            <SmCard class="hidden sm:block p-0 sm:p-0">
-              <div class="overflow-x-auto">
-                <table class="w-full text-xs sm:text-sm">
-                  <thead class="bg-sm-bg dark:bg-gray-700">
-                    <tr>
-                      <th class="text-left p-2 sm:p-3 font-medium text-sm-ink dark:text-white">Event</th>
-                      <th class="text-center p-2 sm:p-3 font-medium text-sm-ink dark:text-white">Responses</th>
-                      <th class="text-center p-2 sm:p-3 font-medium text-sm-ink dark:text-white">Avg Score</th>
-                      <th class="text-center p-2 sm:p-3 font-medium text-sm-ink dark:text-white">Review Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-sm-primary/10">
-                    <tr v-for="event in surveyStore.events" :key="event.id">
-                      <td class="p-2 sm:p-3">
-                        <p class="font-medium text-sm-ink dark:text-white text-xs sm:text-sm">{{ event.eventName }}</p>
-                        <p class="text-2xs sm:text-xs text-sm-muted">{{ event.companyName }}</p>
-                      </td>
-                      <td class="text-center p-2 sm:p-3 text-sm-ink dark:text-white">{{ getEventStats(event).count }}</td>
-                      <td class="text-center p-2 sm:p-3">
-                        <span class="font-semibold text-sm-primary">{{ formatScore(getEventStats(event).averageScore) }}</span>
-                        <span class="text-sm-muted"> / 5</span>
-                      </td>
-                      <td class="text-center p-2 sm:p-3 text-sm-ink dark:text-white">{{ formatScore(getEventStats(event).reviewRedirectRate, 0) }}%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </SmCard>
+        <!-- Statistics Tab -->
+        <div v-if="activeTab === 'stats'" class="mt-8">
+          <h2 class="sm-eyebrow mb-2">Event statistics</h2>
+
+          <div class="hidden sm:flex items-center gap-3 px-1 py-3 border-b border-sm-line dark:border-white/10 sm-eyebrow">
+            <span class="flex-[2.4]">Event</span>
+            <span class="flex-1 text-right">Responses</span>
+            <span class="flex-1 text-right">Avg score</span>
+            <span class="flex-1 text-right">Review rate</span>
           </div>
 
-          <!-- Settings Tab -->
-          <div v-if="activeTab === 'settings'" class="space-y-4 sm:space-y-5">
-            <h2 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white">Survey Settings</h2>
-
-            <SmCard class="p-3 sm:p-4">
-              <div class="mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-sm-ink dark:text-white">Submission Redirect Settings</h3>
-              </div>
-              <form @submit.prevent="handleSaveSettings" class="space-y-4 sm:space-y-5">
-                <!-- Review Threshold -->
-                <div>
-                  <label class="label" for="threshold">
-                    Review Threshold (Score {{ settings.reviewThreshold }}+)
-                  </label>
-                  <input
-                    id="threshold"
-                    type="range"
-                    min="1"
-                    max="5"
-                    step="0.1"
-                    v-model.number="settings.reviewThreshold"
-                    class="w-full h-2 bg-sm-primary/15 rounded-lg appearance-none cursor-pointer accent-sm-primary"
-                  />
-                  <div class="flex justify-between text-xs text-sm-muted mt-2">
-                    <span>1.0</span>
-                    <span class="font-semibold text-sm-primary">{{ settings.reviewThreshold.toFixed(1) }}</span>
-                    <span>5.0</span>
-                  </div>
-                  <p class="text-xs text-sm-muted mt-2">
-                    Guests with an average score of <strong>{{ settings.reviewThreshold.toFixed(1) }}</strong> or higher will be redirected to Google Reviews.
-                  </p>
-                </div>
-
-                <!-- Google Review URL -->
-                <div>
-                  <SmInput
-                    id="reviewUrl"
-                    type="url"
-                    label="Google Review URL"
-                    placeholder="https://search.google.com/local/writereview"
-                    v-model="settings.googleReviewUrl"
-                    required
-                  />
-                </div>
-
-                <!-- Webhook URL -->
-                <div>
-                  <SmInput
-                    id="webhookUrl"
-                    type="url"
-                    label="Webhook URL"
-                    placeholder="https://workflow.anvayabali.com/webhook-test/..."
-                    v-model="settings.webhookUrl"
-                    required
-                  />
-                  <p class="text-xs text-sm-muted mt-1.5">
-                    This URL will receive a POST request with survey details when a guest submits their feedback.
-                  </p>
-                </div>
-
-                <!-- Save Button -->
-                <div v-if="canEdit" class="flex justify-end">
-                  <SmButton type="submit" class="w-full sm:w-auto text-xs sm:text-sm py-2 sm:py-2.5">
-                    Save Settings
-                  </SmButton>
-                </div>
-              </form>
-            </SmCard>
-
-            <!-- Info Card -->
-            <SmCard class="bg-sm-bg dark:bg-gray-700 p-3 sm:p-4">
-              <div class="pt-0 sm:pt-1">
-                <h3 class="font-semibold text-xs sm:text-sm text-sm-ink dark:text-white mb-2">How it works</h3>
-                <ul class="text-2xs sm:text-xs text-sm-muted space-y-1 sm:space-y-1.5">
-                  <li>• Guests complete the 5-question survey (each question is scored 1-5)</li>
-                  <li>• Their average score is calculated (total score / 5)</li>
-                  <li>• If average score >= threshold → Redirect to Google Reviews</li>
-                  <li>• If average score < threshold → Show Thank You page</li>
-                </ul>
-              </div>
-            </SmCard>
+          <div
+            v-for="event in surveyStore.events"
+            :key="event.id"
+            class="flex items-center gap-3 px-1 py-3.5 border-b border-sm-hair dark:border-white/5"
+          >
+            <div class="min-w-0 flex-1 sm:flex-[2.4]">
+              <p class="text-smd font-bold text-sm-ink dark:text-white truncate">{{ event.eventName }}</p>
+              <p class="text-xs text-sm-muted truncate">{{ event.companyName }}</p>
+              <p class="sm:hidden text-xs text-sm-muted mt-1">
+                {{ getEventStats(event).count }} responses · {{ formatScore(getEventStats(event).averageScore) }} avg · {{ formatScore(getEventStats(event).reviewRedirectRate, 0) }}% review
+              </p>
+            </div>
+            <span class="hidden sm:block flex-1 text-right text-sm text-sm-ink-soft dark:text-gray-300">{{ getEventStats(event).count }}</span>
+            <span class="hidden sm:block flex-1 text-right text-sm font-bold text-sm-primary">{{ formatScore(getEventStats(event).averageScore) }}</span>
+            <span class="hidden sm:block flex-1 text-right text-sm text-sm-ink-soft dark:text-gray-300">{{ formatScore(getEventStats(event).reviewRedirectRate, 0) }}%</span>
           </div>
-        </main>
+
+          <p v-if="!surveyStore.events.length" class="py-16 text-center text-sm-faint">No events yet.</p>
+        </div>
+
+        <!-- Settings Tab -->
+        <div v-if="activeTab === 'settings'" class="mt-8 max-w-xl">
+          <h2 class="sm-eyebrow mb-4">Submission redirect</h2>
+          <form @submit.prevent="handleSaveSettings" class="space-y-6">
+            <!-- Review Threshold -->
+            <div>
+              <label class="sm-eyebrow block mb-2" for="threshold">
+                Review threshold (score {{ settings.reviewThreshold.toFixed(1) }}+)
+              </label>
+              <input
+                id="threshold"
+                type="range"
+                min="1"
+                max="5"
+                step="0.1"
+                v-model.number="settings.reviewThreshold"
+                class="w-full h-1.5 bg-sm-hair dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-sm-primary"
+              />
+              <div class="flex justify-between text-xs text-sm-faint mt-2">
+                <span>1.0</span>
+                <span class="font-bold text-sm-primary">{{ settings.reviewThreshold.toFixed(1) }}</span>
+                <span>5.0</span>
+              </div>
+              <p class="text-xs text-sm-muted mt-2">
+                Guests with an average score of <strong class="text-sm-ink dark:text-white">{{ settings.reviewThreshold.toFixed(1) }}</strong> or higher are redirected to Google Reviews.
+              </p>
+            </div>
+
+            <SmInput
+              id="reviewUrl"
+              type="url"
+              label="Google review URL"
+              placeholder="https://search.google.com/local/writereview"
+              v-model="settings.googleReviewUrl"
+              required
+            />
+
+            <div>
+              <SmInput
+                id="webhookUrl"
+                type="url"
+                label="Webhook URL"
+                placeholder="https://workflow.anvayabali.com/webhook-test/..."
+                v-model="settings.webhookUrl"
+                required
+              />
+              <p class="text-xs text-sm-muted mt-1.5">
+                Receives a POST request with survey details when a guest submits feedback.
+              </p>
+            </div>
+
+            <div v-if="canEdit" class="flex justify-end pt-2">
+              <SmButton type="submit">Save settings</SmButton>
+            </div>
+          </form>
+
+          <div class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
+            <h3 class="sm-eyebrow mb-3">How it works</h3>
+            <ul class="text-sm text-sm-muted space-y-1.5">
+              <li>· Guests complete the 5-question survey (each question scored 1–5).</li>
+              <li>· Their average score is calculated (total score ÷ 5).</li>
+              <li>· Average score ≥ threshold → redirect to Google Reviews.</li>
+              <li>· Average score &lt; threshold → show the Thank You page.</li>
+            </ul>
+          </div>
+        </div>
       </template>
     </div>
 
     <!-- QR Code Modal -->
     <div
       v-if="selectedEventForQR"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      class="fixed inset-0 z-[60] flex items-center justify-center p-4"
       @click.self="selectedEventForQR = null"
     >
-      <div class="absolute inset-0 bg-sm-ink/40 backdrop-blur-sm"></div>
-      <div class="relative bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl shadow-2xl max-w-sm w-full p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
-        <!-- Close Button -->
+      <div class="fixed inset-0 bg-sm-ink/30 backdrop-blur-sm"></div>
+      <div class="relative bg-white dark:bg-sm-card-dark w-full max-w-sm rounded-3xl shadow-2xl p-6 sm:p-8 animate-fade-in-up">
         <button
+          type="button"
           @click="selectedEventForQR = null"
-          class="absolute top-3 right-3 p-2 hover:bg-sm-surface dark:hover:bg-gray-700 rounded-lg transition-colors"
+          class="absolute top-3 right-3 p-2 rounded-full text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
         >
-          <svg class="w-5 h-5 text-sm-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <!-- Header -->
         <div class="text-center mb-6">
-          <div class="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <QrCodeIcon class="w-6 h-6 text-teal-600 dark:text-teal-400" />
+          <div class="w-11 h-11 rounded-full bg-sm-surface dark:bg-white/5 flex items-center justify-center mx-auto mb-4">
+            <QrCodeIcon class="w-5 h-5 text-sm-ink dark:text-white" />
           </div>
-          <h3 class="text-lg font-bold text-sm-ink dark:text-white mb-1">Survey QR Code</h3>
+          <h3 class="text-lg font-extrabold tracking-[-0.01em] text-sm-ink dark:text-white mb-1">Survey QR code</h3>
           <p class="text-sm text-sm-muted">{{ selectedEventForQR.eventName }}</p>
         </div>
 
-        <!-- QR Code Image -->
         <div class="flex justify-center mb-6">
-          <div class="p-4 bg-white dark:bg-sm-card-dark rounded-xl shadow-lg border border-sm-line dark:border-white/10">
+          <div class="p-4 bg-white rounded-2xl border border-sm-line dark:border-white/10">
             <img
               :src="getQRCodeUrl(selectedEventForQR.id)"
               :alt="`QR code for ${selectedEventForQR.eventName}`"
-              class="w-64 h-64"
+              class="w-56 h-56"
             />
           </div>
         </div>
 
-        <!-- Event Info -->
-        <div class="bg-sm-surface dark:bg-gray-700/50 rounded-xl p-4 mb-6">
-          <p class="text-xs text-sm-muted mb-1">Company</p>
-          <p class="text-sm font-semibold text-sm-ink dark:text-white mb-3">{{ selectedEventForQR.companyName }}</p>
-          <p class="text-xs text-sm-muted mb-1">Survey Link</p>
+        <div class="rounded-2xl bg-sm-surface dark:bg-white/5 p-4 mb-6">
+          <p class="text-eyebrow text-sm-muted mb-1">Company</p>
+          <p class="text-sm font-bold text-sm-ink dark:text-white mb-3">{{ selectedEventForQR.companyName }}</p>
+          <p class="text-eyebrow text-sm-muted mb-1">Survey link</p>
           <p class="text-xs font-mono text-sm-ink-soft dark:text-gray-300 break-all">{{ generateSurveyUrl(selectedEventForQR.id) }}</p>
         </div>
 
-        <!-- Download Button -->
         <a
           :href="getQRCodeUrl(selectedEventForQR.id)"
           download="survey-qr-code.png"
-          class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+          class="w-full py-3 rounded-xl bg-sm-ink text-white dark:bg-white dark:text-sm-ink font-bold hover:bg-black dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          Download QR Code
+          Download QR code
         </a>
       </div>
     </div>
-  </SmPage>
+  </div>
 </template>
-
-<style scoped>
-.label {
-  display: block;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: inherit;
-  margin-bottom: 0.375rem;
-  letter-spacing: 0.01em;
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-</style>
