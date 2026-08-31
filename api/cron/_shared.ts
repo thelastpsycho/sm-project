@@ -7,6 +7,8 @@ import { getFirestore, type Firestore } from 'firebase-admin/firestore'
 import * as nodemailer from 'nodemailer'
 import type { Deal, PipelineEvent } from '../../src/types/crm.js'
 import type { Alert } from '../../src/lib/crmAlerts.js'
+import { mergeMatrix, type RoleMatrix } from '../../src/lib/permissions.js'
+import { BUILTIN_ROLE_IDS } from '../../src/lib/roles.js'
 
 // ---- Firebase Admin ----
 
@@ -39,6 +41,44 @@ export async function loadEventsSince(store: Firestore, startMs: number): Promis
     const data = d.data() as Record<string, any>
     return { id: d.id, ...data, at: data.at?.toDate?.() ?? new Date(0) } as PipelineEvent
   })
+}
+
+// ---- Roles & permissions (mirrors src/stores/permissions.ts + crmUtils.effectiveRole) ----
+
+// Kept in sync with crmUtils.ADMIN_EMAILS — can't import crmUtils here (its `@/`
+// alias chain breaks the api bundle). The admin email is always treated as `admin`.
+const ADMIN_EMAILS = ['andikrisnatha@theanvayabali.com']
+
+/** A user's effective role: admin-email → 'admin', else their stored role (default 'sales'). */
+export function effectiveRole(u: { email?: string; role?: string }): string {
+  if (u.email && ADMIN_EMAILS.includes(u.email)) return 'admin'
+  return u.role || 'sales'
+}
+
+/**
+ * Load the role → permission-keys matrix from Firestore, merged onto the built-in
+ * defaults (same logic the app's permissions store uses), including custom roles.
+ */
+export async function loadRoleMatrix(store: Firestore): Promise<RoleMatrix> {
+  const [rolesSnap, matrixSnap] = await Promise.all([
+    store.collection('settings').doc('roles').get(),
+    store.collection('settings').doc('rolePermissions').get()
+  ])
+  const customList = rolesSnap.exists ? (rolesSnap.data() as any)?.list : null
+  const customIds = Array.isArray(customList)
+    ? customList
+        .map((r: any) => String(r?.id ?? ''))
+        .filter((id: string) => id && !BUILTIN_ROLE_IDS.includes(id))
+    : []
+  const roleIds = [...BUILTIN_ROLE_IDS, ...customIds]
+  return mergeMatrix(matrixSnap.exists ? (matrixSnap.data() as any) : null, roleIds)
+}
+
+/** Whether a user's role grants a permission key. Admin always does. */
+export function roleGrants(matrix: RoleMatrix, u: { email?: string; role?: string }, key: string): boolean {
+  const role = effectiveRole(u)
+  if (role === 'admin') return true
+  return (matrix[role] ?? []).includes(key)
 }
 
 // ---- Cron auth ----

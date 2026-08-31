@@ -8,6 +8,8 @@ import {
   db,
   loadDeals,
   loadEventsSince,
+  loadRoleMatrix,
+  roleGrants,
   authorized,
   mailer,
   sendMail,
@@ -59,6 +61,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const deals: Deal[] = await loadDeals(store)
   const todaysEvents = await loadEventsSince(store, day.startMs)
+  const matrix = await loadRoleMatrix(store)
   const usersSnap = await store.collection('users').get()
   const messaging = getMessaging()
   const transport = mailer()
@@ -84,11 +87,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       due: mine.filter(d => d.actionDueDate === today && (d.stage ?? 'New') !== 'Confirmed' && (d.stage ?? 'New') !== 'Lost').length
     }
 
-    // Skip users with nothing to report at all.
-    if (alerts.length === 0 && stats.created === 0 && stats.won === 0 && stats.due === 0) continue
+    const hasContent = alerts.length > 0 || stats.created > 0 || stats.won > 0 || stats.due > 0
 
-    // 1. Email digest — reaches any active user (no device token needed).
-    if (transport) {
+    // 1. Email digest — only for roles granted `reports:daily`, and only when there's
+    //    something to report. Push (below) stays independent of this permission.
+    if (transport && hasContent && roleGrants(matrix, u, 'reports:daily')) {
       try {
         const { subject, html, text } = buildDaily(u.name || '', stats, alerts)
         await sendMail(transport, email, subject, html, text)

@@ -16,6 +16,8 @@ import {
   db,
   loadDeals,
   loadEventsSince,
+  loadRoleMatrix,
+  roleGrants,
   authorized,
   mailer,
   sendMail,
@@ -26,14 +28,6 @@ import {
   statRow,
   alertTable
 } from './_shared.js'
-
-// Team-report recipients: managers/admins (plus the admin-email fallback, mirrored from
-// crmUtils.ADMIN_EMAILS — which can't be imported here because of its `@/` alias chain).
-const ADMIN_EMAILS = ['andikrisnatha@theanvayabali.com']
-function isTeamRecipient(u: Record<string, any>): boolean {
-  const role = u.role
-  return role === 'manager' || role === 'admin' || (u.email && ADMIN_EMAILS.includes(u.email))
-}
 
 const pct = (x: number) => `${Math.round(x * 100)}%`
 
@@ -158,6 +152,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const deals: Deal[] = await loadDeals(store)
   const events: PipelineEvent[] = await loadEventsSince(store, startMs)
+  const matrix = await loadRoleMatrix(store)
   const usersSnap = await store.collection('users').get()
   const transport = mailer()
   if (!transport) return res.status(200).json({ ok: true, emailsSent: 0, note: 'Email not configured' })
@@ -176,12 +171,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const email: string = u.email
     if (!email) continue
 
+    // `reports:team` → team-wide roll-up (includes a personal section, so no second email);
+    // else `reports:weekly` → personal weekly; else this user gets no weekly email.
+    const wantsTeam = roleGrants(matrix, u, 'reports:team')
+    const wantsWeekly = wantsTeam || roleGrants(matrix, u, 'reports:weekly')
+    if (!wantsWeekly) continue
+
     const mine = deals.filter(d => d.ownerId === email)
     const myIds = new Set(mine.map(d => d.id))
     const myAct = activityInWindow(events, startMs, endMs, myIds)
     const myKpis = computeKpis(mine)
 
-    const msg = isTeamRecipient(u)
+    const msg = wantsTeam
       ? buildTeamWeekly(u.name || '', { act: myAct, k: myKpis }, { act: teamAct, k: teamKpis, att: teamAtt, board })
       : buildRepWeekly(u.name || '', myAct, myKpis, attentionList(mine, now))
 

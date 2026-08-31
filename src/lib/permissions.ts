@@ -76,6 +76,15 @@ export const PERMISSION_CATALOG: PermissionGroup[] = [
     ]
   },
   {
+    resource: 'reports',
+    label: 'Email reports',
+    actions: [
+      { key: 'daily', label: 'Daily digest' },
+      { key: 'weekly', label: 'Weekly report' },
+      { key: 'team', label: 'Weekly team roll-up' }
+    ]
+  },
+  {
     resource: 'users',
     label: 'Team & Access',
     adminOnly: true,
@@ -137,16 +146,20 @@ const NON_PIPELINE_CRUD: Permission[] = [
   'rfp:create',
   'rfp:edit'
 ]
+// Report emails a recipient role gets by default: their daily digest + personal weekly.
+// The team-wide weekly roll-up (`reports:team`) is granted only to manager/admin below.
+const REPORT_EMAILS: Permission[] = ['reports:daily', 'reports:weekly']
 const SALES_BASE: Permission[] = [
   ...VIEW_ALL,
   'pipeline:create',
   'pipeline:edit-own',
-  ...NON_PIPELINE_CRUD
+  ...NON_PIPELINE_CRUD,
+  ...REPORT_EMAILS
 ]
 
 export const DEFAULT_ROLE_PERMISSIONS: RoleMatrix = {
   admin: [...ALL_PERMISSIONS],
-  manager: [...SALES_BASE, 'pipeline:edit'],
+  manager: [...SALES_BASE, 'pipeline:edit', 'reports:team'],
   sales: [...SALES_BASE],
   viewer: [...VIEW_ALL]
 }
