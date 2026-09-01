@@ -32,6 +32,11 @@
       </span>
     </div>
 
+    <div v-if="stayLabel" class="mt-1.5 flex items-center gap-1 text-xs text-sm-muted">
+      <CalendarDaysIcon class="w-3 h-3 shrink-0" />
+      <span class="truncate">{{ stayLabel }}</span>
+    </div>
+
     <div class="mt-1.5 flex items-center gap-1.5 text-xs text-sm-muted">
       <LockClosedIcon v-if="locked" class="w-3 h-3 shrink-0 text-sm-faint" title="You can only edit your own leads" />
       <span class="truncate">{{ deal.ownerName || 'Unassigned' }}</span>
@@ -87,7 +92,8 @@ import {
   ChatBubbleLeftRightIcon,
   LockClosedIcon,
   ChevronUpDownIcon,
-  CheckIcon
+  CheckIcon,
+  CalendarDaysIcon
 } from '@heroicons/vue/24/outline'
 import { DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStage } from '@/types/crm'
@@ -101,6 +107,12 @@ const emit = defineEmits<{ open: [deal: Deal]; move: [payload: { deal: Deal; sta
 
 const overdue = computed(() => isOverdue(props.deal.actionDueDate))
 const currentStage = computed<DealStage>(() => (props.deal.stage ?? 'New') as DealStage)
+
+function fmtShort(d?: string): string {
+  if (!d) return ''
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+const stayLabel = computed(() => [props.deal.arrivalDate, props.deal.checkoutDate].filter(Boolean).map(fmtShort).join(' – '))
 
 // Column dots, mirrored from the board so the picker reads the same as the columns.
 const stageDot: Record<DealStage, string> = {
