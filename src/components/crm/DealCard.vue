@@ -37,6 +37,11 @@
       <span class="truncate">{{ stayLabel }}</span>
     </div>
 
+    <div v-if="deal.groupName" class="mt-1.5 flex items-center gap-1 text-xs text-sm-muted">
+      <UserGroupIcon class="w-3 h-3 shrink-0" />
+      <span class="truncate">{{ deal.groupName }}</span>
+    </div>
+
     <div class="mt-1.5 flex items-center gap-1.5 text-xs text-sm-muted">
       <LockClosedIcon v-if="locked" class="w-3 h-3 shrink-0 text-sm-faint" title="You can only edit your own leads" />
       <span class="truncate">{{ deal.ownerName || 'Unassigned' }}</span>
@@ -93,7 +98,8 @@ import {
   LockClosedIcon,
   ChevronUpDownIcon,
   CheckIcon,
-  CalendarDaysIcon
+  CalendarDaysIcon,
+  UserGroupIcon
 } from '@heroicons/vue/24/outline'
 import { DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStage } from '@/types/crm'
