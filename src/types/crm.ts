@@ -57,13 +57,16 @@ export interface Deal {
   updatedAt: Date
 }
 
-// A comment left on a deal by a team member (deals/{id}/comments subcollection).
+// A comment or logged activity on a deal (deals/{id}/comments subcollection — shared
+// timeline so pipeline movement shows up alongside team comments). `kind` defaults to
+// 'comment' when absent (pre-existing docs predate the activity feature).
 export interface DealComment {
   id: string
   authorId: string // app user email; empty when unknown
   authorName: string // display name
   text: string
   createdAt: Date
+  kind?: 'comment' | 'activity'
 }
 
 // Payload used when creating a deal (server stamps id / timestamps).

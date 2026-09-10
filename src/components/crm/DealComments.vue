@@ -3,26 +3,40 @@
     <div class="flex items-center gap-2">
       <ChatBubbleLeftRightIcon class="w-4 h-4 text-sm-muted" />
       <h4 class="text-sm font-bold text-sm-ink dark:text-white">
-        Comments
+        Comments &amp; Activity
         <span v-if="list.length" class="text-sm-faint font-normal">({{ list.length }})</span>
       </h4>
     </div>
 
     <!-- Thread -->
     <div v-if="store.commentsLoading && !list.length" class="text-xs text-sm-faint py-2">
-      Loading comments…
+      Loading…
     </div>
     <div v-else-if="list.length === 0" class="text-xs text-sm-faint py-2">
-      No comments yet. Be the first to add one.
+      No comments or activity yet. Be the first to add a comment.
     </div>
     <ul v-else class="space-y-3">
       <li v-for="c in list" :key="c.id" class="flex gap-2.5">
         <div
+          v-if="c.kind === 'activity'"
+          class="shrink-0 w-8 h-8 rounded-full bg-sm-surface dark:bg-white/10 text-sm-faint flex items-center justify-center"
+        >
+          <ArrowsRightLeftIcon class="w-4 h-4" />
+        </div>
+        <div
+          v-else
           class="shrink-0 w-8 h-8 rounded-full bg-sm-surface dark:bg-white/10 text-sm-ink dark:text-white flex items-center justify-center text-xs font-bold"
         >
           {{ initials(c.authorName) }}
         </div>
-        <div class="min-w-0 flex-1">
+        <div v-if="c.kind === 'activity'" class="min-w-0 flex-1 flex items-baseline gap-2">
+          <p class="text-sm text-sm-faint italic">
+            <span class="font-semibold text-sm-ink-soft dark:text-gray-300">{{ c.authorName || 'Unknown' }}</span>
+            {{ c.text }}
+          </p>
+          <span class="text-eyebrow text-sm-faint shrink-0 ml-auto">{{ relativeTime(c.createdAt) }}</span>
+        </div>
+        <div v-else class="min-w-0 flex-1">
           <div class="flex items-baseline gap-2">
             <span class="text-sm font-bold text-sm-ink dark:text-white truncate">
               {{ c.authorName || 'Unknown' }}
@@ -63,7 +77,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { ChatBubbleLeftRightIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import { ChatBubbleLeftRightIcon, TrashIcon, ArrowsRightLeftIcon } from '@heroicons/vue/24/outline'
 import SmButton from '@/components/ui/SmButton.vue'
 import { useCrmStore } from '@/stores/crm'
 import { useSessionStore } from '@/stores/session'
@@ -102,6 +116,7 @@ async function submit() {
 }
 
 function canDelete(c: DealComment): boolean {
+  if (c.kind === 'activity') return false
   const email = session.currentUser?.email
   return !!email && c.authorId === email
 }

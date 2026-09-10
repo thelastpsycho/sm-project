@@ -73,6 +73,31 @@ export const useCrmStore = defineStore('crm', () => {
     batch.set(ref, clean)
   }
 
+  /**
+   * Append a stage-move activity entry to the deal's comment thread (same batch as the
+   * deal update + pipeline event), so it shows in the "Comments & Activity" timeline
+   * alongside team comments. Returns the entry so callers can push it into local state
+   * for an instant UI update (comments aren't on a live listener, unlike deals).
+   */
+  function appendActivity(
+    batch: WriteBatch,
+    dealId: string,
+    text: string,
+    byId: string,
+    byName: string
+  ): DealComment {
+    const ref = doc(collection(db, COLLECTIONS.DEALS, dealId, 'comments'))
+    const createdAt = new Date()
+    batch.set(ref, { authorId: byId, authorName: byName, text, kind: 'activity', createdAt })
+    return { id: ref.id, authorId: byId, authorName: byName, text, createdAt, kind: 'activity' }
+  }
+
+  /** Push a newly-written comment/activity entry into local state (newest-first order). */
+  function pushLocalEntry(dealId: string, entry: DealComment) {
+    const list = comments.value[dealId]
+    if (list) list.unshift(entry)
+  }
+
   // Actions
 
   /**
@@ -150,6 +175,7 @@ export const useCrmStore = defineStore('crm', () => {
       }
       const batch = writeBatch(db)
       batch.update(doc(db, COLLECTIONS.DEALS, id), { ...data, updatedAt: new Date() })
+      let activity: DealComment | undefined
       if (stageChanged) {
         const { byId, byName } = actor()
         appendEvent(batch, {
@@ -163,8 +189,10 @@ export const useCrmStore = defineStore('crm', () => {
           byName,
           at: new Date()
         })
+        activity = appendActivity(batch, id, `Moved from ${prevStage} to ${nextStage}`, byId, byName)
       }
       await batch.commit()
+      if (activity) pushLocalEntry(id, activity)
     } catch (err) {
       error.value = 'Failed to update deal'
       console.error('Error updating deal:', err)
@@ -218,7 +246,9 @@ export const useCrmStore = defineStore('crm', () => {
         byName,
         at: new Date()
       })
+      const activity = appendActivity(batch, id, `Moved from ${prev} to ${stage}`, byId, byName)
       await batch.commit()
+      pushLocalEntry(id, activity)
     } catch (err) {
       if (local) {
         local.stage = prev // revert on failure
@@ -270,7 +300,9 @@ export const useCrmStore = defineStore('crm', () => {
         byName,
         at: new Date()
       })
+      const activity = appendActivity(batch, id, `Moved from ${prev} to Lost — ${reason}`, byId, byName)
       await batch.commit()
+      pushLocalEntry(id, activity)
     } catch (err) {
       if (local) {
         local.stage = prev
@@ -317,7 +349,9 @@ export const useCrmStore = defineStore('crm', () => {
         byName,
         at: new Date()
       })
+      const activity = appendActivity(batch, id, `Moved from ${prev} to Confirmed (Won)`, byId, byName)
       await batch.commit()
+      pushLocalEntry(id, activity)
     } catch (err) {
       if (local) {
         local.stage = prev
@@ -366,7 +400,7 @@ export const useCrmStore = defineStore('crm', () => {
     }
   }
 
-  // ---- Comments (per-deal, team-visible) ----
+  // ---- Comments & activity (per-deal, team-visible timeline; newest first) ----
   async function loadComments(dealId: string) {
     commentsLoading.value = true
     try {
@@ -374,7 +408,7 @@ export const useCrmStore = defineStore('crm', () => {
       const snapshot = await getDocs(
         query(
           collection(db, COLLECTIONS.DEALS, dealId, 'comments'),
-          orderBy('createdAt', 'asc')
+          orderBy('createdAt', 'desc')
         )
       )
       comments.value[dealId] = snapshot.docs.map(d => {
@@ -384,7 +418,8 @@ export const useCrmStore = defineStore('crm', () => {
           authorId: data.authorId ?? '',
           authorName: data.authorName ?? '',
           text: data.text ?? '',
-          createdAt: data.createdAt?.toDate?.() ?? new Date()
+          createdAt: data.createdAt?.toDate?.() ?? new Date(),
+          kind: data.kind === 'activity' ? 'activity' : 'comment'
         } as DealComment
       })
     } catch (err) {
@@ -407,10 +442,18 @@ export const useCrmStore = defineStore('crm', () => {
         authorId: input.authorId,
         authorName: input.authorName,
         text,
+        kind: 'comment',
         createdAt: now
       })
       const list = comments.value[dealId] ?? (comments.value[dealId] = [])
-      list.push({ id: ref.id, authorId: input.authorId, authorName: input.authorName, text, createdAt: now })
+      list.unshift({
+        id: ref.id,
+        authorId: input.authorId,
+        authorName: input.authorName,
+        text,
+        createdAt: now,
+        kind: 'comment'
+      })
       // Denormalized count on the deal doc (avoids reading the subcollection for the board badge).
       await updateDoc(doc(db, COLLECTIONS.DEALS, dealId), { commentCount: increment(1) })
       const local = deals.value.find(d => d.id === dealId)
