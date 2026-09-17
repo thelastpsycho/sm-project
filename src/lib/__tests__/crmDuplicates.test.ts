@@ -33,15 +33,27 @@ describe('datesOverlap', () => {
   it('is true when ranges overlap partially', () => {
     expect(datesOverlap('2026-03-10', '2026-03-15', '2026-03-12', '2026-03-20')).toBe(true)
   })
-  it('is true when ranges touch at the boundary (checkout == arrival)', () => {
-    expect(datesOverlap('2026-03-10', '2026-03-12', '2026-03-12', '2026-03-15')).toBe(true)
+
+  it('is false when one stay checks out on the other stay arrival date', () => {
+    expect(datesOverlap('2026-03-10', '2026-03-12', '2026-03-12', '2026-03-15')).toBe(false)
   })
+
+  it('is true when one stay is fully contained inside another', () => {
+    expect(datesOverlap('2026-03-10', '2026-03-20', '2026-03-12', '2026-03-15')).toBe(true)
+  })
+
   it('is false when ranges do not overlap', () => {
     expect(datesOverlap('2026-03-10', '2026-03-12', '2026-03-13', '2026-03-15')).toBe(false)
   })
+
   it('is false when any date is missing', () => {
     expect(datesOverlap(undefined, '2026-03-12', '2026-03-10', '2026-03-15')).toBe(false)
     expect(datesOverlap('2026-03-10', undefined, '2026-03-10', '2026-03-15')).toBe(false)
+  })
+
+  it('is false for zero-night or reversed ranges', () => {
+    expect(datesOverlap('2026-03-12', '2026-03-12', '2026-03-10', '2026-03-15')).toBe(false)
+    expect(datesOverlap('2026-03-15', '2026-03-12', '2026-03-10', '2026-03-20')).toBe(false)
   })
 })
 
@@ -56,6 +68,11 @@ describe('findDuplicates', () => {
   it('matches case/whitespace-insensitively with overlapping dates', () => {
     const matches = findDuplicates({ company: 'acme corp ', arrivalDate: '2026-03-10', checkoutDate: '2026-03-12' }, pool)
     expect(matches.map(d => d.id).sort()).toEqual(['a', 'b'])
+  })
+
+  it('does not match back-to-back stays for the same company', () => {
+    const matches = findDuplicates({ company: 'Acme Corp', arrivalDate: '2026-03-14', checkoutDate: '2026-03-16' }, pool)
+    expect(matches.some(d => d.id === 'b')).toBe(false)
   })
 
   it('excludes Lost deals by default', () => {
@@ -79,6 +96,7 @@ describe('findDuplicates', () => {
       { excludeId: 'a', includeLost: true }
     )
     expect(matches.some(d => d.id === 'a')).toBe(false)
+    expect(matches.some(d => d.id === 'b')).toBe(true)
   })
 
   it('returns nothing for an empty company', () => {
@@ -97,6 +115,14 @@ describe('computeDuplicateMatches', () => {
     expect(map.get('a')?.map(d => d.id)).toEqual(['b'])
     expect(map.get('b')?.map(d => d.id)).toEqual(['a'])
     expect(map.has('c')).toBe(false)
+  })
+
+  it('does not pair back-to-back stays', () => {
+    const deals = [
+      makeDeal({ id: 'a', company: 'Acme Corp', arrivalDate: '2026-03-10', checkoutDate: '2026-03-12' }),
+      makeDeal({ id: 'b', company: 'Acme Corp', arrivalDate: '2026-03-12', checkoutDate: '2026-03-14' })
+    ]
+    expect(computeDuplicateMatches(deals).size).toBe(0)
   })
 
   it('returns an empty map when nothing matches', () => {
