@@ -49,10 +49,10 @@
 
         <template v-else>
           <div class="mt-8 grid gap-10 lg:grid-cols-2">
-            <BreakdownList title="Reasons for loss" :rows="result.byReason" />
-            <BreakdownList title="Where deals are lost" :rows="result.byLostStage" />
-            <BreakdownList title="Lost by segment" :rows="result.bySegment" />
-            <BreakdownList title="Lost by lead source" :rows="result.bySource" />
+            <LostBreakdownList title="Reasons for loss" :rows="result.byReason" />
+            <LostBreakdownList title="Where deals are lost" :rows="result.byLostStage" />
+            <LostBreakdownList title="Lost by segment" :rows="result.bySegment" />
+            <LostBreakdownList title="Lost by lead source" :rows="result.bySource" />
           </div>
 
           <section class="mt-10">
@@ -81,11 +81,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useHead } from '@vueuse/head'
 import SmSkeleton from '@/components/ui/SmSkeleton.vue'
+import LostBreakdownList from '@/components/crm/LostBreakdownList.vue'
 import { formatMoney } from '@/lib/crmUtils'
-import { buildLostDealIntelligence, type LostBreakdownRow } from '@/lib/crmLostIntelligence'
+import { buildLostDealIntelligence } from '@/lib/crmLostIntelligence'
 import { useCrmStore } from '@/stores/crm'
 
 useHead({ title: 'Lost Deal Intelligence' })
@@ -102,23 +103,4 @@ const sortedDeals = computed(() => [...result.value.deals].sort((a, b) => b.valu
 function percent(value: number): string {
   return `${Math.round(value * 100)}%`
 }
-
-const BreakdownList = defineComponent({
-  props: {
-    title: { type: String, required: true },
-    rows: { type: Array as () => LostBreakdownRow[], required: true }
-  },
-  setup(props) {
-    return () => h('section', [
-      h('div', { class: 'sm-eyebrow pb-2' }, props.title),
-      ...props.rows.map(row => h('div', { class: 'py-3 border-t border-sm-line dark:border-white/10' }, [
-        h('div', { class: 'flex items-baseline justify-between gap-4' }, [
-          h('span', { class: 'text-sm font-bold text-sm-ink dark:text-white' }, row.label),
-          h('span', { class: 'text-xs text-sm-muted' }, `${row.count} · ${percent(row.share)}`)
-        ]),
-        h('div', { class: 'mt-1 text-xs text-sm-muted' }, formatMoney(row.value))
-      ]))
-    ])
-  }
-})
 </script>
