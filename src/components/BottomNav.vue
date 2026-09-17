@@ -114,7 +114,7 @@ import {
 import NotificationPanel from '@/components/NotificationPanel.vue'
 import { useNotificationsStore } from '@/stores/notifications'
 import { usePermissionsStore } from '@/stores/permissions'
-import { NAV_ITEMS, isNavActive } from '@/lib/nav'
+import { NAV_ITEMS, flattenNavItems, isNavActive } from '@/lib/nav'
 
 const route = useRoute()
 const router = useRouter()
@@ -131,8 +131,9 @@ const handleLogout = async () => {
 }
 
 // Hide entries the current user's role isn't granted (reactive to matrix edits).
+// Groups are flattened here — the mobile sheet has room for a flat scrolling list.
 const navItems = computed(() =>
-  NAV_ITEMS.filter(
+  flattenNavItems(NAV_ITEMS).filter(
     item => !item.permission || permissions.has(sessionStore.currentUser, item.permission)
   )
 )
