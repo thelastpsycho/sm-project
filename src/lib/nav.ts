@@ -25,8 +25,8 @@ export interface NavItem {
   permission?: Permission // when set, only shown to roles granted this permission
   exact?: boolean // match the path exactly (Home)
   // Sub-items nested under this one in the desktop rail (SideRail), collapsed behind
-  // an expand arrow so the Pipeline family doesn't crowd the rail with 5 top-level
-  // rows. BottomNav ignores this — it flattens groups back into a single list, since
+  // an expand arrow so the Pipeline family doesn't crowd the rail with top-level rows.
+  // BottomNav ignores this — it flattens groups back into a single list, since
   // the mobile sheet has room and users expect a flat scroll there.
   children?: NavItem[]
 }
@@ -39,6 +39,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Squares2X2Icon,
     permission: 'pipeline:view',
     children: [
+      { name: 'Calendar', to: '/crm/calendar', icon: CalendarDaysIcon, permission: 'pipeline:view' },
       { name: 'Intelligence', to: '/crm/intelligence', icon: SparklesIcon, permission: 'pipeline:intelligence', exact: true },
       { name: 'Lost Insights', to: '/crm/intelligence/lost', icon: ExclamationCircleIcon, permission: 'pipeline:intelligence' },
       { name: 'Data Quality', to: '/crm/intelligence/quality', icon: CheckBadgeIcon, permission: 'pipeline:intelligence' },
