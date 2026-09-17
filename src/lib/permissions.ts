@@ -42,7 +42,8 @@ export const PERMISSION_CATALOG: PermissionGroup[] = [
       { key: 'edit', label: 'Edit (all)' },
       { key: 'edit-own', label: 'Edit (own)' },
       { key: 'delete', label: 'Delete' },
-      { key: 'report', label: 'View report' }
+      { key: 'report', label: 'View report' },
+      { key: 'intelligence', label: 'View intelligence' }
     ]
   },
   {
@@ -131,6 +132,7 @@ const VIEW_ALL: Permission[] = [
   'chat:access',
   'pipeline:view',
   'pipeline:report',
+  'pipeline:intelligence',
   'function:view',
   'survey:view',
   'contract:access',

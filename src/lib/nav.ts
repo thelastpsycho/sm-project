@@ -27,7 +27,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { name: 'Home', to: '/', icon: HomeIcon, permission: 'home:access', exact: true },
   { name: 'Pipeline', to: '/crm', icon: Squares2X2Icon, permission: 'pipeline:view' },
-  { name: 'Intelligence', to: '/crm/intelligence', icon: SparklesIcon, permission: 'pipeline:view' },
+  { name: 'Intelligence', to: '/crm/intelligence', icon: SparklesIcon, permission: 'pipeline:intelligence' },
   { name: 'Report', to: '/crm/report', icon: ChartBarIcon, permission: 'pipeline:report' },
   { name: 'Function Chart', to: '/function-chart', icon: CalendarDaysIcon, permission: 'function:view' },
   { name: 'Chat', to: '/chat', icon: ChatBubbleLeftRightIcon, permission: 'chat:access' },

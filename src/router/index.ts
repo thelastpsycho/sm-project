@@ -61,7 +61,7 @@ const router = createRouter({
       path: '/crm/intelligence',
       name: 'crm-intelligence',
       component: () => import('@/pages/PipelineIntelligence.vue'),
-      meta: { requiresPermission: 'pipeline:view' }
+      meta: { requiresPermission: 'pipeline:intelligence' }
     },
     {
       path: '/crm/report',
