@@ -760,25 +760,37 @@ async function acceptConfirm() {
 
 function onSubmit(payload: NewDeal) {
   const editingDeal = editing.value
-  // Only check on create — an edited deal can't duplicate itself, and reps correcting
-  // an existing entry shouldn't be re-warned about the entry they're editing.
-  const dupes = editingDeal
-    ? []
-    : findDuplicates(
-        { company: payload.company, arrivalDate: payload.arrivalDate, checkoutDate: payload.checkoutDate },
-        store.deals,
-        { includeLost: true } // warn even against a Lost match — the rep may not know one exists
-      )
+  const dupes = findDuplicates(
+    { company: payload.company, arrivalDate: payload.arrivalDate, checkoutDate: payload.checkoutDate },
+    store.deals,
+    {
+      excludeId: editingDeal?.id,
+      // Warn even against a Lost match — the rep may not know a similar deal already
+      // exists in history. `excludeId` prevents an edited deal from matching itself.
+      includeLost: true
+    }
+  )
   const dupe = dupes[0]
+  const duplicateVerb = editingDeal ? 'save changes anyway' : 'create anyway'
 
   askConfirm({
-    title: dupe ? 'Possible duplicate — create anyway?' : editingDeal ? 'Save changes?' : 'Create lead?',
+    title: dupe
+      ? `Possible duplicate — ${duplicateVerb}?`
+      : editingDeal
+        ? 'Save changes?'
+        : 'Create lead?',
     message: dupe
       ? `A similar deal for "${payload.company}" already exists (${dupe.arrivalDate ?? '?'} – ${dupe.checkoutDate ?? '?'}, ${dupe.stage ?? 'New'}, owned by ${dupe.ownerName || 'someone else'})${dupes.length > 1 ? ` and ${dupes.length - 1} more` : ''} — continue anyway?`
       : editingDeal
         ? `Update "${payload.company}" with your changes.`
         : `Add "${payload.company}" to the pipeline.`,
-    confirmText: dupe ? 'Create anyway' : editingDeal ? 'Save' : 'Create',
+    confirmText: dupe
+      ? editingDeal
+        ? 'Save anyway'
+        : 'Create anyway'
+      : editingDeal
+        ? 'Save'
+        : 'Create',
     danger: !!dupe,
     action: async () => {
       if (editingDeal) {
