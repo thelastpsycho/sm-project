@@ -11,13 +11,14 @@ import {
   onSnapshot,
   query,
   orderBy,
+  where,
   increment,
   deleteField,
   type WriteBatch
 } from 'firebase/firestore'
 import { db, COLLECTIONS } from '@/lib/firebase'
 import { DEAL_STAGES } from '@/types/crm'
-import type { Deal, DealComment, DealStage, NewDeal, NewPipelineEvent } from '@/types/crm'
+import type { Deal, DealComment, DealStage, NewDeal, NewPipelineEvent, PipelineEvent } from '@/types/crm'
 import { applyRevenueCalc } from '@/lib/crmUtils'
 import { useSessionStore } from './session'
 
@@ -37,6 +38,12 @@ export const useCrmStore = defineStore('crm', () => {
   // Comments keyed by deal id (deals/{id}/comments subcollection).
   const comments = ref<Record<string, DealComment[]>>({})
   const commentsLoading = ref(false)
+  // Pipeline event history (top-level `pipelineEvents`), for pages that need cross-deal/
+  // historical context (e.g. pipeline intelligence anomaly detection). Loaded on demand,
+  // not on a live listener — a bounded lookback window read once is enough for that use.
+  const events = ref<PipelineEvent[]>([])
+  const eventsLoading = ref(false)
+  const EVENTS_LOOKBACK_DAYS = 365
   // Live listener handle — set by subscribe(), cleared by unsubscribe().
   let unsub: (() => void) | null = null
 
@@ -131,6 +138,26 @@ export const useCrmStore = defineStore('crm', () => {
     unsub = null
   }
 
+  /** One-time load of recent pipeline events (bounded lookback), idempotent per call. */
+  async function loadEvents() {
+    if (eventsLoading.value) return
+    eventsLoading.value = true
+    try {
+      const since = new Date(Date.now() - EVENTS_LOOKBACK_DAYS * 86_400_000)
+      const snapshot = await getDocs(
+        query(collection(db, COLLECTIONS.PIPELINE_EVENTS), where('at', '>=', since))
+      )
+      events.value = snapshot.docs.map(d => {
+        const data = d.data()
+        return { id: d.id, ...data, at: data.at?.toDate?.() ?? new Date(0) } as PipelineEvent
+      })
+    } catch (err) {
+      console.error('Error loading pipeline events:', err)
+    } finally {
+      eventsLoading.value = false
+    }
+  }
+
   async function createDeal(payload: NewDeal) {
     try {
       const now = new Date()
@@ -185,6 +212,7 @@ export const useCrmStore = defineStore('crm', () => {
           from: prevStage,
           to: nextStage,
           reason: nextStage === 'Lost' ? patch.reasonWonLost : undefined,
+          valueAtChange: data.totalRevenue ?? current?.totalRevenue,
           byId,
           byName,
           at: new Date()
@@ -242,6 +270,7 @@ export const useCrmStore = defineStore('crm', () => {
         type: reopening ? 'reopened' : 'stage',
         from: prev,
         to: stage,
+        valueAtChange: local?.totalRevenue,
         byId,
         byName,
         at: new Date()
@@ -486,11 +515,14 @@ export const useCrmStore = defineStore('crm', () => {
     error,
     comments,
     commentsLoading,
+    events,
+    eventsLoading,
     // Computed
     totalPipelineValue,
     // Actions
     subscribe,
     unsubscribe,
+    loadEvents,
     createDeal,
     updateDeal,
     moveStage,

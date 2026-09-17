@@ -315,6 +315,7 @@ import { DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStage, NewDeal } from '@/types/crm'
 import { formatMoney, formatDate, canDeleteDeals, canEditDeal, canCreateDeal, dealOutcome, isDealIdle, wonRevenue } from '@/lib/crmUtils'
 import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
+import { findDuplicates } from '@/lib/crmDuplicates'
 import { baliToday } from '@/lib/time'
 import { RANGE_OPTIONS, presetRange, type RangePreset } from '@/lib/dateRange'
 import userData from '@/user.json'
@@ -759,12 +760,26 @@ async function acceptConfirm() {
 
 function onSubmit(payload: NewDeal) {
   const editingDeal = editing.value
+  // Only check on create — an edited deal can't duplicate itself, and reps correcting
+  // an existing entry shouldn't be re-warned about the entry they're editing.
+  const dupes = editingDeal
+    ? []
+    : findDuplicates(
+        { company: payload.company, arrivalDate: payload.arrivalDate, checkoutDate: payload.checkoutDate },
+        store.deals,
+        { includeLost: true } // warn even against a Lost match — the rep may not know one exists
+      )
+  const dupe = dupes[0]
+
   askConfirm({
-    title: editingDeal ? 'Save changes?' : 'Create lead?',
-    message: editingDeal
-      ? `Update "${payload.company}" with your changes.`
-      : `Add "${payload.company}" to the pipeline.`,
-    confirmText: editingDeal ? 'Save' : 'Create',
+    title: dupe ? 'Possible duplicate — create anyway?' : editingDeal ? 'Save changes?' : 'Create lead?',
+    message: dupe
+      ? `A similar deal for "${payload.company}" already exists (${dupe.arrivalDate ?? '?'} – ${dupe.checkoutDate ?? '?'}, ${dupe.stage ?? 'New'}, owned by ${dupe.ownerName || 'someone else'})${dupes.length > 1 ? ` and ${dupes.length - 1} more` : ''} — continue anyway?`
+      : editingDeal
+        ? `Update "${payload.company}" with your changes.`
+        : `Add "${payload.company}" to the pipeline.`,
+    confirmText: dupe ? 'Create anyway' : editingDeal ? 'Save' : 'Create',
+    danger: !!dupe,
     action: async () => {
       if (editingDeal) {
         await store.updateDeal(editingDeal.id, payload)

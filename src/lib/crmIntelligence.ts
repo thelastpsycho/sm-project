@@ -1,5 +1,7 @@
-import type { Deal, DealStage } from '@/types/crm'
+import type { Deal, DealStage, PipelineEvent } from '@/types/crm'
 import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
+import { computeDealAnomalies, computeStageBaselines, type DealAnomaly } from '@/lib/crmAnomalies'
+import { computeDuplicateMatches } from '@/lib/crmDuplicates'
 
 export type IntelligenceHealth = 'hot' | 'healthy' | 'attention' | 'at-risk' | 'stale'
 export type DueState = 'overdue' | 'today' | 'soon' | 'none'
@@ -29,12 +31,18 @@ export interface DealIntelligence {
   isHot: boolean
   isAtRisk: boolean
   isStale: boolean
+  anomalies: DealAnomaly[]
+  isAnomalous: boolean
+  duplicateOf: Deal[]
+  isDuplicate: boolean
 }
 
 export interface PipelineIntelligenceSummary {
   hotCount: number
   atRiskCount: number
   staleCount: number
+  anomalyCount: number
+  duplicateCount: number
   weightedForecast: number
   openValue: number
   attentionValue: number
@@ -107,7 +115,13 @@ function nextActionFor(deal: Deal, dueState: DueState, daysInStage: number, days
   return deal.nextAction
 }
 
-function buildDealIntelligence(deal: Deal, now: Date): DealIntelligence | null {
+function buildDealIntelligence(
+  deal: Deal,
+  now: Date,
+  events: PipelineEvent[],
+  baselines: ReturnType<typeof computeStageBaselines>,
+  duplicateOf: Deal[]
+): DealIntelligence | null {
   if (!isOpen(deal)) return null
 
   const stage = stageOf(deal)
@@ -186,6 +200,22 @@ function buildDealIntelligence(deal: Deal, now: Date): DealIntelligence | null {
     reasons.push('The deal is currently unassigned.')
   }
 
+  const anomalies = computeDealAnomalies(deal, events, baselines, undefined, now)
+  for (const anomaly of anomalies) {
+    risk += anomaly.severity === 'danger' ? 24 : 14
+    priority += anomaly.severity === 'danger' ? 16 : 10
+    reasons.push(anomaly.message)
+  }
+
+  const isDuplicate = duplicateOf.length > 0
+  if (isDuplicate) {
+    risk += 20
+    priority += 12
+    reasons.push(
+      `Possible duplicate of ${duplicateOf.map(d => d.company).join(', ')} (overlapping dates, same company).`
+    )
+  }
+
   if (reasons.length === 0) {
     if (stage === 'Negotiation' || stage === 'Contract') reasons.push(`The deal has progressed to ${stage} with no immediate risk flags.`)
     else reasons.push('The deal is active with no immediate risk flags.')
@@ -230,13 +260,24 @@ function buildDealIntelligence(deal: Deal, now: Date): DealIntelligence | null {
     daysInStage,
     isHot,
     isAtRisk,
-    isStale
+    isStale,
+    anomalies,
+    isAnomalous: anomalies.length > 0,
+    duplicateOf,
+    isDuplicate
   }
 }
 
-export function buildPipelineIntelligence(deals: Deal[], now = new Date()): PipelineIntelligenceResult {
+export function buildPipelineIntelligence(
+  deals: Deal[],
+  now = new Date(),
+  events: PipelineEvent[] = []
+): PipelineIntelligenceResult {
+  const baselines = computeStageBaselines(deals, events)
+  const duplicateMatches = computeDuplicateMatches(deals)
+
   const items = deals
-    .map(deal => buildDealIntelligence(deal, now))
+    .map(deal => buildDealIntelligence(deal, now, events, baselines, duplicateMatches.get(deal.id) ?? []))
     .filter((item): item is DealIntelligence => item !== null)
     .sort((a, b) => {
       const priority = b.priorityScore - a.priorityScore
@@ -255,6 +296,8 @@ export function buildPipelineIntelligence(deals: Deal[], now = new Date()): Pipe
       hotCount: items.filter(item => item.isHot).length,
       atRiskCount: items.filter(item => item.isAtRisk).length,
       staleCount: items.filter(item => item.isStale).length,
+      anomalyCount: items.filter(item => item.isAnomalous).length,
+      duplicateCount: items.filter(item => item.isDuplicate).length,
       weightedForecast: items.reduce((sum, item) => sum + item.weightedValue, 0),
       openValue,
       attentionValue: attentionItems.reduce((sum, item) => sum + dealValue(item.deal), 0)

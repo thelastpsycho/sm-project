@@ -21,8 +21,8 @@
         </div>
       </header>
 
-      <div v-if="store.loading" class="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-7">
-        <div v-for="n in 4" :key="n" class="space-y-2">
+      <div v-if="store.loading" class="mt-10 grid grid-cols-2 lg:grid-cols-6 gap-x-6 gap-y-7">
+        <div v-for="n in 6" :key="n" class="space-y-2">
           <SmSkeleton class="h-3 w-20" />
           <SmSkeleton class="h-8 w-28" />
           <SmSkeleton class="h-3 w-24" />
@@ -30,7 +30,7 @@
       </div>
 
       <template v-else>
-        <section class="mt-9 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-7 border-y border-sm-line dark:border-white/10 py-6">
+        <section class="mt-9 grid grid-cols-2 lg:grid-cols-6 gap-x-6 gap-y-7 border-y border-sm-line dark:border-white/10 py-6">
           <div>
             <div class="sm-eyebrow flex items-center gap-1.5"><FireIcon class="w-3.5 h-3.5" /> Hot opportunities</div>
             <div class="mt-2 text-3xl font-bold tracking-tight text-sm-ink dark:text-white">{{ summary.hotCount }}</div>
@@ -45,6 +45,16 @@
             <div class="sm-eyebrow flex items-center gap-1.5"><ClockIcon class="w-3.5 h-3.5" /> Stale</div>
             <div class="mt-2 text-3xl font-bold tracking-tight text-sm-warn">{{ summary.staleCount }}</div>
             <div class="mt-1 text-xs text-sm-muted">No activity for 7+ days</div>
+          </div>
+          <div>
+            <div class="sm-eyebrow flex items-center gap-1.5"><BoltIcon class="w-3.5 h-3.5" /> Anomalies</div>
+            <div class="mt-2 text-3xl font-bold tracking-tight text-sm-warn">{{ summary.anomalyCount }}</div>
+            <div class="mt-1 text-xs text-sm-muted">Reopened, value drop or stuck vs. norm</div>
+          </div>
+          <div>
+            <div class="sm-eyebrow flex items-center gap-1.5"><Square2StackIcon class="w-3.5 h-3.5" /> Duplicates</div>
+            <div class="mt-2 text-3xl font-bold tracking-tight text-sm-bad">{{ summary.duplicateCount }}</div>
+            <div class="mt-1 text-xs text-sm-muted">Same company, overlapping dates</div>
           </div>
           <div>
             <div class="sm-eyebrow flex items-center gap-1.5"><BanknotesIcon class="w-3.5 h-3.5" /> Weighted forecast</div>
@@ -112,6 +122,12 @@
                     <h2 class="text-base font-bold tracking-[-0.01em] text-sm-ink dark:text-white truncate">{{ item.deal.company }}</h2>
                     <span class="px-2 py-0.5 rounded-full text-eyebrow font-bold" :class="healthClass(item.health)">
                       {{ item.healthLabel }}
+                    </span>
+                    <span v-if="item.isDuplicate" class="px-2 py-0.5 rounded-full text-eyebrow font-bold bg-sm-bad/10 text-sm-bad">
+                      Duplicate
+                    </span>
+                    <span v-if="item.isAnomalous" class="px-2 py-0.5 rounded-full text-eyebrow font-bold bg-sm-warn/10 text-sm-warn">
+                      Anomaly
                     </span>
                   </div>
                   <div class="mt-1.5 text-xs text-sm-muted">
@@ -191,11 +207,13 @@ import { useHead } from '@vueuse/head'
 import {
   ArrowRightIcon,
   BanknotesIcon,
+  BoltIcon,
   ClockIcon,
   ExclamationTriangleIcon,
   FireIcon,
   MagnifyingGlassIcon,
-  SparklesIcon
+  SparklesIcon,
+  Square2StackIcon
 } from '@heroicons/vue/24/outline'
 import SmSkeleton from '@/components/ui/SmSkeleton.vue'
 import { formatMoney } from '@/lib/crmUtils'
@@ -214,7 +232,7 @@ useHead({
   ]
 })
 
-type IntelligenceFilter = 'all' | 'hot' | 'at-risk' | 'stale' | 'today' | 'mine'
+type IntelligenceFilter = 'all' | 'hot' | 'at-risk' | 'stale' | 'today' | 'mine' | 'anomaly' | 'duplicate'
 
 const store = useCrmStore()
 const session = useSessionStore()
@@ -223,10 +241,13 @@ const search = ref('')
 const now = ref(new Date())
 const timer = setInterval(() => (now.value = new Date()), 3_600_000)
 
-onMounted(() => store.subscribe())
+onMounted(() => {
+  store.subscribe()
+  store.loadEvents()
+})
 onUnmounted(() => clearInterval(timer))
 
-const intelligence = computed(() => buildPipelineIntelligence(store.deals, now.value))
+const intelligence = computed(() => buildPipelineIntelligence(store.deals, now.value, store.events))
 const summary = computed(() => intelligence.value.summary)
 const currentEmail = computed(() => session.currentUser?.email ?? '')
 
@@ -238,6 +259,8 @@ const filterChips = computed(() => {
     { key: 'at-risk' as IntelligenceFilter, label: 'At risk', count: items.filter(item => item.isAtRisk).length },
     { key: 'stale' as IntelligenceFilter, label: 'Stale', count: items.filter(item => item.isStale).length },
     { key: 'today' as IntelligenceFilter, label: 'Follow-up today', count: items.filter(item => item.dueState === 'today' || item.dueState === 'overdue').length },
+    { key: 'anomaly' as IntelligenceFilter, label: 'Anomalies', count: items.filter(item => item.isAnomalous).length },
+    { key: 'duplicate' as IntelligenceFilter, label: 'Duplicates', count: items.filter(item => item.isDuplicate).length },
     { key: 'mine' as IntelligenceFilter, label: 'Mine', count: items.filter(item => item.deal.ownerId === currentEmail.value).length }
   ]
 })
@@ -249,6 +272,8 @@ const visibleItems = computed(() => {
     if (activeFilter.value === 'at-risk' && !item.isAtRisk) return false
     if (activeFilter.value === 'stale' && !item.isStale) return false
     if (activeFilter.value === 'today' && item.dueState !== 'today' && item.dueState !== 'overdue') return false
+    if (activeFilter.value === 'anomaly' && !item.isAnomalous) return false
+    if (activeFilter.value === 'duplicate' && !item.isDuplicate) return false
     if (activeFilter.value === 'mine' && item.deal.ownerId !== currentEmail.value) return false
     if (!q) return true
     const haystack = [
