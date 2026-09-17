@@ -14,14 +14,22 @@ function toTime(v?: string): number | null {
   return Number.isNaN(t) ? null : t
 }
 
-/** Whether two date ranges overlap. False (not a match) if either range is incomplete. */
+/**
+ * Whether two hotel stay ranges overlap.
+ *
+ * Stay ranges are treated as half-open intervals: [arrival, checkout). This means a
+ * group checking out on 12 Mar and another arriving on 12 Mar do NOT overlap — the
+ * same room inventory can turn over between the two stays. False if either range is
+ * incomplete or invalid.
+ */
 export function datesOverlap(aStart?: string, aEnd?: string, bStart?: string, bEnd?: string): boolean {
   const as = toTime(aStart)
   const ae = toTime(aEnd)
   const bs = toTime(bStart)
   const be = toTime(bEnd)
   if (as == null || ae == null || bs == null || be == null) return false
-  return as <= be && bs <= ae
+  if (ae <= as || be <= bs) return false
+  return as < be && bs < ae
 }
 
 export interface DuplicateCandidate {
