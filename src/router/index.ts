@@ -58,6 +58,12 @@ const router = createRouter({
       meta: { requiresPermission: 'pipeline:view' }
     },
     {
+      path: '/crm/calendar',
+      name: 'crm-calendar',
+      component: () => import('@/pages/PipelineCalendar.vue'),
+      meta: { requiresPermission: 'pipeline:view' }
+    },
+    {
       path: '/crm/intelligence',
       name: 'crm-intelligence',
       component: () => import('@/pages/PipelineIntelligence.vue'),
