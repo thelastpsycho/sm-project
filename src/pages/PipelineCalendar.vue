@@ -249,7 +249,7 @@ const ownerFilter = ref('')
 const segmentFilter = ref('')
 const stageFilter = ref('')
 const outcomeFilter = ref<OutcomeFilter>('active')
-const mineOnly = ref(false)
+const mineOnly = ref(true)
 
 onMounted(() => {
   store.subscribe()
