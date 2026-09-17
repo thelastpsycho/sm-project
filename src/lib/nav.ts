@@ -12,7 +12,9 @@ import {
   ClipboardDocumentIcon,
   UsersIcon,
   PlusIcon,
-  SparklesIcon
+  SparklesIcon,
+  ExclamationCircleIcon,
+  CheckBadgeIcon
 } from '@heroicons/vue/24/outline'
 import type { Permission } from '@/lib/permissions'
 
@@ -22,13 +24,27 @@ export interface NavItem {
   icon: unknown
   permission?: Permission // when set, only shown to roles granted this permission
   exact?: boolean // match the path exactly (Home)
+  // Sub-items nested under this one in the desktop rail (SideRail), collapsed behind
+  // an expand arrow so the Pipeline family doesn't crowd the rail with 5 top-level
+  // rows. BottomNav ignores this — it flattens groups back into a single list, since
+  // the mobile sheet has room and users expect a flat scroll there.
+  children?: NavItem[]
 }
 
 export const NAV_ITEMS: NavItem[] = [
   { name: 'Home', to: '/', icon: HomeIcon, permission: 'home:access', exact: true },
-  { name: 'Pipeline', to: '/crm', icon: Squares2X2Icon, permission: 'pipeline:view' },
-  { name: 'Intelligence', to: '/crm/intelligence', icon: SparklesIcon, permission: 'pipeline:intelligence' },
-  { name: 'Report', to: '/crm/report', icon: ChartBarIcon, permission: 'pipeline:report' },
+  {
+    name: 'Pipeline',
+    to: '/crm',
+    icon: Squares2X2Icon,
+    permission: 'pipeline:view',
+    children: [
+      { name: 'Intelligence', to: '/crm/intelligence', icon: SparklesIcon, permission: 'pipeline:intelligence', exact: true },
+      { name: 'Lost Insights', to: '/crm/intelligence/lost', icon: ExclamationCircleIcon, permission: 'pipeline:intelligence' },
+      { name: 'Data Quality', to: '/crm/intelligence/quality', icon: CheckBadgeIcon, permission: 'pipeline:intelligence' },
+      { name: 'Report', to: '/crm/report', icon: ChartBarIcon, permission: 'pipeline:report' }
+    ]
+  },
   { name: 'Function Chart', to: '/function-chart', icon: CalendarDaysIcon, permission: 'function:view' },
   { name: 'Chat', to: '/chat', icon: ChatBubbleLeftRightIcon, permission: 'chat:access' },
   { name: 'New RFP', to: '/rfp/new', icon: PlusIcon, permission: 'rfp:create' },
@@ -37,6 +53,11 @@ export const NAV_ITEMS: NavItem[] = [
   { name: 'Survey Admin', to: '/survey/admin', icon: ClipboardDocumentIcon, permission: 'survey:view' },
   { name: 'Team & Access', to: '/users', icon: UsersIcon, permission: 'users:access' }
 ]
+
+/** Flattens groups back into a single list — used by BottomNav (mobile has room). */
+export function flattenNavItems(items: NavItem[]): NavItem[] {
+  return items.flatMap(item => (item.children?.length ? [item, ...item.children] : [item]))
+}
 
 // Active-state test shared by both nav surfaces. Home matches exactly; everything
 // else matches on path prefix so nested routes (e.g. /rfp/:id) stay highlighted.

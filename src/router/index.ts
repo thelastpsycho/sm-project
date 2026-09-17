@@ -64,6 +64,18 @@ const router = createRouter({
       meta: { requiresPermission: 'pipeline:intelligence' }
     },
     {
+      path: '/crm/intelligence/lost',
+      name: 'crm-intelligence-lost',
+      component: () => import('@/pages/LostDealIntelligence.vue'),
+      meta: { requiresPermission: 'pipeline:intelligence' }
+    },
+    {
+      path: '/crm/intelligence/quality',
+      name: 'crm-intelligence-quality',
+      component: () => import('@/pages/DataQualityIntelligence.vue'),
+      meta: { requiresPermission: 'pipeline:intelligence' }
+    },
+    {
       path: '/crm/report',
       name: 'crm-report',
       component: () => import('@/pages/PipelineReport.vue'),
