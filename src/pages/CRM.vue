@@ -600,13 +600,31 @@ function byArrivalDate(a: Deal, b: Deal): number {
 
 const filteredDeals = computed(() => store.deals.filter(matches).sort(byArrivalDate))
 
+// Human-readable summary of active filters, for the PDF export header.
+const activeFiltersSummary = computed(() => {
+  const parts: string[] = []
+  if (filters.outcome) parts.push(`Outcome: ${outcomeFilterOptions.find(o => o.value === filters.outcome)?.label}`)
+  if (filters.stage) parts.push(`Stage: ${filters.stage}`)
+  if (filters.owner) parts.push(`Owner: ${filters.owner}`)
+  if (filters.segment) parts.push(`Segment: ${filters.segment}`)
+  if (filters.leadSource) parts.push(`Lead source: ${filters.leadSource}`)
+  if (filters.reason) parts.push(`Reason: ${filters.reason}`)
+  if (filters.dateFrom || filters.dateTo) {
+    const field = dateFieldOptions.find(o => o.value === filters.dateField)?.label
+    parts.push(`${field}: ${rangeLabel.value}`)
+  }
+  if (filters.minRevenue != null) parts.push(`Min revenue: ${formatMoney(filters.minRevenue)}`)
+  if (filters.maxRevenue != null) parts.push(`Max revenue: ${formatMoney(filters.maxRevenue)}`)
+  return parts.join(', ')
+})
+
 function onExport(format: 'excel' | 'pdf') {
   showExportMenu.value = false
   const stamp = baliToday()
   if (format === 'excel') {
     void exportDealsToExcel(filteredDeals.value, `pipeline-export-${stamp}.xlsx`)
   } else {
-    void exportDealsToPdf(filteredDeals.value, `pipeline-export-${stamp}.pdf`)
+    void exportDealsToPdf(filteredDeals.value, `pipeline-export-${stamp}.pdf`, activeFiltersSummary.value)
   }
 }
 
