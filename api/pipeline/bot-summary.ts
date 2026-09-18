@@ -108,6 +108,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     },
     stageFunnel: stageFunnel(deals),
     activity: {
+      dateBasis: 'leadDate — when the deal was created/entered the pipeline, not arrival or checkout date',
       today: windowBlock(day.startMs, day.endMs),
       yesterday: windowBlock(yesterday.startMs, yesterday.endMs),
       thisWeek: windowBlock(week.startMs, week.endMs),
@@ -115,8 +116,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       thisMonth: windowBlock(thisMonth.startMs, thisMonth.endMs),
       lastMonth: windowBlock(lastMonth.startMs, lastMonth.endMs)
     },
-    ownersThisMonth: ownerActivity(deals, thisMonth.startMs, thisMonth.endMs),
-    arrivalsByMonth,
+    ownersThisMonth: {
+      dateBasis: 'leadDate — deals created/entered the pipeline this month, not arrival or checkout date',
+      owners: ownerActivity(deals, thisMonth.startMs, thisMonth.endMs)
+    },
+    arrivalsByMonth: {
+      dateBasis: 'arrivalDate — the guest stay/check-in date, not when the deal was created',
+      months: arrivalsByMonth
+    },
     attention: {
       alertCount: att.alerts.length,
       topAlerts: att.alerts.slice(0, 8).map(a => ({ company: a.company, message: a.message, severity: a.severity })),
