@@ -5,7 +5,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { computeKpis, stageFunnel, activityInWindow, attentionList } from '../../src/lib/crmReport.js'
-import { baliToday, baliDateParts, baliDayWindow, baliWeekWindow } from '../../src/lib/time.js'
+import { baliToday, baliDateParts, baliDayWindow, baliWeekWindow, baliMonthWindow } from '../../src/lib/time.js'
 import type { Deal, DealStage, PipelineEvent } from '../../src/types/crm.js'
 import { db, loadDeals, loadEventsSince } from '../cron/_shared.js'
 
@@ -58,6 +58,27 @@ function leadsCreatedInWindow(events: PipelineEvent[], startMs: number, endMs: n
     .map(e => e.company)
 }
 
+/** Deals created inside [startMs, endMs), grouped by owner — count/value/won for that window. */
+function ownerActivity(deals: Deal[], startMs: number, endMs: number) {
+  const inWindow = deals.filter(d => {
+    const t = d.createdAt instanceof Date ? d.createdAt.getTime() : new Date(d.createdAt as any).getTime()
+    return t >= startMs && t < endMs
+  })
+  const map = new Map<string, { owner: string; count: number; value: number; won: number; wonValue: number }>()
+  for (const d of inWindow) {
+    const owner = d.ownerName || d.ownerId || 'Unassigned'
+    const r = map.get(owner) ?? { owner, count: 0, value: 0, won: 0, wonValue: 0 }
+    r.count++
+    r.value += dealValue(d)
+    if (outcome(d) === 'won') {
+      r.won++
+      r.wonValue += dealValue(d)
+    }
+    map.set(owner, r)
+  }
+  return [...map.values()].sort((a, b) => b.count - a.count)
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!botAuthorized(req, res)) return
 
@@ -69,11 +90,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const yesterday = baliDayWindow(now.getTime() - 86_400_000)
   const week = baliWeekWindow(now)
   const priorWeek = baliWeekWindow(now.getTime() - 7 * 86_400_000)
+  const thisMonth = baliMonthWindow(now)
+  const lastMonth = baliMonthWindow(now, -1)
 
-  // One events read covers today/yesterday/this-week/last-week (priorWeek.startMs is the oldest bound).
+  // One events read covers every window above (lastMonth.startMs is the oldest bound).
   const [deals, events]: [Deal[], PipelineEvent[]] = await Promise.all([
     loadDeals(store),
-    loadEventsSince(store, priorWeek.startMs)
+    loadEventsSince(store, lastMonth.startMs)
   ])
 
   const kpis = computeKpis(deals)
@@ -81,7 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const windowBlock = (startMs: number, endMs: number) => ({
     ...activityInWindow(events, startMs, endMs),
-    companies: leadsCreatedInWindow(events, startMs, endMs)
+    companies: leadsCreatedInWindow(events, startMs, endMs).slice(0, 20)
   })
 
   const arrivalsByMonth = [-1, 0, 1, 2, 3].map(offset => {
@@ -107,8 +130,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       today: windowBlock(day.startMs, day.endMs),
       yesterday: windowBlock(yesterday.startMs, yesterday.endMs),
       thisWeek: windowBlock(week.startMs, week.endMs),
-      lastWeek: windowBlock(priorWeek.startMs, priorWeek.endMs)
+      lastWeek: windowBlock(priorWeek.startMs, priorWeek.endMs),
+      thisMonth: windowBlock(thisMonth.startMs, thisMonth.endMs),
+      lastMonth: windowBlock(lastMonth.startMs, lastMonth.endMs)
     },
+    ownersThisMonth: ownerActivity(deals, thisMonth.startMs, thisMonth.endMs),
     arrivalsByMonth,
     attention: {
       alertCount: att.alerts.length,

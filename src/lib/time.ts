@@ -45,6 +45,17 @@ export function baliDayWindow(at: Date | number = Date.now()): { startMs: number
 }
 
 /**
+ * The Bali calendar month containing `at`, offset by `monthOffset` months, as absolute
+ * instants `[startMs, endMs)`. `monthOffset: 0` is the current month, `-1` the prior month.
+ */
+export function baliMonthWindow(at: Date | number = Date.now(), monthOffset = 0): { startMs: number; endMs: number } {
+  const { year, monthIndex } = baliDateParts(at)
+  const startMs = Date.UTC(year, monthIndex + monthOffset, 1) - BALI_OFFSET_MS
+  const endMs = Date.UTC(year, monthIndex + monthOffset + 1, 1) - BALI_OFFSET_MS
+  return { startMs, endMs }
+}
+
+/**
  * The most-recently-completed Bali week as absolute instants: `[startMs, endMs)` where
  * `endMs` is the start of the current Bali **Monday** (00:00 WITA) and `startMs` is the
  * Monday before that. Run on a Monday morning it yields the full previous Mon–Sun week.
