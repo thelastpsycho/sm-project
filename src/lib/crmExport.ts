@@ -56,10 +56,22 @@ export async function exportDealsToExcel(deals: Deal[], filename: string): Promi
   )
 }
 
-export async function exportDealsToPdf(deals: Deal[], filename: string): Promise<void> {
+export async function exportDealsToPdf(deals: Deal[], filename: string, filterSummary?: string): Promise<void> {
   const [{ jsPDF }, { default: autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')])
   const doc = new jsPDF({ orientation: 'landscape' })
+
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Pipeline Report', 14, 15)
+
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(110)
+  doc.text(filterSummary?.trim() || 'All deals', 14, 21)
+  doc.setTextColor(0)
+
   autoTable(doc, {
+    startY: 26,
     head: [EXPORT_COLUMNS.map(c => c.header)],
     body: deals.map(deal =>
       EXPORT_COLUMNS.map(c => {
