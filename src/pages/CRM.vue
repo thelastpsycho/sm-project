@@ -97,6 +97,36 @@
           {{ activeFilterCount }}
         </span>
       </button>
+
+      <div class="relative">
+        <button
+          @click="showExportMenu = !showExportMenu"
+          :disabled="!filteredDeals.length"
+          class="inline-flex items-center gap-1.5 text-xsm font-bold text-sm-muted hover:text-sm-ink dark:hover:text-white transition-colors disabled:opacity-40 disabled:pointer-events-none"
+        >
+          <ArrowDownTrayIcon class="w-4 h-4" />
+          <span class="hidden sm:inline">Export</span>
+        </button>
+        <div
+          v-if="showExportMenu"
+          class="absolute right-0 top-full mt-2 z-10 w-40 rounded-xl border border-sm-line dark:border-white/10 bg-white dark:bg-sm-bg-dark shadow-lg py-1 animate-fade-in-up"
+        >
+          <button
+            type="button"
+            class="w-full text-left px-3 py-2 text-xsm font-bold text-sm-ink dark:text-white hover:bg-sm-hair dark:hover:bg-white/5 transition-colors"
+            @click="onExport('excel')"
+          >
+            Export to Excel
+          </button>
+          <button
+            type="button"
+            class="w-full text-left px-3 py-2 text-xsm font-bold text-sm-ink dark:text-white hover:bg-sm-hair dark:hover:bg-white/5 transition-colors"
+            @click="onExport('pdf')"
+          >
+            Export to PDF
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Filter panel -->
@@ -300,7 +330,7 @@ import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import draggable from 'vuedraggable'
-import { PlusIcon, MagnifyingGlassIcon, FunnelIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, MagnifyingGlassIcon, FunnelIcon, ChartBarIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import SmButton from '@/components/ui/SmButton.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import SmInput from '@/components/ui/SmInput.vue'
@@ -314,6 +344,7 @@ import { useCrmStore } from '@/stores/crm'
 import { DEAL_STAGES } from '@/types/crm'
 import type { Deal, DealStage, NewDeal } from '@/types/crm'
 import { formatMoney, formatDate, canDeleteDeals, canEditDeal, canCreateDeal, dealOutcome, isDealIdle, wonRevenue } from '@/lib/crmUtils'
+import { exportDealsToExcel, exportDealsToPdf } from '@/lib/crmExport'
 import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
 import { findDuplicates } from '@/lib/crmDuplicates'
 import { baliToday } from '@/lib/time'
@@ -336,6 +367,7 @@ const session = useSessionStore()
 
 const view = ref<'queue' | 'board' | 'list'>('queue')
 const showFilters = ref(false)
+const showExportMenu = ref(false)
 const modalOpen = ref(false)
 const editing = ref<Deal | null>(null)
 const saving = ref(false)
@@ -559,6 +591,16 @@ function matches(deal: Deal): boolean {
 }
 
 const filteredDeals = computed(() => store.deals.filter(matches))
+
+function onExport(format: 'excel' | 'pdf') {
+  showExportMenu.value = false
+  const stamp = baliToday()
+  if (format === 'excel') {
+    void exportDealsToExcel(filteredDeals.value, `pipeline-export-${stamp}.xlsx`)
+  } else {
+    void exportDealsToPdf(filteredDeals.value, `pipeline-export-${stamp}.pdf`)
+  }
+}
 
 // Summary strip — derived outcome tiles (Open / Idle / Won / Lost) over the filtered set.
 // Idle is a subset of Open (untouched), shown for attention; its value overlaps Open.
