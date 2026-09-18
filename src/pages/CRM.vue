@@ -590,7 +590,15 @@ function matches(deal: Deal): boolean {
   return true
 }
 
-const filteredDeals = computed(() => store.deals.filter(matches))
+// Soonest arrival first; deals with no arrival date sort last.
+function byArrivalDate(a: Deal, b: Deal): number {
+  if (!a.arrivalDate && !b.arrivalDate) return 0
+  if (!a.arrivalDate) return 1
+  if (!b.arrivalDate) return -1
+  return a.arrivalDate.localeCompare(b.arrivalDate)
+}
+
+const filteredDeals = computed(() => store.deals.filter(matches).sort(byArrivalDate))
 
 function onExport(format: 'excel' | 'pdf') {
   showExportMenu.value = false
