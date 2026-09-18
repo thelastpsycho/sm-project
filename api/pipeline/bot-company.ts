@@ -12,20 +12,23 @@ import { botAuthorized, outcome, dealValue } from './_shared.js'
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!botAuthorized(req, res)) return
 
-  const q = String(req.query.company ?? '')
-    .trim()
-    .toLowerCase()
+  const q = String(req.query.company ?? '').trim()
   if (!q) {
     res.status(400).json({ error: 'company query param required' })
     return
   }
+  // Punctuation/spacing-insensitive so "I.W.C." matches a query of "IWC".
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const nq = normalize(q)
 
   const store = db()
   const deals: Deal[] = await loadDeals(store)
 
-  const matches = deals
-    .filter(d => d.company?.toLowerCase().includes(q))
+  const allMatches = deals
+    .filter(d => d.company && normalize(d.company).includes(nq))
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+
+  const matches = allMatches
     .slice(0, 30)
     .map(d => ({
       company: d.company,
@@ -41,5 +44,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       reasonWonLost: outcome(d) === 'lost' ? d.reasonWonLost ?? null : null
     }))
 
-  res.status(200).json({ query: q, matchCount: matches.length, deals: matches })
+  res.status(200).json({
+    query: q,
+    totalMatches: allMatches.length,
+    returned: matches.length,
+    deals: matches
+  })
 }
