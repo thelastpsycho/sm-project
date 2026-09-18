@@ -6,28 +6,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { computeKpis, stageFunnel, activityInWindow, attentionList } from '../../src/lib/crmReport.js'
 import { baliToday, baliDateParts, baliDayWindow, baliWeekWindow, baliMonthWindow } from '../../src/lib/time.js'
-import type { Deal, DealStage, PipelineEvent } from '../../src/types/crm.js'
+import type { Deal, PipelineEvent } from '../../src/types/crm.js'
 import { db, loadDeals, loadEventsSince } from '../cron/_shared.js'
-
-function botAuthorized(req: VercelRequest, res: VercelResponse): boolean {
-  const secret = process.env.PIPELINE_BOT_SECRET
-  if (!secret || req.headers['authorization'] !== `Bearer ${secret}`) {
-    res.status(401).json({ error: 'Unauthorized' })
-    return false
-  }
-  return true
-}
-
-function outcome(d: Pick<Deal, 'stage'>): 'open' | 'won' | 'lost' {
-  const stage = (d.stage ?? 'New') as DealStage
-  if (stage === 'Confirmed') return 'won'
-  if (stage === 'Lost') return 'lost'
-  return 'open'
-}
-
-function dealValue(d: Deal): number {
-  return outcome(d) === 'won' ? d.actualRevenue ?? d.totalRevenue ?? 0 : d.totalRevenue ?? 0
-}
+import { botAuthorized, outcome, dealValue } from './_shared.js'
 
 /** Deals whose arrivalDate falls within a given calendar month, split by outcome. */
 function monthArrivals(deals: Deal[], year: number, monthIndex: number) {
