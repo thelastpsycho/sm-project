@@ -11,7 +11,7 @@ function makeDeal(overrides: Partial<Deal> = {}): Deal {
     ownerId: 'owner@example.com',
     ownerName: 'Owner',
     stage: 'Lost',
-    reasonWonLost: 'Budget Constrain',
+    reasonWonLost: 'Budget / Price',
     totalRevenue: 100_000_000,
     arrivalDate: '2026-10-20',
     checkoutDate: '2026-10-22',
@@ -49,13 +49,13 @@ describe('buildLostDealIntelligence', () => {
 
   it('groups loss reasons and values', () => {
     const result = buildLostDealIntelligence([
-      makeDeal({ id: 'a', reasonWonLost: 'Budget Constrain', totalRevenue: 100_000_000 }),
-      makeDeal({ id: 'b', reasonWonLost: 'Budget Constrain', totalRevenue: 50_000_000 }),
-      makeDeal({ id: 'c', reasonWonLost: 'Lose to other hotel', totalRevenue: 75_000_000 })
+      makeDeal({ id: 'a', reasonWonLost: 'Budget / Price', totalRevenue: 100_000_000 }),
+      makeDeal({ id: 'b', reasonWonLost: 'Budget / Price', totalRevenue: 50_000_000 }),
+      makeDeal({ id: 'c', reasonWonLost: 'Lost to competitor hotel', totalRevenue: 75_000_000 })
     ])
 
     expect(result.summary.totalLostValue).toBe(225_000_000)
-    expect(result.summary.topReason?.label).toBe('Budget Constrain')
+    expect(result.summary.topReason?.label).toBe('Budget / Price')
     expect(result.summary.topReason?.count).toBe(2)
     expect(result.byReason[0]?.value).toBe(150_000_000)
   })

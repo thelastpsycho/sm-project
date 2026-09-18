@@ -16,11 +16,14 @@ export type DealOutcome = (typeof DEAL_OUTCOMES)[number]
 export const SEGMENTS = ['MICE', 'Leisure', 'Wedding'] as const
 export const LEAD_SOURCES = ['Whatsapp', 'Email', 'Phone'] as const
 export const LOST_REASONS = [
-  'No Feedback',
-  'Budget Constrain',
-  'Move Area',
-  'Event Cancelled',
-  'Lose to other hotel'
+  'Budget / Price',
+  'Room availability',
+  'Venue availability',
+  'Lost to competitor hotel',
+  'Chose a different destination',
+  'Event cancelled',
+  'Postponed / no decision',
+  'Went cold / unresponsive'
 ] as const
 
 export interface Deal {
