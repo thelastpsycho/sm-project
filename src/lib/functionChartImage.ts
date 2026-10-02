@@ -49,7 +49,7 @@ const WEEKEND_BG = '#f9fafb' // gray-50 — weekend column shading
 
 // ---- Layout constants (logical px; multiplied by SCALE for crispness) ----
 
-const SCALE = 2
+const SCALE = 3
 const NAME_W = 150
 const DAY_W = 132
 const TITLE_H = 66
