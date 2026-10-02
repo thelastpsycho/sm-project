@@ -8,7 +8,7 @@ import { useSessionStore } from '@/stores/session'
 import { usePermissionsStore } from '@/stores/permissions'
 import { generateSurveyUrl, copyToClipboard, formatScore, getQuestionLabel, getRoleLabel } from '@/lib/surveyUtils'
 import { DEFAULT_REVIEW_THRESHOLD } from '@/lib/surveyConstants'
-import type { AdminTab, Event, UserRole } from '@/types/survey'
+import type { AdminTab, Event } from '@/types/survey'
 import {
   PlusIcon,
   TrashIcon,

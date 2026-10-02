@@ -107,6 +107,7 @@
 import { ref, computed } from 'vue'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
 import { baliToday, baliDateParts } from '@/lib/time'
+import { formatShortDate as formatDate } from '@/lib/dateFormat'
 
 const props = withDefaults(defineProps<{
   initialStart?: string
@@ -148,7 +149,6 @@ const daysInMonth = computed(() => {
   const lastDay = new Date(year, month + 1, 0).getDate()
   
   for (let i = 1; i <= lastDay; i++) {
-    const d = new Date(year, month, i)
     // Offset correction for ISO date strings
     const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`
     days.push({ day: i, dateString })
@@ -195,8 +195,6 @@ const handleDateClick = (dateString: string) => {
   }
 }
 
-const isToday = (dateString: string) => dateString === baliToday()
-
 const isPast = (dateString: string) => {
   if (props.allowPast) return false
   // Both sides are 'YYYY-MM-DD' Bali calendar days — lexical compare is correct.
@@ -214,17 +212,6 @@ const isInRange = (dateString: string) => {
   const s = new Date(start.value)
   const e = new Date(end.value)
   return d >= s && d <= e
-}
-
-const getDayClass = (dateString: string) => {
-  if (isStart(dateString) || isEnd(dateString)) return ''
-  if (isInRange(dateString)) return ''
-  return ''
-}
-
-const formatDate = (dateString: string) => {
-  const d = new Date(dateString)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 const confirm = () => {

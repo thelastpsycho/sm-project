@@ -343,7 +343,10 @@ function groupEnabled(types: PipelineCalendarEventType[]): boolean {
 function toggleGroup(types: PipelineCalendarEventType[]) {
   const enabled = groupEnabled(types)
   const next = new Set(activeTypes.value)
-  for (const type of types) enabled ? next.delete(type) : next.add(type)
+  for (const type of types) {
+    if (enabled) next.delete(type)
+    else next.add(type)
+  }
   activeTypes.value = Array.from(next)
 }
 

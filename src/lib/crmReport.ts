@@ -7,6 +7,9 @@ import type { Deal, DealStage, PipelineEvent } from '../types/crm.js'
 import type { Alert } from './crmAlerts.js'
 import { computeDealAlerts, DEFAULT_ALERT_CONFIG } from './crmAlerts.js'
 import { toBaliISO } from './time.js'
+import { formatMoney } from './money.js'
+
+export { formatMoney }
 
 // ---- tiny helpers (kept inline to avoid pulling `@/`-aliased crmUtils into the api build) ----
 
@@ -21,12 +24,6 @@ function outcome(deal: Pick<Deal, 'stage'>): 'open' | 'won' | 'lost' {
 /** The value to attribute to a deal: booked value for won deals, else the estimate. */
 function dealValue(deal: Deal): number {
   return outcome(deal) === 'won' ? deal.actualRevenue ?? deal.totalRevenue ?? 0 : deal.totalRevenue ?? 0
-}
-
-/** Compact IDR-style money formatting (no decimals). Mirrors crmUtils.formatMoney. */
-export function formatMoney(value?: number, currency = 'IDR'): string {
-  if (value == null) return '—'
-  return `${currency} ${Math.round(value).toLocaleString('en-US')}`
 }
 
 // Stage win-probability for the weighted forecast (ported from PipelineReport.vue).

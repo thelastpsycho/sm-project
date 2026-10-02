@@ -401,6 +401,7 @@ import { useSessionStore } from '@/stores/session'
 import type { TacticalOfferForm } from '@/types/tacticalOffer'
 import { useHead } from '@vueuse/head'
 import DateRangePicker from '@/components/DateRangePicker.vue'
+import { formatShortDate as formatDate } from '@/lib/dateFormat'
 
 useHead({
   title: 'Submit Tactical Offer',
@@ -459,11 +460,6 @@ const isFormValid = computed(() => {
          form.value.bookingPeriodStart && form.value.bookingPeriodEnd &&
          form.value.travelPeriodStart && form.value.travelPeriodEnd
 })
-
-const formatDate = (dateString: string) => {
-  const d = new Date(dateString)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
 
 const openDatePicker = (type: 'booking' | 'travel') => {
   activeDatePicker.value = type

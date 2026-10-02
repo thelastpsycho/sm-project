@@ -29,8 +29,20 @@ function isBot(userAgent: string): boolean {
   return BOT_USER_AGENTS.some(bot => lowerUserAgent.includes(bot))
 }
 
+// Escape untrusted values before interpolating into HTML/attributes/inline <script>.
+// eventName/companyName come from a publicly-writable Firestore doc (events/{eventId}),
+// so without this an attacker-controlled doc would be served as live, unescaped HTML.
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"'`]/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' })[c] as string
+  )
+}
+
 // Generate HTML with Open Graph tags
-function generateOGHtml(eventName: string, companyName: string, eventUrl: string): string {
+function generateOGHtml(eventNameRaw: string, companyNameRaw: string, eventUrlRaw: string): string {
+  const eventName = escapeHtml(eventNameRaw)
+  const companyName = escapeHtml(companyNameRaw)
+  const eventUrl = escapeHtml(eventUrlRaw)
   const title = `${companyName} - ${eventName}`
   const description = `Share your feedback about ${eventName} for ${companyName} at The Anvaya Beach Resort Bali.`
 

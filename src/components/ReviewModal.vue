@@ -203,13 +203,13 @@
 </template>
 
 <script setup lang="ts">
-import { 
-  XMarkIcon, 
-  CalendarIcon, 
+import {
+  XMarkIcon,
   ArrowLongRightIcon,
   HomeIcon,
   UserCircleIcon
 } from '@heroicons/vue/24/outline'
+import { formatShortDate } from '@/lib/dateFormat'
 
 defineProps<{
   isOpen: boolean
@@ -218,14 +218,7 @@ defineProps<{
 
 defineEmits(['close', 'confirm'])
 
-const formatDate = (dateString: string) => {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
-    year: 'numeric' 
-  })
-}
+const formatDate = (dateString: string) => dateString ? formatShortDate(dateString) : '-'
 
 const formatPrice = (price: string | number) => {
   if (!price) return '0'

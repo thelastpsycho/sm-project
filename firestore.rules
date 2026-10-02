@@ -1,6 +1,15 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // True for a signed-in user with real credentials (email/password), excluding
+    // anonymous sessions. `ensureAuth()` in the client falls back to anonymous
+    // sign-in for guest flows — anonymous sessions must never satisfy checks that
+    // gate CRM/RFP data, or any visitor could self-grant access via the public SDK.
+    function isRealUser() {
+      return request.auth != null &&
+             request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
     // Allow read/write access to chat settings for everyone
     match /settings/chat {
       allow read: if true;
@@ -28,37 +37,47 @@ service cloud.firestore {
         resource.data.roomNumber == request.resource.data.roomNumber;
     }
 
-    // Survey collections - allow public access (PIN-based auth in app)
+    // Survey collections. The guest survey flow (Survey.vue, no session) reads
+    // events + adminSettings and creates responses — those stay public. Everything
+    // else (creating/deleting events, reading response data, editing settings) only
+    // happens from the authenticated Survey Admin screen, so is staff-only.
+    // NOTE: the "PIN-based auth in app" these rules used to reference doesn't exist in
+    // the current app — Survey Admin is gated by the normal Firebase Auth session
+    // instead (see router.ts), so these were previously unrestricted writes.
     match /events/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isRealUser();
     }
     match /responses/{document=**} {
-      allow read, write: if true;
+      allow create: if true;
+      allow read, update, delete: if isRealUser();
     }
     match /adminSettings/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isRealUser();
     }
 
-    // CRM / Sales pipeline — now gated by Firebase Auth (email/password).
+    // CRM / Sales pipeline — gated by Firebase Auth (real email/password sign-in,
+    // not anonymous — see isRealUser()).
     match /deals/{id} {
-      allow read:   if request.auth != null;
-      allow create: if request.auth != null;
+      allow read:   if isRealUser();
+      allow create: if isRealUser();
       // Owner (matched by email), admin, or manager (editAll claim) may edit;
       // unassigned = anyone signed in.
-      allow update: if request.auth != null && (
+      allow update: if isRealUser() && (
                        request.auth.token.admin == true
                        || request.auth.token.editAll == true
                        || resource.data.ownerId == ''
                        || resource.data.ownerId == request.auth.token.email);
       // Admins and any role granted the `deals:delete` capability (canDelete claim).
-      allow delete: if request.auth != null && (
+      allow delete: if isRealUser() && (
                        request.auth.token.admin == true
                        || request.auth.token.canDelete == true);
 
       // Everyone signed in can read/add comments; edit/delete own (or admin).
       match /comments/{c} {
-        allow read, create: if request.auth != null;
-        allow update, delete: if request.auth != null && (
+        allow read, create: if isRealUser();
+        allow update, delete: if isRealUser() && (
                                  request.auth.token.admin == true
                                  || resource.data.authorId == request.auth.token.email);
       }
@@ -67,25 +86,35 @@ service cloud.firestore {
     // Append-only pipeline event log (stage transitions) — powers conversion / velocity
     // analytics. Any signed-in user reads and appends; only admins may edit/delete.
     match /pipelineEvents/{id} {
-      allow read:   if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.token.admin == true;
+      allow read:   if isRealUser();
+      allow create: if isRealUser();
+      allow update, delete: if isRealUser() && request.auth.token.admin == true;
     }
 
     // Team roster. Read by any signed-in user; a user may update only their own doc
     // (fcmTokens / notificationsSeenAt); create/delete + role/status are admin-only.
     match /users/{uid} {
-      allow read:   if request.auth != null;
+      allow read:   if isRealUser();
       // A user may update their own doc (fcmTokens / notificationsSeenAt); an admin
       // may update any user's metadata. Role/status also propagate via the admin API.
-      allow update: if request.auth != null &&
+      allow update: if isRealUser() &&
                        (request.auth.uid == uid || request.auth.token.admin == true);
-      allow create, delete: if request.auth != null && request.auth.token.admin == true;
+      allow create, delete: if isRealUser() && request.auth.token.admin == true;
     }
 
-    // Function Chart / venue bookings - public access (PIN-based auth in app).
+    // Function Chart / venue bookings. Only ever accessed from the authenticated
+    // /function-chart route (no guest-facing flow reads this collection) — the bot
+    // endpoints that answer venue-availability questions use the Admin SDK and
+    // bypass these rules entirely.
     match /functions/{document=**} {
-      allow read, write: if true;
+      allow read, write: if isRealUser();
+    }
+
+    // RFP drafts/proposals — contain client PII (name/email/phone) and negotiated
+    // rates. Previously had no explicit rule and fell through to the public wildcard
+    // read below; scope to signed-in staff only.
+    match /rfps/{id} {
+      allow read, write: if isRealUser();
     }
 
     // Allow read access to public collections

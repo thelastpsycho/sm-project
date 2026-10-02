@@ -86,7 +86,7 @@ export function roleGrants(matrix: RoleMatrix, u: { email?: string; role?: strin
 /** Guard against public access. Returns true if authorized; writes 401 and returns false if not. */
 export function authorized(req: VercelRequest, res: VercelResponse): boolean {
   const secret = process.env.CRON_SECRET
-  if (secret && req.headers['authorization'] !== `Bearer ${secret}`) {
+  if (!secret || req.headers['authorization'] !== `Bearer ${secret}`) {
     res.status(401).json({ error: 'Unauthorized' })
     return false
   }

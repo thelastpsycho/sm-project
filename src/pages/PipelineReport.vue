@@ -548,23 +548,6 @@ function stageClass(k: string): string {
   return stageColor[k] ?? 'bg-gray-400'
 }
 
-const statusDonut = computed(() => {
-  const rows = byOutcome.value
-  const total = rows.reduce((s, r) => s + r.value, 0) || 1
-  const hex: Record<string, string> = { open: '#3b82f6', won: '#22c55e', lost: '#ef4444' }
-  let acc = 0
-  const stops = rows
-    .filter(r => r.value > 0)
-    .map(r => {
-      const start = (acc / total) * 360
-      acc += r.value
-      const end = (acc / total) * 360
-      return `${hex[r.key] ?? '#9ca3af'} ${start}deg ${end}deg`
-    })
-    .join(', ')
-  return `conic-gradient(${stops || '#e5e7eb 0deg 360deg'})`
-})
-
 function monthLabel(k: string): string {
   const [y, m] = k.split('-')
   const d = new Date(Number(y), Number(m) - 1, 1)
