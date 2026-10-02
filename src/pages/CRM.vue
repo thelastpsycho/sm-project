@@ -172,8 +172,10 @@
       <p v-if="rangeLabel" class="text-eyebrow text-sm-muted truncate">{{ rangeLabel }}</p>
     </div>
 
+    <CrmLoadError />
+
     <!-- Empty state -->
-    <div v-if="store.deals.length === 0 && !store.loading" class="text-center py-16">
+    <div v-if="store.deals.length === 0 && !store.loading && !store.loadError" class="text-center py-16">
       <p class="text-sm-muted">No deals yet.</p>
     </div>
 
@@ -195,7 +197,7 @@
 
     <!-- Action queue — deals grouped by urgency (Overdue / Stuck past SLA / Due today).
          Desktop: queue rail on the left, full deals table on the right. -->
-    <template v-else-if="view === 'queue'">
+    <template v-else-if="view === 'queue' && (!store.loadError || store.deals.length)">
       <div class="mt-6 lg:flex lg:items-start">
         <!-- Queue rail -->
         <div class="lg:w-[380px] lg:shrink-0 lg:pr-8 lg:border-r lg:border-sm-line lg:dark:border-white/10">
@@ -205,7 +207,7 @@
           <div v-for="g in visibleQueueGroups" :key="g.key">
             <div class="pt-4 pb-1.5 sm-eyebrow" :class="g.colorClass">{{ g.title }}</div>
             <div
-              v-for="deal in g.items"
+              v-for="deal in queuePage(g).items"
               :key="deal.id"
               class="flex items-start gap-3 py-3.5 border-t border-sm-hair dark:border-white/5"
             >
@@ -226,6 +228,7 @@
                 >Advance</button>
               </div>
             </div>
+            <SmPagination :model-value="queuePage(g).page" :total="g.items.length" :label="`${g.title} pages`" @update:model-value="queuePages[g.key] = $event" />
           </div>
           <div class="h-4"></div>
         </div>
@@ -233,13 +236,13 @@
         <!-- Full deals table (desktop only) -->
         <div class="hidden lg:block flex-1 min-w-0 lg:pl-8">
           <div class="sm-eyebrow pb-2">All deals · {{ filteredDeals.length }}</div>
-          <DealTable :deals="filteredDeals" @open="openEdit" />
+          <DealTable :deals="filteredDeals" :reset-key="JSON.stringify(filters)" @open="openEdit" />
         </div>
       </div>
     </template>
 
     <!-- Kanban board (single pipeline axis: stages) -->
-    <template v-else-if="view === 'board'">
+    <template v-else-if="view === 'board' && (!store.loadError || store.deals.length)">
       <div class="mt-5 flex overflow-x-auto scr pb-4 -mx-6 lg:-mx-10">
         <div
           v-for="col in boardColumns"
@@ -249,7 +252,7 @@
           <div class="flex items-baseline gap-2 pb-3">
             <span class="w-1.5 h-1.5 rounded-full" :class="stageDot[col]"></span>
             <h3 class="sm-eyebrow !text-sm-ink dark:!text-white">{{ col }}</h3>
-            <span class="text-xs text-sm-muted">{{ board[col]?.length ?? 0 }}</span>
+            <span class="text-xs text-sm-muted">{{ filteredByGroup[col]?.length ?? 0 }}</span>
           </div>
           <draggable
             :list="board[col]"
@@ -278,6 +281,7 @@
               />
             </template>
           </draggable>
+          <SmPagination :model-value="boardPages[col] ?? 1" :total="filteredByGroup[col]?.length ?? 0" :page-size="PAGE_SIZE" :label="`${col} pages`" :disabled="dragging" @update:model-value="boardPages[col] = $event" />
           <p
             v-if="!board[col]?.length"
             class="text-xs text-sm-faint dark:text-gray-600 py-4 pointer-events-none"
@@ -289,8 +293,8 @@
     </template>
 
     <!-- List view -->
-    <div v-else class="mt-5">
-      <DealTable :deals="filteredDeals" @open="openEdit" />
+    <div v-else-if="!store.loadError || store.deals.length" class="mt-5">
+      <DealTable :deals="filteredDeals" :reset-key="JSON.stringify(filters)" @open="openEdit" />
     </div>
 
     <DealModal
@@ -331,6 +335,9 @@ import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import draggable from 'vuedraggable'
 import { PlusIcon, MagnifyingGlassIcon, FunnelIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
+import CrmLoadError from '@/components/crm/CrmLoadError.vue'
+import SmPagination from '@/components/ui/SmPagination.vue'
+import { paginate, PAGE_SIZE } from '@/lib/pagination'
 import SmButton from '@/components/ui/SmButton.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import SmInput from '@/components/ui/SmInput.vue'
@@ -753,6 +760,20 @@ function advance(deal: Deal) {
   onQuickMove({ deal, stage: ADVANCE_ORDER[i + 1]! })
 }
 
+// Only rendered pages are sliced. All metrics/exports above use filteredDeals.
+const queuePages = reactive<Record<string, number>>({})
+function queuePage(group: { key: string; items: QueueDeal[] }) {
+  return paginate(group.items, queuePages[group.key] ?? 1)
+}
+watch(visibleQueueGroups, groups => {
+  for (const group of groups) queuePages[group.key] = queuePage(group).page
+})
+const boardPages = reactive<Record<string, number>>({})
+watch([() => JSON.stringify(filters), queueChip], () => {
+  for (const key of Object.keys(queuePages)) queuePages[key] = 1
+  for (const col of boardColumns) boardPages[col] = 1
+})
+
 // Mutable per-column mirror that vuedraggable can splice during a drag. Rebuilt when
 // the filtered grouping changes — but NOT mid-drag, so an incoming real-time snapshot
 // never yanks a card out from under the user (reconciled on drag end instead).
@@ -760,11 +781,15 @@ const board = ref<Record<string, Deal[]>>({})
 function rebuildBoard() {
   const g = filteredByGroup.value
   const next: Record<string, Deal[]> = {}
-  for (const col of boardColumns) next[col] = [...(g[col] ?? [])]
+  for (const col of boardColumns) {
+    const result = paginate(g[col] ?? [], boardPages[col] ?? 1)
+    boardPages[col] = result.page
+    next[col] = result.items
+  }
   board.value = next
 }
 watch(
-  filteredByGroup,
+  [filteredByGroup, () => ({ ...boardPages })],
   () => {
     if (!dragging.value) rebuildBoard()
   },

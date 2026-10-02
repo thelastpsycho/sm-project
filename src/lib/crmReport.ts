@@ -8,6 +8,7 @@ import type { Alert } from './crmAlerts.js'
 import { computeDealAlerts, DEFAULT_ALERT_CONFIG } from './crmAlerts.js'
 import { toBaliISO } from './time.js'
 import { formatMoney } from './money.js'
+import { weightedForecast } from './crmForecast.js'
 
 export { formatMoney }
 
@@ -24,16 +25,6 @@ function outcome(deal: Pick<Deal, 'stage'>): 'open' | 'won' | 'lost' {
 /** The value to attribute to a deal: booked value for won deals, else the estimate. */
 function dealValue(deal: Deal): number {
   return outcome(deal) === 'won' ? deal.actualRevenue ?? deal.totalRevenue ?? 0 : deal.totalRevenue ?? 0
-}
-
-// Stage win-probability for the weighted forecast (ported from PipelineReport.vue).
-const STAGE_PROB: Record<DealStage, number> = {
-  New: 0.1,
-  Proposal: 0.3,
-  Negotiation: 0.5,
-  Contract: 0.8,
-  Confirmed: 1,
-  Lost: 0
 }
 
 // ---- KPIs (snapshot over whatever deal set is passed in) ----
@@ -63,10 +54,7 @@ export function computeKpis(deals: Deal[]): Kpis {
   const decided = won.length + lost.length
   const decidedValue = wonValue + lostValue
   const totalValue = sum(deals)
-  const weighted = open.reduce(
-    (s, d) => s + (d.totalRevenue ?? 0) * (STAGE_PROB[(d.stage ?? 'New') as DealStage] ?? 0),
-    0
-  )
+  const weighted = weightedForecast(deals)
   return {
     count: deals.length,
     open: open.length,

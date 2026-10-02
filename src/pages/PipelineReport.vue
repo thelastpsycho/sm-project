@@ -13,7 +13,8 @@
         <div class="min-w-0">
           <span class="sm-eyebrow">Pipeline report<span v-if="activeFilterCount"> · filtered</span></span>
           <h1 class="sm-display text-display mt-2 truncate">{{ formatMoney(kpis.totalValue) }}</h1>
-          <p class="mt-1.5 text-sm text-sm-muted truncate">{{ deals.length }} deals · all owners</p>
+          <p class="mt-1.5 text-sm text-sm-muted truncate">{{ deals.length }} deals · {{ filters.owner || 'All owners' }}</p>
+          <p class="mt-1 text-sm text-sm-muted">{{ dateFieldOptions.find(o => o.value === filters.dateField)?.label }} · {{ rangeLabel || 'All dates' }}<span v-if="filters.segment"> · {{ filters.segment }}</span></p>
         </div>
       </div>
       <button
@@ -41,13 +42,15 @@
       <p v-if="rangeLabel" class="mt-1.5 text-eyebrow text-sm-muted truncate">{{ rangeLabel }}</p>
     </div>
 
+    <CrmLoadError />
+
     <!-- Loading / empty -->
     <div v-if="store.loading && !store.deals.length" class="text-center py-16 text-sm-faint">Loading…</div>
-    <div v-else-if="!store.deals.length" class="text-center py-16 text-sm-faint">
+    <div v-else-if="!store.deals.length && !store.loadError" class="text-center py-16 text-sm-faint">
       No deals yet. Import your pipeline from the board first.
     </div>
 
-    <template v-else>
+    <template v-else-if="store.deals.length">
       <!-- KPI row -->
       <div class="mt-8 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-x-8 gap-y-6">
         <div v-for="c in kpiCards" :key="c.label">
@@ -231,6 +234,8 @@
 </template>
 
 <script setup lang="ts">
+import { weightedForecast } from '@/lib/crmForecast'
+import CrmLoadError from '@/components/crm/CrmLoadError.vue'
 import { reactive, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeftIcon, PrinterIcon } from '@heroicons/vue/24/outline'
@@ -239,7 +244,7 @@ import SmInput from '@/components/ui/SmInput.vue'
 import SmButton from '@/components/ui/SmButton.vue'
 import { useCrmStore } from '@/stores/crm'
 import { DEAL_OUTCOMES, DEAL_STAGES } from '@/types/crm'
-import type { Deal, DealStage } from '@/types/crm'
+import type { Deal } from '@/types/crm'
 import { formatMoney, formatDate, isOverdue, dealOutcome, wonRevenue } from '@/lib/crmUtils'
 import { baliToday, toBaliISO } from '@/lib/time'
 import { RANGE_OPTIONS, presetRange, type RangePreset } from '@/lib/dateRange'
@@ -367,16 +372,6 @@ function winRateColor(x: number): string {
   return 'text-sm-bad'
 }
 
-// Stage win-probability for the weighted forecast (only open stages are weighted).
-const STAGE_PROB: Record<DealStage, number> = {
-  New: 0.1,
-  Proposal: 0.3,
-  Negotiation: 0.5,
-  Contract: 0.8,
-  Confirmed: 1,
-  Lost: 0
-}
-
 // ---- KPIs ----
 const kpis = computed(() => {
   const all = deals.value
@@ -387,10 +382,7 @@ const kpis = computed(() => {
   const lostValue = sum(lost)
   const decided = won.length + lost.length
   const decidedValue = wonValue + lostValue
-  const weighted = open.reduce(
-    (s, d) => s + (d.totalRevenue ?? 0) * (STAGE_PROB[(d.stage ?? 'New') as DealStage] ?? 0),
-    0
-  )
+  const weighted = weightedForecast(all)
   const roomNights = all.reduce((s, d) => s + (d.roomNights ?? 0), 0)
   const adrDeals = all.filter(d => d.proposedADR)
   const avgADR = adrDeals.length ? adrDeals.reduce((s, d) => s + (d.proposedADR ?? 0), 0) / adrDeals.length : 0

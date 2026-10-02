@@ -3,6 +3,15 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --sm-text-muted: 91 100 114;
+    --sm-text-faint: 107 114 128;
+  }
+  .dark {
+    --sm-text-muted: 173 181 194;
+    --sm-text-faint: 156 163 175;
+  }
+
   * {
     box-sizing: border-box;
   }

@@ -3,11 +3,20 @@
     <!-- Header -->
     <div class="px-6 py-6 border-b border-sm-line dark:border-white/10 sticky top-0 z-30 safe-area-top bg-white/90 dark:bg-sm-bg-dark/90 backdrop-blur">
       <h1 class="sm-display text-title">{{ isEditing ? 'Edit RFP' : 'New RFP' }}</h1>
-      <p class="text-xs text-sm-muted mt-1.5">{{ isEditing ? 'Update proposal details' : 'Create a new proposal request' }}</p>
+      <p class="text-sm text-sm-muted mt-1.5">{{ isEditing ? 'Update proposal details' : 'Create a new proposal request' }}</p>
+      <p role="status" aria-live="polite" class="mt-2 text-sm font-semibold text-sm-muted">{{ saveStatus }}</p>
+      <nav aria-label="Proposal sections" class="mt-3 flex gap-2 overflow-x-auto pb-1">
+        <a v-for="section in sections" :key="section.id" :href="`#${section.id}`" class="shrink-0 rounded-lg border border-sm-line px-3 py-2 text-sm font-semibold text-sm-ink dark:border-white/20 dark:text-white" @click.prevent="goToSection(section.id)">{{ section.label }}</a>
+      </nav>
     </div>
 
+    <div v-if="loadFailed" role="alert" class="m-4 rounded-xl border border-red-300 p-4 text-sm text-sm-bad">
+      {{ errorMessage }}
+      <button type="button" class="ml-3 min-h-11 underline font-bold" @click="initializeForm">Retry</button>
+    </div>
     <form @submit.prevent="handleSubmit" class="p-4 lg:px-8 space-y-6 max-w-[760px] mx-auto lg:mx-0">
       
+      <fieldset :disabled="loadingForm || loadFailed || isSaving || isSubmitting" class="min-w-0 space-y-6">
       <!-- Section: Language Choice -->
       <div class="flex items-center justify-between p-1 rounded-2xl border border-sm-line dark:border-white/10 animate-fade-in-up" style="animation-delay: 50ms;">
         <div class="pl-4">
@@ -35,7 +44,7 @@
       
       <!-- Section: Client Details -->
       <div class="rounded-2xl p-5 border border-sm-line dark:border-white/10 space-y-5 animate-fade-in-up" style="animation-delay: 100ms;">
-        <h2 class="sm-eyebrow">Client Details</h2>
+        <h2 id="rfp-client" tabindex="-1" class="sm-eyebrow scroll-mt-56">Client Details</h2>
         
         <div class="space-y-4">
            <div class="rounded-2xl border border-sm-line dark:border-white/10 overflow-hidden">
@@ -113,7 +122,7 @@
 
       <!-- Section: Requirements -->
       <div class="rounded-2xl p-5 border border-sm-line dark:border-white/10 space-y-5 animate-fade-in-up" style="animation-delay: 200ms;">
-        <h2 class="sm-eyebrow">Requirements</h2>
+        <h2 id="rfp-requirements" tabindex="-1" class="sm-eyebrow scroll-mt-56">Requirements</h2>
         
         <div class="grid grid-cols-2 gap-4">
            <div class="rounded-2xl border border-sm-line dark:border-white/10 px-4 py-2">
@@ -129,7 +138,7 @@
 
       <!-- Section: Sales PIC -->
       <div class="rounded-2xl p-5 border border-sm-line dark:border-white/10 space-y-5 animate-fade-in-up" style="animation-delay: 300ms;">
-        <h2 class="sm-eyebrow">Sales Contact</h2>
+        <h2 id="rfp-sales" tabindex="-1" class="sm-eyebrow scroll-mt-56">Sales Contact</h2>
 
         <div class="rounded-2xl border border-sm-line dark:border-white/10 overflow-hidden">
              <div class="px-4 py-2 border-b border-sm-hair dark:border-white/10">
@@ -161,7 +170,7 @@
 
       <!-- Section: Rates -->
       <div class="rounded-2xl p-5 border border-sm-line dark:border-white/10 space-y-5 animate-fade-in-up" style="animation-delay: 400ms;">
-        <h2 class="sm-eyebrow">Proposed Rates</h2>
+        <h2 id="rfp-rates" tabindex="-1" class="sm-eyebrow scroll-mt-56">Proposed Rates</h2>
         
         <div class="rounded-2xl border border-sm-line dark:border-white/10 overflow-hidden">
             <div class="px-4 py-2 border-b border-sm-hair dark:border-white/10">
@@ -187,7 +196,7 @@
 
       <!-- Section: Additional Room Types -->
       <div class="rounded-2xl p-5 border border-sm-line dark:border-white/10 space-y-5 animate-fade-in-up" style="animation-delay: 450ms;">
-        <h2 class="sm-eyebrow">Additional Room Types</h2>
+        <h2 id="rfp-additional" tabindex="-1" class="sm-eyebrow scroll-mt-56">Additional Room Types</h2>
         
         <div class="space-y-4">
           <!-- Compact Question Toggle -->
@@ -255,7 +264,7 @@
       </div>
 
       <!-- Actions -->
-      <div class="pt-4 flex items-center gap-4">
+      <div id="rfp-actions" tabindex="-1" class="scroll-mt-56 pt-4 flex flex-wrap items-center gap-3">
         <button 
           type="button" 
           @click="resetForm"
@@ -281,9 +290,10 @@
         </button>
       </div>
 
+      </fieldset>
       <!-- Messages -->
 
-      <div v-if="errorMessage" class="p-4 rounded-2xl text-sm-bad text-sm text-center">
+      <div v-if="errorMessage && !loadFailed" role="alert" class="p-4 rounded-2xl text-sm-bad text-sm text-center">
         {{ errorMessage }}
       </div>
     </form>
@@ -333,8 +343,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useDraftState } from '@/composables/useDraftState'
+import { useRoute, useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 import { postRFP } from '@/utils/api'
 import type { RFPForm } from '@/types/rfp'
 import ResponseModal from '@/components/ResponseModal.vue'
@@ -363,7 +374,8 @@ const route = useRoute()
 const router = useRouter()
 const sessionStore = useSessionStore()
 const crmStore = useCrmStore()
-const isEditing = computed(() => !!route.params.id)
+const savedRfpId = ref<string | null>(null)
+const isEditing = computed(() => !!route.params.id || !!savedRfpId.value)
 
 const titleOptions = [
   { value: 'Mr', label: 'Mr.' },
@@ -411,6 +423,45 @@ const form = ref<RFPForm>({
   room_type_2: '',
   rate_type_2: ''
 })
+
+const { dirty, savedAt, markSaved } = useDraftState(form)
+const loadingForm = ref(true)
+const loadFailed = ref(false)
+const saveStatus = computed(() => {
+  if (loadingForm.value) return 'Loading proposal…'
+  if (loadFailed.value) return 'Proposal could not be loaded'
+  if (isSaving.value) return 'Saving draft…'
+  if (isSubmitting.value) return 'Generating proposal…'
+  if (dirty.value) return 'Unsaved changes'
+  if (savedAt.value) return `Saved · ${savedAt.value.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Makassar' })} WITA`
+  return 'New draft · not saved yet'
+})
+const sections = [
+  { id: 'rfp-client', label: 'Client' },
+  { id: 'rfp-requirements', label: 'Requirements' },
+  { id: 'rfp-sales', label: 'Sales contact' },
+  { id: 'rfp-rates', label: 'Rates' },
+  { id: 'rfp-additional', label: 'Room types' },
+  { id: 'rfp-actions', label: 'Save & review' }
+]
+function goToSection(id: string) {
+  const target = document.getElementById(id)
+  target?.scrollIntoView({ block: 'start' })
+  target?.focus({ preventScroll: true })
+}
+function confirmLeave() {
+  if (isSaving.value || isSubmitting.value) return false
+  return !dirty.value || window.confirm('Leave this proposal? Unsaved changes will be lost.')
+}
+onBeforeRouteLeave(confirmLeave)
+onBeforeRouteUpdate(confirmLeave)
+function beforeUnload(event: BeforeUnloadEvent) {
+  if (!dirty.value && !isSaving.value && !isSubmitting.value) return
+  event.preventDefault()
+  event.returnValue = ''
+}
+onMounted(() => window.addEventListener('beforeunload', beforeUnload))
+onUnmounted(() => window.removeEventListener('beforeunload', beforeUnload))
 
 const showDatePicker = ref(false)
 const showValidityPicker = ref(false)
@@ -475,18 +526,25 @@ const loadRFP = async () => {
 
     if (docSnap.exists()) {
       const data = docSnap.data()
-      // Merge with default form to ensure all fields exist
-      form.value = { ...form.value, ...data }
+      // Keep document metadata (timestamps, PDF links) out of editable form data.
+      for (const key of Object.keys(form.value) as Array<keyof RFPForm>) {
+        if (data[key] != null) form.value[key] = String(data[key])
+      }
+      showAdditionalRooms.value = !!(form.value.room_type_1 || form.value.room_type_2)
+      const at = data.updatedAt?.toDate?.()
+      savedAt.value = at instanceof Date ? at : null
       // Reuse the deal this RFP already created/linked, so regenerating it doesn't
       // spawn a duplicate deal on the pipeline.
       if (typeof data.dealId === 'string' && data.dealId) {
         linkedDealId.value = data.dealId
       }
     } else {
+      loadFailed.value = true
       errorMessage.value = 'RFP not found'
     }
   } catch (e) {
     console.error('Error loading RFP:', e)
+    loadFailed.value = true
     errorMessage.value = 'Failed to load RFP'
   }
 }
@@ -506,24 +564,29 @@ const prefillFromDeal = async (dealId: string) => {
 }
 
 const saveToFirebase = async (generated = false) => {
+  const snapshot = JSON.stringify(form.value)
+  const savedForm = JSON.parse(snapshot) as RFPForm
   await ensureAuth()
 
   const data = {
-    ...form.value,
+    ...savedForm,
+    ...(linkedDealId.value ? { dealId: linkedDealId.value } : {}),
     updatedAt: serverTimestamp(),
     generated
   }
 
-  if (isEditing.value) {
-    await setDoc(doc(db, 'rfps', route.params.id as string), data, { merge: true })
-    return route.params.id as string
+  const existingId = (route.params.id as string | undefined) || savedRfpId.value
+  let id: string
+  if (existingId) {
+    await setDoc(doc(db, 'rfps', existingId), data, { merge: true })
+    id = existingId
   } else {
-    const docRef = await addDoc(collection(db, 'rfps'), {
-      ...data,
-      createdAt: serverTimestamp()
-    })
-    return docRef.id
+    const docRef = await addDoc(collection(db, 'rfps'), { ...data, createdAt: serverTimestamp() })
+    id = docRef.id
   }
+  savedRfpId.value = id
+  markSaved(snapshot)
+  return id
 }
 
 const handleSave = async () => {
@@ -533,16 +596,15 @@ const handleSave = async () => {
   errorMessage.value = ''
   
   try {
-    const id = await saveToFirebase(false)
-    if (!isEditing.value) {
-      router.replace({ name: 'rfp-edit', params: { id } })
-    }
-    // Optional: show toast or success state
+    await saveToFirebase(false)
   } catch (e: any) {
     console.error(e)
     errorMessage.value = 'Failed to save draft'
   } finally {
     isSaving.value = false
+  }
+  if (!errorMessage.value && !route.params.id && savedRfpId.value) {
+    await router.replace({ name: 'rfp-edit', params: { id: savedRfpId.value } })
   }
 }
 
@@ -637,16 +699,26 @@ const handleFinalSubmit = async () => {
 
 const handleCloseResponseModal = () => {
   showModal.value = false
-  if (!isEditing.value && lastCreatedId.value) {
+  if (!route.params.id && lastCreatedId.value) {
     router.replace({ name: 'rfp-edit', params: { id: lastCreatedId.value } })
   }
 }
 
-onMounted(() => {
-  loadRFP()
-})
+async function initializeForm() {
+  loadingForm.value = true
+  loadFailed.value = false
+  errorMessage.value = ''
+  try {
+    await loadRFP()
+    markSaved(JSON.stringify(form.value), savedAt.value)
+  } finally {
+    loadingForm.value = false
+  }
+}
+onMounted(initializeForm)
 
 const resetForm = () => {
+  if (dirty.value && !window.confirm('Reset this form? Unsaved changes will be lost.')) return
   form.value = {
     lang: 'EN',
     title: 'Mr',
