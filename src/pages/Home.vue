@@ -187,7 +187,6 @@ useHead({
 })
 import {
   SwatchIcon,
-  ArrowDownTrayIcon,
   DocumentArrowDownIcon,
   ChevronRightIcon,
   PhotoIcon,

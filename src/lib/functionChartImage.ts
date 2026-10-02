@@ -4,7 +4,7 @@
 // the Canvas 2D API rather than screenshotting the live DOM, so the output never
 // depends on theme, scroll position, fonts, or Tailwind color parsing.
 
-import { VENUE_STRUCTURE, canonicalVenue, comboName } from '@/lib/functionChartVenues'
+import { VENUE_STRUCTURE, canonicalVenue } from '@/lib/functionChartVenues'
 import { baliToday } from '@/lib/time'
 import { FUNCTION_STATUSES, STATUS_META } from '@/types/functionChart'
 import type { FunctionBooking, FunctionStatus } from '@/types/functionChart'

@@ -14,7 +14,7 @@ interface Emits {
   (e: 'update:modelValue', value: string): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   questionNumber: 1,
   placeholder: 'Please share your thoughts...'
 })

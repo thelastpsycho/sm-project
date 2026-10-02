@@ -1,7 +1,6 @@
 /* Firebase Cloud Messaging background handler.
  * Config is passed via query string at registration time (a SW can't read env vars).
  * This SW intentionally has NO fetch handler, so it never caches the app shell. */
-/* eslint-disable no-undef */
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js')
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js')
 

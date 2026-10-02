@@ -347,7 +347,7 @@ import { doc, getDoc, setDoc, addDoc, collection, serverTimestamp } from 'fireba
 import { useHead } from '@vueuse/head'
 import { useSessionStore } from '@/stores/session'
 import { useCrmStore } from '@/stores/crm'
-import userData from '@/user.json'
+import { formatShortDateNoYear as formatDateLabel } from '@/lib/dateFormat'
 
 useHead({
   title: 'New RFP',
@@ -426,12 +426,6 @@ const handleValiditySelect = (range: { start: string }) => {
   showValidityPicker.value = false
 }
 
-const formatDateLabel = (dateString: string) => {
-  if (!dateString) return ''
-  const d = new Date(dateString)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
 const showAdditionalRooms = ref(false)
 
 const isSubmitting = ref(false)
@@ -455,8 +449,6 @@ const isFormValid = computed(() => {
          form.value.event_date_end &&
          form.value.proposal_validity_date
 })
-
-const isOnlineReact = computed(() => navigator.onLine)
 
 const loadRFP = async () => {
   if (!route.params.id) {

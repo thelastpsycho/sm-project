@@ -13,7 +13,6 @@ import {
   orderBy
 } from 'firebase/firestore'
 import { db, COLLECTIONS } from '@/lib/firebase'
-import { hashPin } from '@/lib/surveyUtils'
 import { DEFAULT_REVIEW_THRESHOLD, DEFAULT_WEBHOOK_URL } from '@/lib/surveyConstants'
 
 export const useSurveyStore = defineStore('survey', () => {
@@ -23,8 +22,7 @@ export const useSurveyStore = defineStore('survey', () => {
   const adminSettings = ref<AdminSettings>({
     reviewThreshold: DEFAULT_REVIEW_THRESHOLD,
     googleReviewUrl: 'https://search.google.com/local/writereview',
-    webhookUrl: DEFAULT_WEBHOOK_URL,
-    adminPinHash: ''
+    webhookUrl: DEFAULT_WEBHOOK_URL
   })
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -96,8 +94,7 @@ export const useSurveyStore = defineStore('survey', () => {
         adminSettings.value = {
           reviewThreshold: data.reviewThreshold || DEFAULT_REVIEW_THRESHOLD,
           googleReviewUrl: data.googleReviewUrl || 'https://search.google.com/local/writereview',
-          webhookUrl: data.webhookUrl || DEFAULT_WEBHOOK_URL,
-          adminPinHash: data.adminPinHash || ''
+          webhookUrl: data.webhookUrl || DEFAULT_WEBHOOK_URL
         }
       }
     } catch (err) {
@@ -160,20 +157,6 @@ export const useSurveyStore = defineStore('survey', () => {
     }
   }
 
-  async function initializeAdmin() {
-    const settingsDoc = await getDoc(doc(db, COLLECTIONS.ADMIN_SETTINGS, 'config'))
-    if (!settingsDoc.exists()) {
-      // Create default admin settings
-      const defaultPinHash = await hashPin('1234')
-      await updateDoc(doc(db, COLLECTIONS.ADMIN_SETTINGS, 'config'), {
-        adminPinHash: defaultPinHash,
-        reviewThreshold: DEFAULT_REVIEW_THRESHOLD,
-        googleReviewUrl: 'https://search.google.com/local/writereview',
-        webhookUrl: DEFAULT_WEBHOOK_URL
-      })
-    }
-  }
-
   return {
     // State
     events,
@@ -191,7 +174,6 @@ export const useSurveyStore = defineStore('survey', () => {
     createEvent,
     deleteEvent,
     submitSurvey,
-    updateAdminSettings,
-    initializeAdmin
+    updateAdminSettings
   }
 })

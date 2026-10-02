@@ -87,8 +87,9 @@ import { ref, onMounted } from 'vue'
 import { collection, query, orderBy, getDocs } from 'firebase/firestore'
 import { db } from '@/utils/firebase'
 import type { RFPForm } from '@/types/rfp'
-import { PlusIcon, DocumentTextIcon, CalendarIcon, UserGroupIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, DocumentTextIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline'
 import { useHead } from '@vueuse/head'
+import { formatTimestampShort } from '@/lib/dateFormat'
 
 useHead({
   title: 'RFP History',
@@ -113,11 +114,7 @@ const rfps = ref<RFPRecord[]>([])
 const loading = ref(true)
 const error = ref('')
 
-const formatDate = (timestamp: any) => {
-  if (!timestamp) return ''
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date)
-}
+const formatDate = formatTimestampShort
 
 const fetchRFPs = async () => {
   try {

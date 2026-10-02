@@ -5,6 +5,9 @@ import type { UserRole } from '@/types/user'
 import { roleHas } from '@/lib/roles'
 import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
 import { baliToday } from '@/lib/time'
+import { formatMoney } from '@/lib/money'
+
+export { formatMoney }
 
 /**
  * Derived outcome of a deal from its stage (the single pipeline axis).
@@ -120,12 +123,6 @@ export function applyRevenueCalc<T extends Partial<Deal>>(deal: T): T {
   const estimatedRoomRevenue = computeRoomRevenue(roomNights, deal.proposedADR)
   const totalRevenue = computeTotalRevenue(estimatedRoomRevenue, deal.fbAncillary)
   return { ...deal, roomNights, estimatedRoomRevenue, totalRevenue }
-}
-
-/** Compact IDR-style money formatting (no decimals). */
-export function formatMoney(value?: number, currency = 'IDR'): string {
-  if (value == null) return '—'
-  return `${currency} ${Math.round(value).toLocaleString('en-US')}`
 }
 
 /** True when an action due date is in the past, by Bali calendar day. */
