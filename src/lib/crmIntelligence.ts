@@ -6,14 +6,8 @@ import { computeDuplicateMatches } from '@/lib/crmDuplicates'
 export type IntelligenceHealth = 'hot' | 'healthy' | 'attention' | 'at-risk' | 'stale'
 export type DueState = 'overdue' | 'today' | 'soon' | 'none'
 
-export const STAGE_PROBABILITY: Record<DealStage, number> = {
-  New: 0.15,
-  Proposal: 0.35,
-  Negotiation: 0.6,
-  Contract: 0.8,
-  Confirmed: 1,
-  Lost: 0
-}
+import { STAGE_PROBABILITY, weightedDealValue } from '@/lib/crmForecast'
+export { STAGE_PROBABILITY } from '@/lib/crmForecast'
 
 export interface DealIntelligence {
   deal: Deal
@@ -250,7 +244,7 @@ function buildDealIntelligence(
     priorityScore,
     riskScore,
     probability,
-    weightedValue: value * probability,
+    weightedValue: weightedDealValue(deal),
     health,
     healthLabel,
     recommendedAction: nextActionFor(deal, dueState, daysInStage, daysIdle),

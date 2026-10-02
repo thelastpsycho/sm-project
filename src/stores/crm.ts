@@ -35,6 +35,7 @@ export const useCrmStore = defineStore('crm', () => {
   const deals = ref<Deal[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const loadError = ref<string | null>(null)
   // Comments keyed by deal id (deals/{id}/comments subcollection).
   const comments = ref<Record<string, DealComment[]>>({})
   const commentsLoading = ref(false)
@@ -115,18 +116,18 @@ export const useCrmStore = defineStore('crm', () => {
   function subscribe() {
     if (unsub) return
     loading.value = true
-    error.value = null
-    // TODO(perf): needs pagination before limiting — the /crm board and /crm/report render
-    // every deal (no pagination) and the bell badge depends on the full set, so a limit(N)
-    // here would drop visible records and undercount the badge.
+    loadError.value = null
+    // Pagination bounds rendered rows only. Reports, exports and alerts still require
+    // the complete dataset; limiting this shared listener would silently undercount.
     unsub = onSnapshot(
       query(collection(db, COLLECTIONS.DEALS), orderBy('updatedAt', 'desc')),
       snapshot => {
+        loadError.value = null
         deals.value = snapshot.docs.map(mapDoc)
         loading.value = false
       },
       err => {
-        error.value = 'Failed to load deals'
+        loadError.value = 'Unable to load the pipeline. Check your connection and try again.'
         loading.value = false
         console.error('Error subscribing to deals:', err)
       }
@@ -136,6 +137,11 @@ export const useCrmStore = defineStore('crm', () => {
   function unsubscribe() {
     unsub?.()
     unsub = null
+  }
+
+  function retrySubscription() {
+    unsubscribe()
+    subscribe()
   }
 
   /** One-time load of recent pipeline events (bounded lookback), idempotent per call. */
@@ -521,6 +527,8 @@ export const useCrmStore = defineStore('crm', () => {
     totalPipelineValue,
     // Actions
     subscribe,
+    retrySubscription,
+    loadError,
     unsubscribe,
     loadEvents,
     createDeal,

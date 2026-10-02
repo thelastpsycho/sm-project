@@ -50,6 +50,7 @@ export const NAV_ITEMS: NavItem[] = [
   { name: 'Chat', to: '/chat', icon: ChatBubbleLeftRightIcon, permission: 'chat:access' },
   { name: 'New RFP', to: '/rfp/new', icon: PlusIcon, permission: 'rfp:create' },
   { name: 'RFP History', to: '/rfp', icon: ClipboardDocumentListIcon, permission: 'rfp:view' },
+  { name: 'Tactical Offer', to: '/tactical-offer', icon: DocumentTextIcon },
   { name: 'Contract', to: '/contract', icon: DocumentTextIcon, permission: 'contract:access' },
   { name: 'Survey Admin', to: '/survey/admin', icon: ClipboardDocumentIcon, permission: 'survey:view' },
   { name: 'Team & Access', to: '/users', icon: UsersIcon, permission: 'users:access' }
@@ -58,6 +59,13 @@ export const NAV_ITEMS: NavItem[] = [
 /** Flattens groups back into a single list — used by BottomNav (mobile has room). */
 export function flattenNavItems(items: NavItem[]): NavItem[] {
   return items.flatMap(item => (item.children?.length ? [item, ...item.children] : [item]))
+}
+
+/** Page search and navigation use the same names, destinations and permissions. */
+export function searchablePages(canAccess: (permission: Permission) => boolean) {
+  return flattenNavItems(NAV_ITEMS)
+    .filter(item => !item.permission || canAccess(item.permission))
+    .map(item => ({ id: `page-${item.to}`, name: item.name, type: 'Page', path: item.to }))
 }
 
 // Active-state test shared by both nav surfaces. Home matches exactly; everything

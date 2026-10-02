@@ -16,8 +16,8 @@ export default {
       // existing text is unchanged; the extra named steps absorb what used to
       // be hardcoded arbitrary sizes (text-[13px], text-[26px]…).
       fontSize: {
-        '2xs':     ['10px', '14px'], // tiny badges, chart ticks
-        'eyebrow': ['11px', '14px'], // uppercase micro-labels
+        '2xs':     ['12px', '16px'], // tiny badges, chart ticks
+        'eyebrow': ['12px', '18px'], // uppercase micro-labels
         'xs':      ['12px', '16px'],
         'xsm':     ['13px', '18px'], // dense secondary text
         'sm':      ['14px', '20px'], // body default
@@ -41,7 +41,7 @@ export default {
       },
       colors: {
         'sm-primary': '#0066CC', // Deep Blue — spent once per screen
-        'sm-secondary': '#8E8E93', // Apple Gray
+        'sm-secondary': 'rgb(var(--sm-text-muted) / <alpha-value>)', // Apple Gray
         'sm-accent': '#30D158', // iOS Green
         'sm-bg': '#F2F2F7', // iOS System Gray 6
         'sm-bg-dark': '#000000', // OLED Black
@@ -50,8 +50,8 @@ export default {
         // Action-queue editorial palette — ink, hairline, whitespace
         'sm-ink': '#1C1C1E', // near-black — primary text, buttons, FABs
         'sm-ink-soft': '#6B7280', // secondary reading text
-        'sm-muted': '#8E8E93', // micro-labels, meta
-        'sm-faint': '#C7C7CC', // placeholders, disabled marks
+        'sm-muted': 'rgb(var(--sm-text-muted) / <alpha-value>)', // micro-labels, meta
+        'sm-faint': 'rgb(var(--sm-text-faint) / <alpha-value>)', // placeholders, disabled marks
         'sm-line': '#E5E5EA', // section hairline
         'sm-hair': '#F0F0F2', // list-row hairline
         'sm-surface': '#FAFAFA', // page canvas

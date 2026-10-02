@@ -175,6 +175,7 @@ import { useHead } from '@vueuse/head'
 import { useSessionStore } from '@/stores/session'
 import { usePermissionsStore } from '@/stores/permissions'
 import type { Permission } from '@/lib/permissions'
+import { searchablePages } from '@/lib/nav'
 
 useHead({
   title: 'Home',
@@ -186,7 +187,6 @@ useHead({
   ]
 })
 import {
-  SwatchIcon,
   DocumentArrowDownIcon,
   ChevronRightIcon,
   PhotoIcon,
@@ -197,12 +197,7 @@ import {
   CheckIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
-  ChatBubbleLeftRightIcon,
-  DocumentDuplicateIcon,
-  ClockIcon,
-  PlusIcon,
-  FolderIcon,
-  ClipboardDocumentIcon
+  FolderIcon
 } from '@heroicons/vue/24/outline'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 
@@ -311,13 +306,7 @@ const timeOfDay = computed(() => {
 
 // Searchable items configuration
 const searchableItems = computed(() => [
-  { id: 'home', name: 'Home', type: 'Page', path: '/', icon: SwatchIcon, iconBg: 'bg-purple-500/10', iconColor: 'text-purple-500' },
-  { id: 'chat', name: 'Chat Assistant', type: 'Page', path: '/chat', icon: ChatBubbleLeftRightIcon, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-500' },
-  { id: 'contract', name: 'Submit Contract', type: 'Page', path: '/contract', icon: DocumentDuplicateIcon, iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-500' },
-  { id: 'tactical-offer', name: 'Tactical Offer', type: 'Page', path: '/tactical-offer', icon: PlusIcon, iconBg: 'bg-rose-500/10', iconColor: 'text-rose-500' },
-  { id: 'rfp-history', name: 'RFP History', type: 'Page', path: '/rfp', icon: ClockIcon, iconBg: 'bg-orange-500/10', iconColor: 'text-orange-500' },
-  { id: 'rfp-new', name: 'Create RFP', type: 'Page', path: '/rfp/new', icon: PlusIcon, iconBg: 'bg-green-500/10', iconColor: 'text-green-500' },
-  { id: 'survey-admin', name: 'Survey Admin', type: 'Page', path: '/survey/admin', icon: ClipboardDocumentIcon, iconBg: 'bg-teal-500/10', iconColor: 'text-teal-500' },
+  ...searchablePages(permission => permissions.has(sessionStore.currentUser, permission)),
   { id: 'beverage', name: 'Beverage Package', type: 'Document', path: '/beverage_package.pdf', icon: DocumentArrowDownIcon, iconBg: 'bg-orange-500/10', iconColor: 'text-orange-500' },
   { id: 'canape', name: 'Canapé Menu', type: 'Document', path: '/canape.pdf', icon: DocumentArrowDownIcon, iconBg: 'bg-pink-500/10', iconColor: 'text-pink-500' },
   { id: 'gallery', name: 'Image Gallery', type: 'Link', path: 'https://drive.google.com/drive/folders/1hcDotCQGLoDw1MwR_I20f2Y7ZqWRtlYY', icon: PhotoIcon, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-500' },

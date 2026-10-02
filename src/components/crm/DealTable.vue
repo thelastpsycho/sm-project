@@ -4,7 +4,7 @@
          subject (company), a preview line (next action), and right-aligned value +
          due date. Deals needing action render "unread" (accent rail + bolder text). -->
     <button
-      v-for="deal in deals"
+      v-for="deal in pagination.items"
       :key="deal.id"
       type="button"
       class="group w-full text-left flex items-start gap-3 px-1 py-3 border-b border-sm-hair dark:border-white/5 hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
@@ -64,6 +64,8 @@
       </div>
     </button>
 
+    <SmPagination :model-value="pagination.page" :total="deals.length" @update:model-value="page = $event" />
+
     <div v-if="deals.length === 0" class="px-4 py-8 text-center text-sm text-sm-faint">
       No deals match these filters.
     </div>
@@ -71,11 +73,18 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import SmPagination from '@/components/ui/SmPagination.vue'
+import { paginate } from '@/lib/pagination'
 import type { Deal, DealStage } from '@/types/crm'
 import { formatMoney, formatDate, dealOutcome } from '@/lib/crmUtils'
 import { baliToday } from '@/lib/time'
 
-defineProps<{ deals: Deal[] }>()
+const props = defineProps<{ deals: Deal[]; resetKey?: string }>()
+const page = ref(1)
+const pagination = computed(() => paginate(props.deals, page.value))
+watch(() => props.resetKey, () => { page.value = 1 })
+watch(() => pagination.value.page, value => { page.value = value })
 const emit = defineEmits<{ open: [deal: Deal] }>()
 
 // Stage dots mirror the board/queue so the whole pipeline reads consistently.
