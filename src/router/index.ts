@@ -88,6 +88,12 @@ const router = createRouter({
       meta: { requiresPermission: 'pipeline:report' }
     },
     {
+      path: '/analytics/companies',
+      name: 'company-analytics',
+      component: () => import('@/pages/CompanyAnalytics.vue'),
+      meta: { requiresPermission: 'analytics:view' }
+    },
+    {
       path: '/users',
       name: 'users',
       component: () => import('@/pages/Users.vue'),

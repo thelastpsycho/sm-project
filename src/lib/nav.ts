@@ -14,7 +14,8 @@ import {
   PlusIcon,
   SparklesIcon,
   ExclamationCircleIcon,
-  CheckBadgeIcon
+  CheckBadgeIcon,
+  BuildingOffice2Icon
 } from '@heroicons/vue/24/outline'
 import type { Permission } from '@/lib/permissions'
 
@@ -53,6 +54,7 @@ export const NAV_ITEMS: NavItem[] = [
   { name: 'Tactical Offer', to: '/tactical-offer', icon: DocumentTextIcon },
   { name: 'Contract', to: '/contract', icon: DocumentTextIcon, permission: 'contract:access' },
   { name: 'Survey Admin', to: '/survey/admin', icon: ClipboardDocumentIcon, permission: 'survey:view' },
+  { name: 'Company Analytics', to: '/analytics/companies', icon: BuildingOffice2Icon, permission: 'analytics:view' },
   { name: 'Team & Access', to: '/users', icon: UsersIcon, permission: 'users:access' }
 ]
 

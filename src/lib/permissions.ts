@@ -86,6 +86,11 @@ export const PERMISSION_CATALOG: PermissionGroup[] = [
     ]
   },
   {
+    resource: 'analytics',
+    label: 'Company Analytics',
+    actions: [{ key: 'view', label: 'View' }]
+  },
+  {
     resource: 'users',
     label: 'Team & Access',
     adminOnly: true,
@@ -161,7 +166,7 @@ const SALES_BASE: Permission[] = [
 
 export const DEFAULT_ROLE_PERMISSIONS: RoleMatrix = {
   admin: [...ALL_PERMISSIONS],
-  manager: [...SALES_BASE, 'pipeline:edit', 'reports:team'],
+  manager: [...SALES_BASE, 'pipeline:edit', 'reports:team', 'analytics:view'],
   sales: [...SALES_BASE],
   viewer: [...VIEW_ALL]
 }
