@@ -278,7 +278,13 @@ function saveUrl(): void {
     tab: tab.value,
     basis: basis.value
   }
-  router.replace({ query: q })
+  // A plain history.replaceState, not router.replace(): App.vue keys its <router-view>
+  // on route.fullPath (query included), so a reactive navigation here would destroy and
+  // recreate this whole page on every Apply/tab-switch, wiping `loaded` right after it's
+  // set. This still updates the address bar (and restores correctly on next page load,
+  // which re-parses window.location fresh) without going through Vue Router's reactivity.
+  const resolved = router.resolve({ path: route.path, query: q })
+  window.history.replaceState(window.history.state, '', resolved.href)
   saveStoredFilters(q)
 }
 function selectTab(id: TabId): void {
