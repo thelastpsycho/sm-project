@@ -26,8 +26,14 @@ export function signed(v: number | null | undefined): string {
   return v == null ? EMPTY : `${v > 0 ? '+' : ''}${num(v)}`
 }
 
+/** Formats an already-0–100-scaled percentage (e.g. pctDiff's output). */
 export function percent(v: number | null | undefined): string {
   return v == null ? EMPTY : `${v.toFixed(1)}%`
+}
+
+/** Formats a 0–1 fraction (e.g. ratio()'s output) as a percentage — not interchangeable with percent(). */
+export function share(v: number | null | undefined): string {
+  return v == null ? EMPTY : `${(v * 100).toFixed(1)}%`
 }
 
 export function pctDiff(cur: number | null, prev: number | null): number | null {

@@ -24,7 +24,7 @@
         <tr v-for="r in sortedRows" :key="r.id" class="border-b border-sm-hair dark:border-white/5">
           <td class="py-2.5 px-4 whitespace-nowrap">{{ r.id === 'unassigned' ? 'Unknown / not yet checked in' : r.name }}</td>
           <td class="py-2.5 px-3 text-right">{{ num(r.rooms) }}</td>
-          <td class="py-2.5 px-3 text-right">{{ percent(ratio(r.rooms, totalRooms)) }}</td>
+          <td class="py-2.5 px-3 text-right">{{ share(ratio(r.rooms, totalRooms)) }}</td>
           <td class="py-2.5 px-3 text-right" :title="money(revenue(r))">{{ moneyShort(revenue(r)) }}</td>
           <td class="py-2.5 px-3 text-right" :title="money(ratio(revenue(r), r.idrRooms))">{{ moneyShort(ratio(revenue(r), r.idrRooms)) }}</td>
           <td class="py-2.5 px-3 text-right">{{ num(r.comparison.rooms) }}</td>
@@ -39,7 +39,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import RmsCard from './RmsCard.vue'
-import { difference, money, moneyShort, num, percent, ratio, signClass, signed } from '@/lib/rmsFormat'
+import { difference, money, moneyShort, num, ratio, share, signClass, signed } from '@/lib/rmsFormat'
 import type { RmsProductionRow } from '@/types/rms'
 
 const props = defineProps<{

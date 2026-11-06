@@ -85,7 +85,7 @@
                 <td class="py-2 px-4 font-bold text-sm-ink dark:text-white">{{ r.name }}</td>
                 <td class="py-2 px-3 text-right">{{ available(r.bookings) }}</td>
                 <td class="py-2 px-3 text-right">{{ available(r.cancelled) }}</td>
-                <td class="py-2 px-3 text-right">{{ quality === 'unavailable' ? EMPTY : percent(ratio(r.cancelled, r.bookings)) }}</td>
+                <td class="py-2 px-3 text-right">{{ quality === 'unavailable' ? EMPTY : share(ratio(r.cancelled, r.bookings)) }}</td>
                 <td class="py-2 px-3 text-right">{{ available(r.noShows) }}</td>
               </tr>
             </tbody>
@@ -108,7 +108,7 @@ import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import RmsCard from './RmsCard.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import { downloadCsv } from '@/lib/csvExport'
-import { EMPTY, num, percent, ratio } from '@/lib/rmsFormat'
+import { EMPTY, num, ratio, share } from '@/lib/rmsFormat'
 import type { RmsBehaviour, RmsDateBasis, RmsQuality } from '@/types/rms'
 
 const props = defineProps<{

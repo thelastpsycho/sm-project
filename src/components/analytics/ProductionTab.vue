@@ -74,7 +74,7 @@
               <span v-if="r.comparisonQuality === 'estimated'" class="ml-1 text-2xs font-bold text-sm-warn" title="Comparison is estimated">est.</span>
             </td>
             <td class="py-2.5 px-3 text-right">{{ num(r.rooms) }}</td>
-            <td class="py-2.5 px-3 text-right">{{ percent(ratio(r.rooms, totalRooms)) }}</td>
+            <td class="py-2.5 px-3 text-right">{{ share(ratio(r.rooms, totalRooms)) }}</td>
             <td class="py-2.5 px-3 text-right" :title="money(revenue(r))">{{ moneyShort(revenue(r)) }}</td>
             <td class="py-2.5 px-3 text-right" :title="money(ratio(revenue(r), r.idrRooms))">{{ moneyShort(ratio(revenue(r), r.idrRooms)) }}</td>
             <td class="py-2.5 px-3 text-right" :title="r.pickup[pickupKey]?.quality">{{ signed(r.pickup[pickupKey]?.rooms ?? null) }}</td>
@@ -88,7 +88,7 @@
               <td class="py-2.5 px-3 text-right" :class="signClass(difference(r.rooms, r.comparison.rooms))">{{ signed(difference(r.rooms, r.comparison.rooms)) }}</td>
             </template>
             <template v-if="moreColumns">
-              <td class="py-2.5 px-3 text-right">{{ percent(ratio(r.idrRooms, r.rooms)) }}</td>
+              <td class="py-2.5 px-3 text-right">{{ share(ratio(r.idrRooms, r.rooms)) }}</td>
               <td v-for="n in otherPickups" :key="n" class="py-2.5 px-3 text-right" :title="r.pickup[n]?.quality">{{ signed(r.pickup[n]?.rooms ?? null) }}</td>
               <td class="py-2.5 px-3 text-right">{{ num(r.newRooms) }}</td>
               <td class="py-2.5 px-3 text-right">{{ num(r.cancelledRooms) }}</td>
@@ -143,7 +143,7 @@ import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import RmsCard from './RmsCard.vue'
 import { addDays } from '@/lib/rmsPace'
 import { downloadCsv } from '@/lib/csvExport'
-import { difference, money, moneyShort, num, percent, ratio, signClass, signed, vsLabel } from '@/lib/rmsFormat'
+import { difference, money, moneyShort, num, ratio, share, signClass, signed, vsLabel } from '@/lib/rmsFormat'
 import type { RmsMarketTrendPoint, RmsProductionRow, RmsQuality, RmsReportsResponse } from '@/types/rms'
 
 type Dimension = 'market' | 'ratePlan' | 'roomType' | 'company' | 'group'
