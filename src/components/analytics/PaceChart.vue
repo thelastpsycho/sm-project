@@ -12,7 +12,7 @@
     <div class="flex items-start justify-between gap-3">
       <div>
         <h2 class="sm-eyebrow">Pace vs last year</h2>
-        <p class="mt-1 text-xsm text-sm-faint">Room nights and ADR · same time last year at equivalent lead time</p>
+        <p class="mt-1 text-xsm text-sm-faint">Room nights and ADR by stay date · same time last year at equivalent lead time</p>
       </div>
       <div class="flex rounded-full border border-sm-line dark:border-white/10 p-0.5 text-xsm shrink-0">
         <button

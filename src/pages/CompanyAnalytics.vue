@@ -30,7 +30,7 @@
           </template>
           <div>
             <SmSelect v-model="localDateBasis" :options="dateBasisOptions" label="Date basis" size="sm" />
-            <p class="mt-1 text-2xs text-sm-faint">Breakdown & trend only</p>
+            <p class="mt-1 text-2xs text-sm-faint">Company breakdown only — RMS's pace is always by stay date</p>
           </div>
           <SmButton size="sm" :disabled="loading" @click="applyFilters">Apply</SmButton>
         </div>
