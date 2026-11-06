@@ -115,6 +115,15 @@
           :export-range="loaded ? { start: loaded.start, end: loaded.end } : null"
           @update:date-basis="v => (dateBasis = v)"
         />
+        <CancellationsTab
+          v-if="tab === 'cancellations' && loaded"
+          :loading="reportsLoading"
+          :behaviour="reports?.behaviour ?? null"
+          :quality="reports?.quality ?? 'unavailable'"
+          :pace-rows="paceRows"
+          :pace-loading="paceLoading"
+          :export-range="loaded ? { start: loaded.start, end: loaded.end } : null"
+        />
         <ProductionTab
           v-if="tab === 'business' && loaded"
           :loading="reportsLoading"
@@ -148,6 +157,7 @@ import PaceTab from '@/components/analytics/PaceTab.vue'
 import LengthOfStayTab from '@/components/analytics/LengthOfStayTab.vue'
 import NationalityTab from '@/components/analytics/NationalityTab.vue'
 import BehaviourTab from '@/components/analytics/BehaviourTab.vue'
+import CancellationsTab from '@/components/analytics/CancellationsTab.vue'
 import ProductionTab from '@/components/analytics/ProductionTab.vue'
 import { useRmsAnalyticsStore } from '@/stores/rmsAnalytics'
 import { fetchPace, fetchReports } from '@/lib/rmsApi'
@@ -179,6 +189,7 @@ const tabs = [
   { id: 'lengthOfStay', label: 'Length of stay' },
   { id: 'nationality', label: 'Nationality' },
   { id: 'behaviour', label: 'Booking behaviour' },
+  { id: 'cancellations', label: 'Cancellations' },
   { id: 'pace', label: 'Pace & pickups' },
   { id: 'business', label: 'Production' }
 ] as const

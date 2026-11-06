@@ -55,71 +55,34 @@
       </table>
     </RmsCard>
 
-    <div class="grid gap-4 lg:grid-cols-2">
-      <RmsCard title="Booking and arrival weekday">
-        <table class="w-full text-xsm">
-          <thead>
-            <tr class="text-right border-b border-sm-hair dark:border-white/5">
-              <th class="py-2 px-4 text-left font-extrabold text-sm-ink dark:text-white">Weekday</th>
-              <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Booked</th>
-              <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Arrivals</th>
-            </tr>
-          </thead>
-          <tbody v-if="loading">
-            <tr v-for="n in 7" :key="n" class="border-b border-sm-hair dark:border-white/5">
-              <td class="py-2 px-4"><SmSkeleton class="h-3 w-16" /></td>
-              <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
-              <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
-            </tr>
-          </tbody>
-          <tbody v-else>
-            <tr v-for="r in behaviour?.weekdays ?? []" :key="r.label" class="border-b border-sm-hair dark:border-white/5">
-              <td class="py-2 px-4">{{ r.label }}</td>
-              <td class="py-2 px-3 text-right">{{ available(r.booked) }}</td>
-              <td class="py-2 px-3 text-right">{{ available(r.arrivals) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </RmsCard>
-      <RmsCard
-        title="Cancellations and no-shows by segment"
-        description="Current status of every reservation in the cohort, not a count of cancellation events. Future no-shows aren't final."
-      >
-        <div class="overflow-x-auto">
-          <table class="w-full text-xsm">
-            <thead>
-              <tr class="text-right border-b border-sm-hair dark:border-white/5">
-                <th class="py-2 px-4 text-left font-extrabold text-sm-ink dark:text-white">Segment</th>
-                <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Bookings</th>
-                <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Cancelled</th>
-                <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Cancel %</th>
-                <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">No-shows</th>
-              </tr>
-            </thead>
-            <tbody v-if="loading">
-              <tr v-for="n in 5" :key="n" class="border-b border-sm-hair dark:border-white/5">
-                <td class="py-2 px-4"><SmSkeleton class="h-3 w-24" /></td>
-                <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
-                <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
-                <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
-                <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
-              </tr>
-            </tbody>
-            <tbody v-else>
-              <tr v-for="r in behaviour?.losses ?? []" :key="r.id" class="border-b border-sm-hair dark:border-white/5">
-                <td class="py-2 px-4 font-bold text-sm-ink dark:text-white">{{ r.name }}</td>
-                <td class="py-2 px-3 text-right">{{ available(r.bookings) }}</td>
-                <td class="py-2 px-3 text-right">{{ available(r.cancelled) }}</td>
-                <td class="py-2 px-3 text-right">{{ quality === 'unavailable' ? EMPTY : share(ratio(r.cancelled, r.bookings)) }}</td>
-                <td class="py-2 px-3 text-right">{{ available(r.noShows) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </RmsCard>
-    </div>
+    <RmsCard title="Booking and arrival weekday">
+      <table class="w-full text-xsm">
+        <thead>
+          <tr class="text-right border-b border-sm-hair dark:border-white/5">
+            <th class="py-2 px-4 text-left font-extrabold text-sm-ink dark:text-white">Weekday</th>
+            <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Booked</th>
+            <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Arrivals</th>
+          </tr>
+        </thead>
+        <tbody v-if="loading">
+          <tr v-for="n in 7" :key="n" class="border-b border-sm-hair dark:border-white/5">
+            <td class="py-2 px-4"><SmSkeleton class="h-3 w-16" /></td>
+            <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
+            <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
+          </tr>
+        </tbody>
+        <tbody v-else>
+          <tr v-for="r in behaviour?.weekdays ?? []" :key="r.label" class="border-b border-sm-hair dark:border-white/5">
+            <td class="py-2 px-4">{{ r.label }}</td>
+            <td class="py-2 px-3 text-right">{{ available(r.booked) }}</td>
+            <td class="py-2 px-3 text-right">{{ available(r.arrivals) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </RmsCard>
     <p class="text-2xs text-sm-faint">
       History quality: {{ quality }}. Each reservation counts once. Lead time uses active bookings (no cancellations or no-shows).
+      Cancellations and no-shows have their own tab.
     </p>
   </div>
 </template>
@@ -134,7 +97,7 @@ import RmsCard from './RmsCard.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
 import SmSkeleton from '@/components/ui/SmSkeleton.vue'
 import { downloadCsv } from '@/lib/csvExport'
-import { EMPTY, num, ratio, share } from '@/lib/rmsFormat'
+import { num } from '@/lib/rmsFormat'
 import type { RmsBehaviour, RmsDateBasis, RmsQuality } from '@/types/rms'
 
 const props = defineProps<{
