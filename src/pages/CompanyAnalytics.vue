@@ -18,21 +18,29 @@
             <CalendarDaysIcon class="w-3.5 h-3.5 text-sm-faint" />
             {{ shortDayYear(filters.start) }} – {{ shortDayYear(filters.end) }}
           </button>
-          <div v-if="dateMenuOpen" class="absolute left-0 top-full z-30 mt-1 w-72 space-y-3 rounded-lg border border-sm-line dark:border-white/10 bg-white dark:bg-sm-card-dark shadow-lg p-3">
+          <div v-if="dateMenuOpen" class="absolute left-0 top-full z-30 mt-1 w-80 space-y-3 rounded-lg border border-sm-line dark:border-white/10 bg-white dark:bg-sm-card-dark shadow-lg p-3">
             <div class="grid grid-cols-3 gap-1.5">
+              <button type="button" class="sm-flat-btn" @click="presetMonthToDate">Month to date</button>
               <button type="button" class="sm-flat-btn" @click="thisMonth">This month</button>
+              <button type="button" class="sm-flat-btn" @click="presetLastMonth">Last month</button>
+              <button type="button" class="sm-flat-btn" @click="presetYearToDate">Year to date</button>
+              <button type="button" class="sm-flat-btn" @click="presetThisYear">This year</button>
+              <button type="button" class="sm-flat-btn" @click="presetLastYear">Last year</button>
               <button type="button" class="sm-flat-btn" @click="applyDatePreset(3)">3 months</button>
               <button type="button" class="sm-flat-btn" @click="applyDatePreset(5)">5 months</button>
             </div>
-            <div class="border-t border-sm-hair dark:border-white/5 pt-3 space-y-2">
-              <span class="block sm-eyebrow">Custom range</span>
-              <div class="grid grid-cols-2 gap-2">
-                <SmInput v-model="filters.start" type="date" label="From" size="sm" />
-                <SmInput v-model="filters.end" type="date" label="To" size="sm" />
-              </div>
-              <div class="flex justify-end">
-                <SmButton size="sm" :disabled="!filters.start || !filters.end" @click="dateMenuOpen = false">Done</SmButton>
-              </div>
+            <div class="border-t border-sm-hair dark:border-white/5 pt-3">
+              <span class="block sm-eyebrow mb-2">Custom range</span>
+              <DateRangePicker
+                :key="`${filters.start}_${filters.end}`"
+                class="!shadow-none !border-0 !rounded-none mx-auto"
+                :initial-start="filters.start"
+                :initial-end="filters.end"
+                start-label="From"
+                end-label="To"
+                allow-past
+                @select="onCustomRangeSelect"
+              />
             </div>
           </div>
         </div>
@@ -135,6 +143,7 @@ import SmSelect from '@/components/ui/SmSelect.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmButton from '@/components/ui/SmButton.vue'
 import SmMultiSelect from '@/components/ui/SmMultiSelect.vue'
+import DateRangePicker from '@/components/DateRangePicker.vue'
 import PaceTab from '@/components/analytics/PaceTab.vue'
 import LengthOfStayTab from '@/components/analytics/LengthOfStayTab.vue'
 import NationalityTab from '@/components/analytics/NationalityTab.vue'
@@ -401,6 +410,41 @@ function thisMonth(): void {
   filters.end = addDays(new Date(Date.UTC(Number(today.slice(0, 4)), Number(today.slice(5, 7)), 1)).toISOString().slice(0, 10), -1)
   dateMenuOpen.value = false
   apply()
+}
+function presetMonthToDate(): void {
+  const today = baliToday()
+  filters.start = `${today.slice(0, 7)}-01`
+  filters.end = today
+  dateMenuOpen.value = false
+}
+function presetLastMonth(): void {
+  const d = new Date(`${baliToday()}T00:00:00Z`)
+  filters.start = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - 1, 1)).toISOString().slice(0, 10)
+  filters.end = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 0)).toISOString().slice(0, 10)
+  dateMenuOpen.value = false
+}
+function presetYearToDate(): void {
+  const today = baliToday()
+  filters.start = `${today.slice(0, 4)}-01-01`
+  filters.end = today
+  dateMenuOpen.value = false
+}
+function presetThisYear(): void {
+  const year = baliToday().slice(0, 4)
+  filters.start = `${year}-01-01`
+  filters.end = `${year}-12-31`
+  dateMenuOpen.value = false
+}
+function presetLastYear(): void {
+  const year = Number(baliToday().slice(0, 4)) - 1
+  filters.start = `${year}-01-01`
+  filters.end = `${year}-12-31`
+  dateMenuOpen.value = false
+}
+function onCustomRangeSelect(range: { start: string; end?: string }): void {
+  filters.start = range.start
+  if (range.end) filters.end = range.end
+  dateMenuOpen.value = false
 }
 
 // Only the company picker needs data up front — pace/reports wait for the user to
