@@ -14,7 +14,8 @@ const PARAMS = [
   'channels',
   'group',
   'pickupDays',
-  'comparison'
+  'comparison',
+  'comparisonStart'
 ]
 
 export default function handler(req: VercelRequest, res: VercelResponse) {

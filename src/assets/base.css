@@ -74,6 +74,16 @@
     @apply border-t border-sm-hair dark:border-white/5;
   }
 
+  /* Underlined dropdown-trigger button, matching SmInput/SmSelect's hairline field style. */
+  .sm-filter-trigger {
+    @apply flex items-center gap-1.5 whitespace-nowrap border-0 border-b border-sm-line dark:border-white/15 bg-transparent py-2.5 text-sm text-sm-ink dark:text-white focus:outline-none focus:border-sm-ink dark:focus:border-white;
+  }
+
+  /* Small flat preset/utility button (date presets, "Behind LY only", CSV export). */
+  .sm-flat-btn {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-sm-line dark:border-white/10 px-2.5 py-1 text-xs font-bold text-sm-ink dark:text-white hover:bg-sm-surface dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
   /* Bottom scrim behind floating pill FABs on scrolling list screens. */
   .sm-fade-bottom {
     background: linear-gradient(rgba(255, 255, 255, 0), #ffffff 55%);

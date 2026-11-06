@@ -15,6 +15,7 @@ const PARAMS = [
   'group',
   'pickupDays',
   'comparison',
+  'comparisonStart',
   'dateBasis'
 ]
 

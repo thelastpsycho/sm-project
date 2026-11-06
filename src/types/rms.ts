@@ -40,21 +40,33 @@ export interface RmsRoomTypesResponse {
 
 export interface RmsPaceRow {
   date: string
-  rooms: number | null
-  idrRooms: number | null
-  revenue: number | null
-  netRevenue: number | null
+  /** The comparison date this row is matched against (same weekday/calendar date/custom offset last year, depending on `comparison`). */
+  lyDate: string
+  /** Always a number (never null) — gate on `currentQuality` before trusting/rendering it. */
+  rooms: number
+  idrRooms: number
+  revenue: number
+  netRevenue: number
   pickupRooms: number | null
   pickupRevenue: number | null
+  pickupNetRevenue: number | null
+  newRooms: number | null
+  cancelledRooms: number | null
+  amendedRooms: number | null
   stlyRooms: number | null
+  stlyIdrRooms: number | null
   stlyRevenue: number | null
+  stlyNetRevenue: number | null
   lyFinalRooms: number | null
   lyFinalRevenue: number | null
+  /** Segment budget for this day — null once filtered by room type/company/channel (no such dimension on budgets). */
+  budgetRooms: number | null
+  budgetRevenue: number | null
   /** Quality of rooms/idrRooms/revenue/netRevenue. */
   currentQuality: RmsQuality
   /** Quality of the stly/lyFinal comparison figures. */
   comparisonQuality: RmsQuality
-  /** Quality of pickupRooms/pickupRevenue. */
+  /** Quality of pickupRooms/pickupRevenue/pickupNetRevenue. */
   pickupQuality: RmsQuality
 }
 
@@ -73,6 +85,9 @@ export interface RmsProductionRow {
   idrRooms: number
   revenue: number
   netRevenue: number
+  newRooms: number
+  cancelledRooms: number
+  amendedRooms: number
   /** Segment budget — null once filtered by company/room type/channel (no such dimension on budgets). */
   budget: { rooms: number; revenue: number } | null
   comparison: { rooms: number; idrRooms: number; revenue: number; netRevenue: number }
@@ -136,6 +151,8 @@ export interface RmsApiError {
 export type RmsComparisonMode = 'weekday' | 'calendar' | 'custom'
 export type RmsGroupMode = 'fit' | 'group'
 export type RmsDateBasis = 'stay' | 'booking'
+/** Client-side only — which comparison to *display* (LY from `comparison`, or the budget fields already in every response). Never sent to the API. */
+export type RmsCompareWith = 'yoy' | 'budget'
 
 export interface RmsFilterParams {
   start: string
@@ -148,6 +165,8 @@ export interface RmsFilterParams {
   group?: RmsGroupMode
   pickupDays?: number
   comparison?: RmsComparisonMode
+  /** Required (400 without it) when comparison === 'custom'. */
+  comparisonStart?: string
 }
 
 export interface RmsReportsParams extends RmsFilterParams {
