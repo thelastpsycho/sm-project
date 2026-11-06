@@ -6,23 +6,32 @@
     <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <div v-for="t in tiles" :key="t.label">
         <dt class="sm-eyebrow">{{ t.label }}</dt>
-        <dd class="mt-1.5 text-xl font-extrabold tracking-[-0.02em] text-sm-ink dark:text-white">{{ t.value }}</dd>
+        <dd class="mt-1.5">
+          <SmSkeleton v-if="loading" class="h-6 w-16" />
+          <span v-else class="text-xl font-extrabold tracking-[-0.02em] text-sm-ink dark:text-white">{{ t.value }}</span>
+        </dd>
       </div>
     </dl>
 
     <RmsCard title="Length of stay" description="Full reservation length in nights, active reservations.">
       <div class="h-56 p-4">
-        <p v-if="loading" class="text-center text-sm-faint py-16">Loading…</p>
+        <SmSkeleton v-if="loading" class="h-full w-full" />
         <Chart v-else type="bar" :data="chartData" :options="chartOptions" />
       </div>
-      <table v-if="!loading" class="w-full text-xsm border-t border-sm-line dark:border-white/10">
+      <table class="w-full text-xsm border-t border-sm-line dark:border-white/10">
         <thead>
           <tr class="text-right border-b border-sm-hair dark:border-white/5">
             <th class="py-2 px-4 text-left font-extrabold text-sm-ink dark:text-white">Bucket</th>
             <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Reservations</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody v-if="loading">
+          <tr v-for="n in 5" :key="n" class="border-b border-sm-hair dark:border-white/5">
+            <td class="py-2 px-4"><SmSkeleton class="h-3 w-20" /></td>
+            <td class="py-2 px-3"><SmSkeleton class="h-3 w-12 ml-auto" /></td>
+          </tr>
+        </tbody>
+        <tbody v-else>
           <tr v-for="b in buckets" :key="b.label" class="border-b border-sm-hair dark:border-white/5">
             <td class="py-2 px-4">{{ b.label }}</td>
             <td class="py-2 px-3 text-right">{{ available(b.bookings) }}</td>
@@ -40,6 +49,7 @@ import { computed } from 'vue'
 import { Chart } from 'vue-chartjs'
 import type { ChartOptions, ChartTypeRegistry } from 'chart.js'
 import RmsCard from './RmsCard.vue'
+import SmSkeleton from '@/components/ui/SmSkeleton.vue'
 import { num } from '@/lib/rmsFormat'
 import type { RmsBehaviour, RmsQuality } from '@/types/rms'
 

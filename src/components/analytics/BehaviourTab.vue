@@ -21,23 +21,32 @@
     <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <div v-for="t in tiles" :key="t.label">
         <dt class="sm-eyebrow">{{ t.label }}</dt>
-        <dd class="mt-1.5 text-xl font-extrabold tracking-[-0.02em] text-sm-ink dark:text-white">{{ t.value }}</dd>
+        <dd class="mt-1.5">
+          <SmSkeleton v-if="loading" class="h-6 w-16" />
+          <span v-else class="text-xl font-extrabold tracking-[-0.02em] text-sm-ink dark:text-white">{{ t.value }}</span>
+        </dd>
       </div>
     </dl>
 
     <RmsCard title="Lead time" description="Days between booking and arrival, active reservations.">
       <div class="h-56 p-4">
-        <p v-if="loading" class="text-center text-sm-faint py-16">Loading…</p>
+        <SmSkeleton v-if="loading" class="h-full w-full" />
         <Chart v-else type="bar" :data="leadTimeChart" :options="chartOptions" />
       </div>
-      <table v-if="!loading" class="w-full text-xsm border-t border-sm-line dark:border-white/10">
+      <table class="w-full text-xsm border-t border-sm-line dark:border-white/10">
         <thead>
           <tr class="text-right border-b border-sm-hair dark:border-white/5">
             <th class="py-2 px-4 text-left font-extrabold text-sm-ink dark:text-white">Bucket</th>
             <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Reservations</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody v-if="loading">
+          <tr v-for="n in 5" :key="n" class="border-b border-sm-hair dark:border-white/5">
+            <td class="py-2 px-4"><SmSkeleton class="h-3 w-20" /></td>
+            <td class="py-2 px-3"><SmSkeleton class="h-3 w-12 ml-auto" /></td>
+          </tr>
+        </tbody>
+        <tbody v-else>
           <tr v-for="b in behaviour?.leadTime ?? []" :key="b.label" class="border-b border-sm-hair dark:border-white/5">
             <td class="py-2 px-4">{{ b.label }}</td>
             <td class="py-2 px-3 text-right">{{ available(b.bookings) }}</td>
@@ -56,7 +65,14 @@
               <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Arrivals</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody v-if="loading">
+            <tr v-for="n in 7" :key="n" class="border-b border-sm-hair dark:border-white/5">
+              <td class="py-2 px-4"><SmSkeleton class="h-3 w-16" /></td>
+              <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
+              <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
+            </tr>
+          </tbody>
+          <tbody v-else>
             <tr v-for="r in behaviour?.weekdays ?? []" :key="r.label" class="border-b border-sm-hair dark:border-white/5">
               <td class="py-2 px-4">{{ r.label }}</td>
               <td class="py-2 px-3 text-right">{{ available(r.booked) }}</td>
@@ -80,7 +96,16 @@
                 <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">No-shows</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody v-if="loading">
+              <tr v-for="n in 5" :key="n" class="border-b border-sm-hair dark:border-white/5">
+                <td class="py-2 px-4"><SmSkeleton class="h-3 w-24" /></td>
+                <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
+                <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
+                <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
+                <td class="py-2 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
+              </tr>
+            </tbody>
+            <tbody v-else>
               <tr v-for="r in behaviour?.losses ?? []" :key="r.id" class="border-b border-sm-hair dark:border-white/5">
                 <td class="py-2 px-4 font-bold text-sm-ink dark:text-white">{{ r.name }}</td>
                 <td class="py-2 px-3 text-right">{{ available(r.bookings) }}</td>
@@ -107,6 +132,7 @@ import type { ChartOptions, ChartTypeRegistry } from 'chart.js'
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import RmsCard from './RmsCard.vue'
 import SmSelect from '@/components/ui/SmSelect.vue'
+import SmSkeleton from '@/components/ui/SmSkeleton.vue'
 import { downloadCsv } from '@/lib/csvExport'
 import { EMPTY, num, ratio, share } from '@/lib/rmsFormat'
 import type { RmsBehaviour, RmsDateBasis, RmsQuality } from '@/types/rms'

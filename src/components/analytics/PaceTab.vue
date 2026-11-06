@@ -21,10 +21,20 @@
         </div>
       </template>
       <div class="h-72 p-4">
-        <p v-if="loading" class="text-center text-sm-faint py-20">Loading…</p>
+        <SmSkeleton v-if="loading" class="h-full w-full" />
         <Chart v-else type="bar" :data="chartData" :options="PACE_CHART_OPTIONS" />
       </div>
-      <div v-if="!loading && chartTable.buckets.length" class="overflow-x-auto border-t border-sm-line dark:border-white/10">
+      <div v-if="loading" class="overflow-x-auto border-t border-sm-line dark:border-white/10">
+        <table class="w-full text-xsm">
+          <tbody>
+            <tr v-for="n in 3" :key="n" class="border-b border-sm-hair dark:border-white/5">
+              <td class="py-2.5 px-4"><SmSkeleton class="h-3 w-20" /></td>
+              <td v-for="c in 6" :key="c" class="py-2.5 px-3"><SmSkeleton class="h-3 w-16 ml-auto" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-else-if="chartTable.buckets.length" class="overflow-x-auto border-t border-sm-line dark:border-white/10">
         <table class="w-full text-xsm">
           <thead>
             <tr class="text-right border-b border-sm-hair dark:border-white/5">
@@ -58,7 +68,28 @@
           Behind LY only
         </label>
       </template>
-      <p v-if="loading" class="text-center text-sm-faint py-10">Loading…</p>
+      <table v-if="loading" class="w-full text-xsm">
+        <thead>
+          <tr class="text-right border-b border-sm-hair dark:border-white/5">
+            <th class="py-2 px-4 text-left font-extrabold text-sm-ink dark:text-white">Stay date</th>
+            <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">OTB</th>
+            <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white" title="On the books minus the comparison date's position at the same lead time">vs LY</th>
+            <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Net pickup</th>
+            <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white">Revenue</th>
+            <th class="py-2 px-3 font-extrabold text-sm-ink dark:text-white" title="Final room nights on the last-year / matched date">LY final</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="n in 10" :key="n" class="border-b border-sm-hair dark:border-white/5">
+            <td class="py-2.5 px-4"><SmSkeleton class="h-3 w-24" /></td>
+            <td class="py-2.5 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
+            <td class="py-2.5 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
+            <td class="py-2.5 px-3"><SmSkeleton class="h-3 w-12 ml-auto" /></td>
+            <td class="py-2.5 px-3"><SmSkeleton class="h-3 w-14 ml-auto" /></td>
+            <td class="py-2.5 px-3"><SmSkeleton class="h-3 w-10 ml-auto" /></td>
+          </tr>
+        </tbody>
+      </table>
       <table v-else-if="pickupRows.length" class="w-full text-xsm">
         <thead>
           <tr class="text-right border-b border-sm-hair dark:border-white/5">
@@ -99,6 +130,7 @@ import '@/lib/chartSetup'
 import { computed, ref } from 'vue'
 import { Chart } from 'vue-chartjs'
 import RmsCard from './RmsCard.vue'
+import SmSkeleton from '@/components/ui/SmSkeleton.vue'
 import {
   currentRooms,
   paceBuckets,

@@ -7,8 +7,14 @@
     <dl class="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <div v-for="t in tiles" :key="t.label">
         <dt class="sm-eyebrow">{{ t.label }}</dt>
-        <dd class="mt-1.5 text-xl font-extrabold tracking-[-0.02em] text-sm-ink dark:text-white" :title="t.title">{{ t.value }}</dd>
-        <p v-for="s in t.subs" :key="s.text" class="mt-0.5 text-2xs tabular-nums" :class="s.tone || 'text-sm-faint'">{{ s.text }}</p>
+        <template v-if="loading">
+          <SmSkeleton class="mt-1.5 h-6 w-20" />
+          <SmSkeleton class="mt-1.5 h-3 w-28" />
+        </template>
+        <template v-else>
+          <dd class="mt-1.5 text-xl font-extrabold tracking-[-0.02em] text-sm-ink dark:text-white" :title="t.title">{{ t.value }}</dd>
+          <p v-for="s in t.subs" :key="s.text" class="mt-0.5 text-2xs tabular-nums" :class="s.tone || 'text-sm-faint'">{{ s.text }}</p>
+        </template>
       </div>
     </dl>
 
@@ -35,7 +41,14 @@
         </button>
       </template>
 
-      <p v-if="loading" class="text-center text-sm-faint py-10">Loading…</p>
+      <table v-if="loading" class="w-full text-xsm">
+        <tbody>
+          <tr v-for="n in 6" :key="n" class="border-b border-sm-hair dark:border-white/5">
+            <td class="py-2.5 px-4"><SmSkeleton class="h-3 w-28" /></td>
+            <td v-for="c in columnCount - 1" :key="c" class="py-2.5 px-3"><SmSkeleton class="h-3 w-12 ml-auto" /></td>
+          </tr>
+        </tbody>
+      </table>
       <table v-else-if="rows.length" class="w-full text-xsm">
         <thead>
           <tr class="text-right border-b border-sm-hair dark:border-white/5">
@@ -118,7 +131,8 @@
         </div>
       </template>
       <div class="h-72 p-4">
-        <Chart type="bar" :data="trendData" :options="chartOptions" />
+        <SmSkeleton v-if="loading" class="h-full w-full" />
+        <Chart v-else type="bar" :data="trendData" :options="chartOptions" />
       </div>
     </RmsCard>
 
@@ -141,6 +155,7 @@ import { Chart } from 'vue-chartjs'
 import type { ChartOptions, ChartTypeRegistry } from 'chart.js'
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import RmsCard from './RmsCard.vue'
+import SmSkeleton from '@/components/ui/SmSkeleton.vue'
 import { addDays } from '@/lib/rmsPace'
 import { downloadCsv } from '@/lib/csvExport'
 import { difference, money, moneyShort, num, ratio, share, signClass, signed, vsLabel } from '@/lib/rmsFormat'
@@ -182,6 +197,7 @@ const productionDescription = computed(
 
 const pickupKey = computed(() => (['1', '7', '30'].includes(String(props.pickupDays)) ? String(props.pickupDays) : '7'))
 const otherPickups = computed(() => ['1', '7', '30'].filter(n => n !== pickupKey.value))
+const columnCount = computed(() => 6 + (showBudget.value ? 3 : 2) + (moreColumns.value ? 5 + otherPickups.value.length : 0))
 
 const revenue = (r: RmsProductionRow) => (props.basis === 'net' ? r.netRevenue : r.revenue)
 const rowName = (r: RmsProductionRow) => (dimension.value === 'roomType' ? props.labels[r.id] || r.name : r.name)
