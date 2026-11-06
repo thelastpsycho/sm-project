@@ -39,7 +39,10 @@
 
       <p v-if="anyError" class="mt-4 text-sm text-sm-bad">{{ anyError }}</p>
 
-      <div v-if="!hasLoadedOnce && loading" class="text-center py-16 text-sm-faint">Loading…</div>
+      <div v-if="!hasLoadedOnce" class="text-center py-16 text-sm-faint">
+        <p v-if="loading">Loading…</p>
+        <p v-else>Choose your companies and date range, then click Apply to load analytics.</p>
+      </div>
 
       <template v-else>
         <!-- KPI row -->
@@ -76,26 +79,9 @@
           </div>
         </div>
 
-        <!-- Trend chart -->
-        <section class="mt-10 pt-8 border-t border-sm-line dark:border-white/10">
-          <div class="flex items-center justify-between gap-3">
-            <h2 class="sm-eyebrow">Trend</h2>
-            <div class="flex rounded-full border border-sm-line dark:border-white/10 p-0.5 text-xsm">
-              <button
-                v-for="m in (['revenue', 'rooms'] as const)"
-                :key="m"
-                class="px-3 py-1 rounded-full font-bold capitalize transition-colors"
-                :class="metric === m ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink' : 'text-sm-muted'"
-                @click="metric = m"
-              >
-                {{ m }}
-              </button>
-            </div>
-          </div>
-          <div class="mt-4 transition-opacity" :class="{ 'opacity-50': loading }">
-            <TrendChart v-if="chartPoints.length" :points="chartPoints" :format="metric === 'revenue' ? fmtMoney : fmtRooms" />
-            <p v-else class="text-center py-12 text-sm-faint">No trend data for this selection.</p>
-          </div>
+        <!-- Pace vs last year -->
+        <section class="mt-10 pt-8 border-t border-sm-line dark:border-white/10 transition-opacity" :class="{ 'opacity-50': loading }">
+          <PaceChart :rows="store.paceRows" />
         </section>
 
         <!-- Company breakdown -->
@@ -144,9 +130,9 @@ import SmInput from '@/components/ui/SmInput.vue'
 import SmButton from '@/components/ui/SmButton.vue'
 import SmMultiSelect from '@/components/ui/SmMultiSelect.vue'
 import QualityValue from '@/components/analytics/QualityValue.vue'
-import TrendChart, { type TrendChartPoint } from '@/components/analytics/TrendChart.vue'
+import PaceChart from '@/components/analytics/PaceChart.vue'
 import { PICKUP_DAYS, useRmsAnalyticsStore } from '@/stores/rmsAnalytics'
-import { aggregatePace, aggregateMarketTrend } from '@/lib/rmsAggregate'
+import { aggregatePace } from '@/lib/rmsAggregate'
 import { formatMoney } from '@/lib/money'
 import { formatShortDate } from '@/lib/dateFormat'
 import { RANGE_OPTIONS, presetRange, type RangePreset } from '@/lib/dateRange'
@@ -211,9 +197,10 @@ async function applyFilters(): Promise<void> {
   hasLoadedOnce.value = true
 }
 
-onMounted(async () => {
-  await store.loadLookup()
-  await applyFilters()
+// Only the company picker needs data up front — pace/reports wait for the user to
+// actually apply a filter, rather than firing a request on every page visit.
+onMounted(() => {
+  store.loadLookup()
 })
 
 // ---- KPI totals (from /pace) ----
@@ -225,18 +212,4 @@ const totals = computed(() => aggregatePace(store.paceRows))
 // its own comparisonQuality instead, which this page doesn't surface).
 const companyRows = computed(() => store.reports?.production?.company ?? [])
 const currentQuality = computed(() => store.reports?.quality ?? 'unavailable')
-
-// ---- Trend chart (from /reports' marketTrend, summed across markets) ----
-const metric = ref<'revenue' | 'rooms'>('revenue')
-const marketTrend = computed(() => aggregateMarketTrend(store.reports?.marketTrend ?? [], currentQuality.value))
-const chartPoints = computed<TrendChartPoint[]>(() =>
-  marketTrend.value.map(p => {
-    const m = metric.value === 'revenue' ? p.revenue : p.rooms
-    return {
-      date: p.date,
-      value: m.quality === 'unavailable' ? null : m.value,
-      quality: m.quality
-    }
-  })
-)
 </script>
