@@ -78,7 +78,8 @@ const currentStep = ref<'info' | 'questions'>('info')
 const name = ref('')
 const email = ref('')
 const role = ref<UserRole | ''>('')
-const infoErrors = ref<{ name?: string; email?: string; role?: string }>({})
+const consent = ref(false)
+const infoErrors = ref<{ name?: string; email?: string; role?: string; consent?: string }>({})
 
 // Survey responses
 const scores = ref<Record<string, number>>({})
@@ -132,7 +133,7 @@ async function loadEvent() {
 }
 
 function validateInfo(): boolean {
-  const newErrors: { name?: string; email?: string; role?: string } = {}
+  const newErrors: { name?: string; email?: string; role?: string; consent?: string } = {}
 
   if (!name.value.trim()) {
     newErrors.name = validationMsgs.value.nameRequired
@@ -144,6 +145,9 @@ function validateInfo(): boolean {
   }
   if (!role.value) {
     newErrors.role = validationMsgs.value.roleRequired
+  }
+  if (!consent.value) {
+    newErrors.consent = validationMsgs.value.consentRequired
   }
 
   infoErrors.value = newErrors
@@ -203,6 +207,7 @@ async function handleSubmit() {
       name: name.value.trim(),
       email: email.value.trim(),
       role: role.value as UserRole,
+      consentGiven: consent.value,
       scores: scores.value,
       textAnswers: textAnswers.value,
       totalScore,
@@ -229,6 +234,7 @@ async function handleSubmit() {
           name: name.value.trim(),
           email: email.value.trim(),
           role: role.value,
+          consentGiven: consent.value,
           scores: scores.value,
           textAnswers: textAnswers.value,
           totalScore,
@@ -334,6 +340,8 @@ async function handleSubmit() {
           v-model:name="name"
           v-model:email="email"
           v-model:role="role"
+          v-model:consent="consent"
+          :language="eventLanguage"
           :errors="infoErrors"
           :ui="ui"
           @next="handleNext"

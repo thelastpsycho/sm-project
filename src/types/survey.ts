@@ -16,6 +16,7 @@ export interface Response {
   name: string
   email: string
   role: UserRole
+  consentGiven: boolean
   scores: Record<string, number>
   textAnswers: Record<string, string>
   totalScore: number
@@ -69,6 +70,9 @@ export interface UIText {
   eventSurvey: string
   thankYouForChoosing: string
   selectRating: string
+  consentPrefix: string
+  consentLinkText: string
+  consentSuffix: string
 }
 
 export interface ValidationMessages {
@@ -76,9 +80,10 @@ export interface ValidationMessages {
   emailRequired: string
   emailInvalid: string
   roleRequired: string
+  consentRequired: string
 }
 
-export type AdminTab = 'dashboard' | 'events' | 'results' | 'stats' | 'settings'
+export type AdminTab = 'dashboard' | 'events' | 'results' | 'stats' | 'export' | 'settings'
 
 export interface Stats {
   totalResponses: number

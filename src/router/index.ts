@@ -121,6 +121,11 @@ const router = createRouter({
       name: 'survey-thank-you',
       component: () => import('@/pages/SurveyThankYou.vue')
     },
+    {
+      path: '/survey/terms',
+      name: 'survey-terms',
+      component: () => import('@/pages/SurveyTerms.vue')
+    },
     // Survey Admin — gated by the normal role/permission session (no separate PIN)
     {
       path: '/survey/admin',

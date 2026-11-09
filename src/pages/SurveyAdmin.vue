@@ -6,7 +6,7 @@ import SmSelect from '@/components/ui/SmSelect.vue'
 import { useSurveyStore } from '@/stores/survey'
 import { useSessionStore } from '@/stores/session'
 import { usePermissionsStore } from '@/stores/permissions'
-import { generateSurveyUrl, copyToClipboard, formatScore, getQuestionLabel, getRoleLabel } from '@/lib/surveyUtils'
+import { generateSurveyUrl, copyToClipboard, formatScore, getQuestionLabel, getRoleLabel, combineTextFeedback, rowsToCsv, downloadCsv } from '@/lib/surveyUtils'
 import { DEFAULT_REVIEW_THRESHOLD } from '@/lib/surveyConstants'
 import type { AdminTab, Event } from '@/types/survey'
 import {
@@ -15,7 +15,8 @@ import {
   ClipboardDocumentIcon,
   CheckIcon,
   ChevronDownIcon,
-  QrCodeIcon
+  QrCodeIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/vue/24/outline'
 import { useHead } from '@vueuse/head'
 
@@ -45,6 +46,7 @@ const tabs: { key: AdminTab; label: string }[] = [
   { key: 'events', label: 'Events' },
   { key: 'results', label: 'Results' },
   { key: 'stats', label: 'Statistics' },
+  { key: 'export', label: 'Export' },
   { key: 'settings', label: 'Settings' }
 ]
 
@@ -77,6 +79,18 @@ const filteredResponses = computed(() => {
   return selectedEventId.value === 'all'
     ? surveyStore.responsesWithEvents
     : surveyStore.responsesWithEvents.filter(r => r.eventId === selectedEventId.value)
+})
+
+const exportRows = computed(() => {
+  return filteredResponses.value.map(response => ({
+    id: response.id,
+    name: response.name || 'Anonymous',
+    company: response.event?.companyName || 'Unknown',
+    event: response.event?.eventName || 'Unknown',
+    email: response.email,
+    score: formatScore(response.averageScore || response.totalScore / 6),
+    feedback: combineTextFeedback(response.textAnswers) || '—'
+  }))
 })
 
 const stats = computed(() => {
@@ -206,6 +220,18 @@ function getScoreCount(score: number): number {
 function getScorePercentage(score: number): number {
   if (stats.value.totalResponses === 0) return 0
   return (getScoreCount(score) / stats.value.totalResponses) * 100
+}
+
+function handleExportCsv() {
+  const csv = rowsToCsv(
+    ['Name', 'Company', 'Event', 'Email', 'Score', 'Response'],
+    exportRows.value.map(row => [row.name, row.company, row.event, row.email, row.score, row.feedback])
+  )
+  const eventSuffix = selectedEventId.value === 'all'
+    ? 'all-events'
+    : (surveyStore.events.find(e => e.id === selectedEventId.value)?.eventName || 'event')
+  const safeSuffix = eventSuffix.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+  downloadCsv(`survey-responses-${safeSuffix}-${new Date().toISOString().slice(0, 10)}.csv`, csv)
 }
 </script>
 
@@ -498,6 +524,52 @@ function getScorePercentage(score: number): number {
           </div>
 
           <p v-if="!surveyStore.events.length" class="py-16 text-center text-sm-faint">No events yet.</p>
+        </div>
+
+        <!-- Export Tab -->
+        <div v-if="activeTab === 'export'" class="mt-8">
+          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+            <h2 class="sm-eyebrow">{{ exportRows.length }} response{{ exportRows.length === 1 ? '' : 's' }}</h2>
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div class="w-full sm:w-56">
+                <SmSelect v-model="selectedEventId" size="sm" :options="eventFilterOptions" />
+              </div>
+              <SmButton type="button" :disabled="!exportRows.length" @click="handleExportCsv">
+                <ArrowDownTrayIcon class="w-4 h-4 mr-1.5" /> Export CSV
+              </SmButton>
+            </div>
+          </div>
+
+          <p v-if="!exportRows.length" class="py-16 text-center text-sm-faint">No responses found.</p>
+
+          <div v-else class="overflow-x-auto -mx-6 lg:-mx-12 px-6 lg:px-12">
+            <table class="w-full min-w-[720px] text-left">
+              <thead>
+                <tr class="border-b border-sm-line dark:border-white/10 sm-eyebrow">
+                  <th class="py-3 pr-4 font-bold">Name</th>
+                  <th class="py-3 pr-4 font-bold">Company</th>
+                  <th class="py-3 pr-4 font-bold">Event</th>
+                  <th class="py-3 pr-4 font-bold">Email</th>
+                  <th class="py-3 pr-4 font-bold text-right">Score</th>
+                  <th class="py-3 font-bold">Response</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="row in exportRows"
+                  :key="row.id"
+                  class="border-b border-sm-hair dark:border-white/5 align-top"
+                >
+                  <td class="py-3 pr-4 text-sm font-bold text-sm-ink dark:text-white whitespace-nowrap">{{ row.name }}</td>
+                  <td class="py-3 pr-4 text-sm text-sm-ink-soft dark:text-gray-300 whitespace-nowrap">{{ row.company }}</td>
+                  <td class="py-3 pr-4 text-sm text-sm-ink-soft dark:text-gray-300 whitespace-nowrap">{{ row.event }}</td>
+                  <td class="py-3 pr-4 text-sm text-sm-ink-soft dark:text-gray-300 break-all">{{ row.email }}</td>
+                  <td class="py-3 pr-4 text-sm font-bold text-sm-primary text-right whitespace-nowrap">{{ row.score }}</td>
+                  <td class="py-3 text-sm text-sm-muted max-w-sm">{{ row.feedback }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- Settings Tab -->

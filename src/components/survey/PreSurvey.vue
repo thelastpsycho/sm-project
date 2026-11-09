@@ -9,10 +9,13 @@ interface Props {
   name: string
   email: string
   role: UserRole | ''
+  consent: boolean
+  language: 'en' | 'id'
   errors: {
     name?: string
     email?: string
     role?: string
+    consent?: string
     general?: string
   }
   ui: UIText
@@ -22,6 +25,7 @@ interface Emits {
   (e: 'update:name', value: string): void
   (e: 'update:email', value: string): void
   (e: 'update:role', value: UserRole): void
+  (e: 'update:consent', value: boolean): void
   (e: 'next'): void
 }
 
@@ -35,7 +39,7 @@ const ROLES: { value: UserRole; key: keyof UIText }[] = [
 ]
 
 const isFormValid = computed(() => {
-  return props.name.trim() && props.email.trim() && props.role
+  return props.name.trim() && props.email.trim() && props.role && props.consent
 })
 
 function selectRole(role: UserRole) {
@@ -96,6 +100,27 @@ function handleNext() {
           </button>
         </div>
         <p v-if="errors.role" class="text-red-500 text-xs mt-1.5">{{ errors.role }}</p>
+      </div>
+
+      <div>
+        <label class="flex items-start gap-2.5 cursor-pointer">
+          <input
+            type="checkbox"
+            :checked="consent"
+            class="mt-0.5 h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500 shrink-0"
+            @change="$emit('update:consent', ($event.target as HTMLInputElement).checked)"
+          />
+          <span class="text-xs sm:text-sm text-gray-600">
+            {{ ui.consentPrefix }}
+            <router-link
+              :to="{ name: 'survey-terms', query: { lang: language } }"
+              target="_blank"
+              class="text-teal-600 font-semibold underline hover:text-teal-700"
+              @click.stop
+            >{{ ui.consentLinkText }}</router-link>{{ ui.consentSuffix }}
+          </span>
+        </label>
+        <p v-if="errors.consent" class="text-red-500 text-xs mt-1.5">{{ errors.consent }}</p>
       </div>
 
       <div v-if="errors.general" class="p-3 bg-red-50 border border-red-200 rounded-lg">

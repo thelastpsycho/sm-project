@@ -61,7 +61,10 @@ export const uiText: Record<EventLanguage, UIText> = {
     answeredOf: 'answered',
     eventSurvey: 'Event Survey',
     thankYouForChoosing: 'Thank you for choosing The Anvaya Beach Resort Bali',
-    selectRating: 'Please select a rating'
+    selectRating: 'Please select a rating',
+    consentPrefix: 'I agree to the',
+    consentLinkText: 'Terms & Conditions',
+    consentSuffix: ', including the use of my email address for marketing communications from The Anvaya Beach Resort Bali.'
   },
   id: {
     welcomeTitle: 'Selamat Datang di Survei Kami',
@@ -83,7 +86,10 @@ export const uiText: Record<EventLanguage, UIText> = {
     answeredOf: 'dijawab',
     eventSurvey: 'Survei Acara',
     thankYouForChoosing: 'Terima kasih telah memilih The Anvaya Beach Resort Bali',
-    selectRating: 'Silakan pilih penilaian'
+    selectRating: 'Silakan pilih penilaian',
+    consentPrefix: 'Saya menyetujui',
+    consentLinkText: 'Syarat & Ketentuan',
+    consentSuffix: ', termasuk penggunaan alamat email saya untuk komunikasi pemasaran dari The Anvaya Beach Resort Bali.'
   }
 }
 
@@ -92,13 +98,15 @@ export const validationMessages: Record<EventLanguage, ValidationMessages> = {
     nameRequired: 'Please enter your name',
     emailRequired: 'Please enter your email',
     emailInvalid: 'Please enter a valid email address',
-    roleRequired: 'Please select your role'
+    roleRequired: 'Please select your role',
+    consentRequired: 'Please agree to the Terms & Conditions to continue'
   },
   id: {
     nameRequired: 'Mohon masukkan nama Anda',
     emailRequired: 'Mohon masukkan email Anda',
     emailInvalid: 'Mohon masukkan alamat email yang valid',
-    roleRequired: 'Mohon pilih peran Anda'
+    roleRequired: 'Mohon pilih peran Anda',
+    consentRequired: 'Mohon setujui Syarat & Ketentuan untuk melanjutkan'
   }
 }
 
