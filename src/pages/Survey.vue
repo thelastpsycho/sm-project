@@ -307,7 +307,7 @@ async function handleSubmit() {
     if (averageScore >= surveyStore.adminSettings.reviewThreshold) {
       window.location.href = surveyStore.adminSettings.googleReviewUrl
     } else {
-      router.push('/survey/thank-you')
+      router.push({ path: '/survey/thank-you', query: { lang: eventLanguage.value } })
     }
   } catch (error) {
     console.error('Error submitting survey:', error)
