@@ -59,7 +59,8 @@ export default {
         'sm-won': '#1E9E4A',
         'sm-warn': '#C77700',
         'sm-bad': '#D92F2F',
-        'sm-wed': '#7C3AED'
+        'sm-wed': '#7C3AED',
+        'sm-anvaya': '#3E5964', // Anvaya slate (logo, darkened for AA) — guest survey accent
       },
       animation: {
         shake: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',

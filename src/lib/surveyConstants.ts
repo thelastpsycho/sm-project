@@ -64,7 +64,12 @@ export const uiText: Record<EventLanguage, UIText> = {
     selectRating: 'Please select a rating',
     consentPrefix: 'I agree to the',
     consentLinkText: 'Terms & Conditions',
-    consentSuffix: ', including the use of my email address for marketing communications from The Anvaya Beach Resort Bali.'
+    consentSuffix: ', including the use of my email address for marketing communications from The Anvaya Beach Resort Bali.',
+    back: 'Back',
+    question: 'Question',
+    of: 'of',
+    tapToContinue: "Tap an answer — we'll move you to the next question.",
+    optionalAnswer: 'Optional — a sentence or two is perfect'
   },
   id: {
     welcomeTitle: 'Selamat Datang di Survei Kami',
@@ -89,7 +94,12 @@ export const uiText: Record<EventLanguage, UIText> = {
     selectRating: 'Silakan pilih penilaian',
     consentPrefix: 'Saya menyetujui',
     consentLinkText: 'Syarat & Ketentuan',
-    consentSuffix: ', termasuk penggunaan alamat email saya untuk komunikasi pemasaran dari The Anvaya Beach Resort Bali.'
+    consentSuffix: ', termasuk penggunaan alamat email saya untuk komunikasi pemasaran dari The Anvaya Beach Resort Bali.',
+    back: 'Kembali',
+    question: 'Pertanyaan',
+    of: 'dari',
+    tapToContinue: 'Ketuk jawaban — kami akan lanjut ke pertanyaan berikutnya.',
+    optionalAnswer: 'Opsional — satu atau dua kalimat sudah cukup'
   }
 }
 

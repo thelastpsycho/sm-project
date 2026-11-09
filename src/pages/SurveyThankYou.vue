@@ -1,12 +1,31 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import SmCard from '@/components/ui/SmCard.vue'
+import { computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
+
+const route = useRoute()
 
 // Force light mode
 onMounted(() => {
   document.documentElement.classList.remove('dark')
 })
+
+const lang = computed<'en' | 'id'>(() => (route.query.lang === 'id' ? 'id' : 'en'))
+
+const copy = {
+  en: {
+    title: 'Thank you!',
+    body: 'We sincerely appreciate your feedback. Your comments help us improve our MICE services and make every event at The Anvaya Beach Resort Bali exceptional.',
+    closing: 'We look forward to welcoming you back soon.'
+  },
+  id: {
+    title: 'Terima kasih!',
+    body: 'Kami sangat menghargai masukan Anda. Komentar Anda membantu kami meningkatkan layanan MICE dan menjadikan setiap acara di The Anvaya Beach Resort Bali istimewa.',
+    closing: 'Kami menantikan kedatangan Anda kembali.'
+  }
+}
+
+const t = computed(() => copy[lang.value])
 
 useHead({
   title: 'Thank You',
@@ -20,44 +39,36 @@ useHead({
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center py-6 sm:py-8 px-3 sm:px-4 bg-sm-surface">
-    <SmCard class="max-w-md w-full text-center p-6 bg-white dark:bg-sm-card-dark border border-sm-line dark:border-white/10 rounded-2xl shadow-sm">
-      <div class="flex justify-center mb-5">
+  <div class="min-h-[100dvh] bg-white text-[#1F2A2E]">
+    <div class="max-w-md mx-auto min-h-[100dvh] flex flex-col px-6 pt-5 pb-7">
+      <!-- Top bar -->
+      <div class="flex items-center justify-center h-11">
         <img
           src="/logo-theanvaya.svg"
           alt="The Anvaya Beach Resort Bali"
           width="1558"
           height="410"
-          class="h-12 w-auto aspect-[1558/410]"
+          class="h-6 w-auto aspect-[1558/410]"
         />
       </div>
 
-      <div class="flex justify-center mb-5">
-        <div class="h-14 w-14 rounded-full bg-teal-100 flex items-center justify-center">
-          <svg class="h-7 w-7 text-teal-500 fill-current" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      <!-- Completed progress -->
+      <div class="flex gap-1 mt-5" aria-hidden="true">
+        <div v-for="i in 8" :key="i" class="flex-1 h-1 rounded-full bg-sm-anvaya" />
+      </div>
+
+      <main class="flex-1 flex flex-col items-center justify-center text-center gap-4 py-10">
+        <div class="w-[72px] h-[72px] rounded-full bg-[#E6EEF0] text-sm-anvaya flex items-center justify-center">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12.5l4.5 4.5L19 7.5" />
           </svg>
         </div>
-      </div>
+        <h1 class="text-[28px] leading-tight font-extrabold tracking-tight">{{ t.title }}</h1>
+        <p class="text-base leading-relaxed text-[#4A5A60] max-w-[320px]">{{ t.body }}</p>
+        <p class="text-[15px] font-semibold text-sm-anvaya">{{ t.closing }}</p>
+      </main>
 
-      <h1 class="text-2xl font-bold text-sm-ink dark:text-white mb-4">
-        Thank You
-      </h1>
-
-      <p class="text-sm-muted mb-5 text-sm">
-        We sincerely appreciate your feedback. Your comments help us improve our MICE services
-        and ensure every event at The Anvaya Beach Resort Bali is exceptional.
-      </p>
-
-      <p class="text-sm-ink dark:text-gray-300 mb-6 italic text-sm">
-        "We look forward to welcoming you back soon."
-      </p>
-
-      <div class="border-t border-sm-line pt-5">
-        <p class="text-xs text-sm-muted">
-          The Anvaya Beach Resort Bali
-        </p>
-      </div>
-    </SmCard>
+      <p class="text-center text-xs text-[#5A6B71]">The Anvaya Beach Resort Bali</p>
+    </div>
   </div>
 </template>
