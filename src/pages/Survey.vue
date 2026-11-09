@@ -249,6 +249,28 @@ async function handleSubmit() {
       console.error('Webhook notification failed:', webhookError)
     }
 
+    // Sync consented guests to Insider One (audience upsert + journey trigger event).
+    // The endpoint itself no-ops when consentGiven is false.
+    try {
+      await fetch('/api/survey/insider-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.value.trim(),
+          name: name.value.trim(),
+          companyName: event.value?.companyName,
+          eventName: event.value?.eventName,
+          role: role.value,
+          averageScore,
+          submittedAt: new Date().toISOString(),
+          consentGiven: consent.value
+        })
+      })
+    } catch (insiderError) {
+      // Log but don't fail the submission
+      console.error('Insider sync failed:', insiderError)
+    }
+
     // Redirect based on threshold
     if (averageScore >= surveyStore.adminSettings.reviewThreshold) {
       window.location.href = surveyStore.adminSettings.googleReviewUrl
