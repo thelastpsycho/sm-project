@@ -63,10 +63,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           {
             event_name: 'survey_feedback_submitted',
             timestamp: body.submittedAt || new Date().toISOString(),
+            // Insider only persists event params nested under `custom` (queried back
+            // with a c_ prefix) — top-level keys here are silently dropped as unknown.
             event_params: {
-              event_name_mice: body.eventName,
-              company_name: body.companyName,
-              average_score: body.averageScore
+              custom: {
+                event_name_mice: body.eventName,
+                company_name: body.companyName,
+                average_score: body.averageScore
+              }
             }
           }
         ]
