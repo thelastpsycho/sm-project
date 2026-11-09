@@ -73,6 +73,11 @@ export interface UIText {
   consentPrefix: string
   consentLinkText: string
   consentSuffix: string
+  back: string
+  question: string
+  of: string
+  tapToContinue: string
+  optionalAnswer: string
 }
 
 export interface ValidationMessages {

@@ -1,15 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { doc, getDoc } from 'firebase/firestore'
 import { db, COLLECTIONS } from '@/lib/firebase'
 import { getSurveyQuestions, getLikertOptions, getUIText, getValidationMessages } from '@/lib/surveyConstants'
 import type { Event, Response, UserRole } from '@/types/survey'
 import PreSurvey from '@/components/survey/PreSurvey.vue'
-import LikertScale from '@/components/survey/LikertScale.vue'
-import TextQuestion from '@/components/survey/TextQuestion.vue'
-import SmButton from '@/components/ui/SmButton.vue'
-import SmCard from '@/components/ui/SmCard.vue'
 import { useSurveyStore } from '@/stores/survey'
 import { useHead } from '@vueuse/head'
 
@@ -72,7 +68,8 @@ useHead(computed(() => ({
     }
   ]
 })))
-const currentStep = ref<'info' | 'questions'>('info')
+// Step 0 = guest details; steps 1..N = one survey question per screen
+const step = ref(0)
 
 // Pre-survey info
 const name = ref('')
@@ -95,11 +92,23 @@ const validationMsgs = computed(() => getValidationMessages(eventLanguage.value)
 
 // Filter questions by type
 const ratingQuestions = computed(() => surveyQuestions.value.filter(q => q.type === 'rating'))
-const textQuestions = computed(() => surveyQuestions.value.filter(q => q.type === 'text'))
 
-const answeredCount = computed(() => Object.keys(scores.value).length)
-const totalQuestions = computed(() => ratingQuestions.value.length)
-const progress = computed(() => (answeredCount.value / totalQuestions.value) * 100)
+const totalSteps = computed(() => surveyQuestions.value.length)
+const currentQuestion = computed(() => (step.value > 0 ? surveyQuestions.value[step.value - 1] : null))
+const isLastStep = computed(() => step.value === totalSteps.value)
+// Ratings are listed best-first so the most common answer sits nearest the thumb
+const ratingOptions = computed(() => [...likertOptions.value].sort((a, b) => b.value - a.value))
+const canAdvance = computed(() => {
+  const q = currentQuestion.value
+  if (!q) return false
+  return q.type !== 'rating' || !!scores.value[q.id]
+})
+
+let advanceTimer: ReturnType<typeof setTimeout> | undefined
+
+watch(step, () => {
+  window.scrollTo({ top: 0 })
+})
 
 onMounted(async () => {
   await loadEvent()
@@ -156,7 +165,7 @@ function validateInfo(): boolean {
 
 function handleNext() {
   if (validateInfo()) {
-    currentStep.value = 'questions'
+    step.value = 1
   }
 }
 
@@ -165,10 +174,29 @@ function handleScoreChange(questionId: string, value: number) {
   if (errors.value[questionId]) {
     delete errors.value[questionId]
   }
+  // Auto-advance after a short beat so the guest sees their choice land
+  clearTimeout(advanceTimer)
+  if (!isLastStep.value) {
+    advanceTimer = setTimeout(goNext, 260)
+  }
 }
 
-function handleTextAnswerChange(questionId: string, value: string) {
-  textAnswers.value[questionId] = value
+function goNext() {
+  clearTimeout(advanceTimer)
+  if (isLastStep.value) {
+    handleSubmit()
+    return
+  }
+  if (canAdvance.value) {
+    step.value++
+  }
+}
+
+function goBack() {
+  clearTimeout(advanceTimer)
+  if (step.value > 0) {
+    step.value--
+  }
 }
 
 function validate(): boolean {
@@ -181,6 +209,10 @@ function validate(): boolean {
   })
 
   errors.value = newErrors
+  const missing = surveyQuestions.value.findIndex(q => newErrors[q.id])
+  if (missing !== -1) {
+    step.value = missing + 1
+  }
   return Object.keys(newErrors).length === 0
 }
 
@@ -287,161 +319,154 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen py-4 sm:py-6 px-3 sm:px-4 bg-sm-surface">
-    <div class="max-w-xl mx-auto">
+  <div class="min-h-[100dvh] bg-white text-[#1F2A2E]">
+    <div class="max-w-md mx-auto min-h-[100dvh] flex flex-col px-6 pt-5 pb-7">
       <!-- Loading State -->
-      <div v-if="loading" class="min-h-[50vh] flex items-center justify-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
+      <div v-if="loading" class="flex-1 flex items-center justify-center">
+        <div class="animate-spin rounded-full h-10 w-10 border-2 border-[#E3E9EB] border-t-sm-anvaya"></div>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="errors.general && !event" class="min-h-[50vh] flex items-center justify-center">
-        <SmCard class="max-w-md text-center p-6 bg-white dark:bg-sm-card-dark border border-sm-line dark:border-white/10 rounded-2xl shadow-sm">
-          <p class="text-sm-ink-soft">{{ errors.general }}</p>
-        </SmCard>
+      <div v-else-if="errors.general && !event" class="flex-1 flex flex-col items-center justify-center text-center gap-5">
+        <img src="/logo-theanvaya.svg" alt="The Anvaya Beach Resort Bali" width="1558" height="410" class="h-7 w-auto aspect-[1558/410]" />
+        <p class="text-base text-[#4A5A60]">{{ errors.general }}</p>
       </div>
 
       <!-- Survey Content -->
       <template v-else>
-        <!-- Header -->
-        <div class="mb-6 sm:mb-8">
-          <!-- Logo -->
-          <div class="flex items-center justify-center mb-4 sm:mb-5">
-            <div class="relative">
-              <div class="absolute inset-0 bg-gradient-to-br from-teal-400/20 to-blue-500/20 rounded-full blur-xl"></div>
-              <img
-                src="/logo-theanvaya.svg"
-                alt="The Anvaya Beach Resort Bali"
-                width="1558"
-                height="410"
-                class="relative h-10 sm:h-12 w-auto aspect-[1558/410]"
-              />
-            </div>
-          </div>
-
-          <!-- Event Info Card -->
-          <div class="relative overflow-hidden">
-            <!-- Decorative background -->
-            <div class="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-blue-500/5"></div>
-            <div class="absolute top-0 left-0 w-32 h-32 bg-teal-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-            <div class="absolute bottom-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
-
-            <!-- Content -->
-            <div class="relative bg-white dark:bg-sm-card-dark backdrop-blur-md border border-teal-100 dark:border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-lg shadow-teal-500/5">
-              <!-- Decorative line -->
-              <div class="absolute top-0 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-0.5 bg-gradient-to-r from-transparent via-teal-500 to-transparent rounded-full"></div>
-
-              <div class="text-center">
-                <!-- Label -->
-                <p class="text-xs sm:text-sm font-medium text-teal-600 tracking-wider uppercase mb-2 flex items-center justify-center gap-2">
-                  <span class="w-8 h-px bg-gradient-to-r from-transparent to-teal-500/50"></span>
-                  {{ ui.eventSurvey }}
-                  <span class="w-8 h-px bg-gradient-to-l from-transparent to-teal-500/50"></span>
-                </p>
-
-                <!-- Event Name -->
-                <h1 class="text-lg sm:text-xl font-bold text-sm-ink dark:text-white mb-2 leading-tight">
-                  {{ event?.eventName }}
-                </h1>
-
-                <!-- Company Name with icon -->
-                <div class="flex items-center justify-center gap-2 text-sm-muted">
-                  <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <span class="text-sm">{{ event?.companyName }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <!-- Top bar -->
+        <div class="flex items-center justify-between h-11">
+          <button
+            type="button"
+            :aria-label="ui.back"
+            :class="['w-11 h-11 rounded-full bg-[#F1F4F5] flex items-center justify-center transition-opacity', step === 0 ? 'invisible' : '']"
+            @click="goBack"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+          <img
+            src="/logo-theanvaya.svg"
+            alt="The Anvaya Beach Resort Bali"
+            width="1558"
+            height="410"
+            class="h-6 w-auto aspect-[1558/410]"
+          />
+          <span class="w-11 text-right text-[13px] font-bold text-sm-anvaya">
+            <template v-if="step > 0">{{ step }}/{{ totalSteps }}</template>
+          </span>
         </div>
 
-        <!-- Step 1: Pre-survey info collection -->
-        <PreSurvey
-          v-if="currentStep === 'info'"
-          v-model:name="name"
-          v-model:email="email"
-          v-model:role="role"
-          v-model:consent="consent"
-          :language="eventLanguage"
-          :errors="infoErrors"
-          :ui="ui"
-          @next="handleNext"
-        />
+        <!-- Segmented progress -->
+        <div class="flex gap-1 mt-5" aria-hidden="true">
+          <div
+            v-for="i in totalSteps"
+            :key="i"
+            :class="[
+              'flex-1 h-1 rounded-full transition-colors duration-300',
+              i < step ? 'bg-sm-anvaya' : i === step ? 'bg-[#9FB3BA]' : 'bg-[#E3E9EB]'
+            ]"
+          />
+        </div>
 
-        <!-- Step 2: Survey questions -->
-        <template v-else>
-          <!-- Progress Bar -->
-          <div class="mb-4 sm:mb-5">
-            <div class="flex justify-between text-xs text-sm-muted mb-1.5">
-              <span>{{ ui.progress }}</span>
-              <span>{{ answeredCount }} {{ ui.answeredOf }} {{ totalQuestions }}</span>
-            </div>
-            <div class="h-1.5 bg-teal-100 rounded-full overflow-hidden">
-              <div
-                class="h-full bg-teal-500 transition-all duration-300"
-                :style="{ width: `${progress}%` }"
-              />
-            </div>
-          </div>
+        <!-- Step 0: guest details -->
+        <template v-if="step === 0">
+          <p class="mt-8 text-xs font-bold tracking-[0.14em] uppercase text-[#5A6B71]">
+            {{ ui.eventSurvey }}<template v-if="event?.companyName"> · {{ event.companyName }}</template>
+          </p>
+          <h1 class="mt-3 text-[27px] leading-tight font-extrabold tracking-tight">
+            {{ event?.eventName }}
+          </h1>
+          <p class="mt-2 text-[15px] leading-relaxed text-[#4A5A60]">
+            {{ ui.welcomeDescription }}
+          </p>
 
-          <!-- Survey Form -->
-          <form @submit.prevent="handleSubmit" class="bg-white dark:bg-sm-card-dark border border-sm-line dark:border-white/10 p-4 sm:p-6 rounded-2xl shadow-sm">
-            <!-- Rating Questions -->
-            <div class="mb-6">
-              <p class="text-sm font-medium text-sm-ink-soft mb-5 tracking-wide">
-                {{ ui.rateYourExperience }}
-              </p>
-              <LikertScale
-                v-for="(question, index) in ratingQuestions"
-                :key="question.id"
-                :question-id="question.id"
-                :question="question.question"
-                :model-value="scores[question.id] || 0"
-                :likert-options="likertOptions"
-                :error="errors[question.id]"
-                :question-number="index + 1"
-                @update:model-value="(value) => handleScoreChange(question.id, value)"
-              />
-            </div>
-
-            <!-- Text Questions -->
-            <div class="mb-5 pt-5 border-t border-sm-line">
-              <p class="text-sm font-medium text-sm-ink-soft mb-5 tracking-wide">
-                {{ ui.yourFeedback }}
-              </p>
-              <TextQuestion
-                v-for="(question, index) in textQuestions"
-                :key="question.id"
-                :question-id="question.id"
-                :question="question.question"
-                :model-value="textAnswers[question.id] || ''"
-                :error="errors[question.id]"
-                :question-number="ratingQuestions.length + index + 1"
-                :placeholder="ui.placeholderShareThoughts"
-                @update:model-value="(value) => handleTextAnswerChange(question.id, value)"
-              />
-            </div>
-
-            <!-- Error Message -->
-            <div v-if="errors.general" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p class="text-red-600 text-sm">{{ errors.general }}</p>
-            </div>
-
-            <!-- Submit Button -->
-            <SmButton
-              type="submit"
-              :disabled="answeredCount < totalQuestions || submitting"
-              :loading="submitting"
-              class="w-full text-base py-3"
-            >
-              {{ ui.submitSurvey }}
-            </SmButton>
-          </form>
+          <PreSurvey
+            v-model:name="name"
+            v-model:email="email"
+            v-model:role="role"
+            v-model:consent="consent"
+            :language="eventLanguage"
+            :errors="infoErrors"
+            :ui="ui"
+            class="flex-1"
+            @next="handleNext"
+          />
         </template>
 
-        <!-- Footer -->
-        <p class="text-center text-xs text-sm-muted mt-4 sm:mt-5">
+        <!-- Steps 1..N: one question per screen -->
+        <form v-else-if="currentQuestion" class="flex-1 flex flex-col" @submit.prevent="goNext">
+          <p class="mt-8 text-xs font-bold tracking-[0.14em] uppercase text-[#5A6B71]">
+            {{ ui.question }} {{ step }} {{ ui.of }} {{ totalSteps }}<template v-if="event?.eventName"> · {{ event.eventName }}</template>
+          </p>
+          <h1 :id="`q-${currentQuestion.id}`" class="mt-3 text-[25px] sm:text-[27px] leading-tight font-extrabold tracking-tight">
+            {{ currentQuestion.question }}
+          </h1>
+
+          <!-- Rating -->
+          <template v-if="currentQuestion.type === 'rating'">
+            <div role="radiogroup" :aria-labelledby="`q-${currentQuestion.id}`" class="mt-7 flex flex-col gap-2.5">
+              <button
+                v-for="option in ratingOptions"
+                :key="`${currentQuestion.id}-${option.value}`"
+                type="button"
+                role="radio"
+                :aria-checked="scores[currentQuestion.id] === option.value"
+                :class="[
+                  'h-[60px] px-[18px] rounded-2xl border-[1.5px] flex items-center justify-between text-[17px] font-bold transition-colors duration-150 active:scale-[0.99]',
+                  scores[currentQuestion.id] === option.value
+                    ? 'bg-sm-anvaya border-sm-anvaya text-white'
+                    : 'bg-white border-[#D5DEE1] text-[#1F2A2E] hover:border-[#9FB3BA]'
+                ]"
+                @click="handleScoreChange(currentQuestion.id, option.value)"
+              >
+                <span>{{ option.label }}</span>
+                <span
+                  :class="[
+                    'w-8 h-8 rounded-full flex items-center justify-center text-[15px] font-extrabold',
+                    scores[currentQuestion.id] === option.value ? 'bg-white/20 text-white' : 'bg-[#F1F4F5] text-sm-anvaya'
+                  ]"
+                >{{ option.value }}</span>
+              </button>
+            </div>
+            <p v-if="errors[currentQuestion.id]" class="mt-3 text-sm text-red-600" role="alert">{{ errors[currentQuestion.id] }}</p>
+            <p v-else class="mt-3.5 text-[13px] text-center text-[#5A6B71]">{{ ui.tapToContinue }}</p>
+          </template>
+
+          <!-- Open text -->
+          <div v-else class="mt-7 flex flex-col gap-2.5">
+            <label :for="`answer-${currentQuestion.id}`" class="text-sm font-semibold text-[#5A6B71]">{{ ui.optionalAnswer }}</label>
+            <textarea
+              :id="`answer-${currentQuestion.id}`"
+              v-model="textAnswers[currentQuestion.id]"
+              rows="6"
+              :placeholder="ui.placeholderShareThoughts"
+              class="w-full p-4 rounded-2xl border-[1.5px] border-[#D5DEE1] bg-[#F7F9FA] text-base text-[#1F2A2E] placeholder:text-[#7A8A90] resize-none focus:outline-none focus:border-sm-anvaya focus:ring-0"
+            ></textarea>
+          </div>
+
+          <div v-if="errors.general" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl" role="alert">
+            <p class="text-red-600 text-sm">{{ errors.general }}</p>
+          </div>
+
+          <!-- Navigation -->
+          <div class="mt-auto pt-8 flex gap-3">
+            <button
+              type="button"
+              class="flex-1 h-14 rounded-full border-[1.5px] border-[#D5DEE1] bg-white text-base font-bold"
+              @click="goBack"
+            >{{ ui.back }}</button>
+            <button
+              type="submit"
+              :disabled="!canAdvance || submitting"
+              class="flex-[2] h-14 rounded-full bg-sm-anvaya text-white text-base font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <span v-if="submitting" class="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" aria-hidden="true"></span>
+              {{ isLastStep ? ui.submitSurvey : ui.next }}
+            </button>
+          </div>
+        </form>
+
+        <p class="text-center text-xs text-[#5A6B71] mt-6">
           {{ ui.thankYouForChoosing }}
         </p>
       </template>

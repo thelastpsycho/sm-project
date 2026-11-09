@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import SmInput from '@/components/ui/SmInput.vue'
-import SmButton from '@/components/ui/SmButton.vue'
-import SmCard from '@/components/ui/SmCard.vue'
 import type { UserRole, UIText } from '@/types/survey'
 
 interface Props {
@@ -49,102 +46,108 @@ function selectRole(role: UserRole) {
 function handleNext() {
   emit('next')
 }
+
+function fieldClass(hasError: boolean) {
+  return [
+    'h-14 w-full px-4 rounded-2xl border-[1.5px] bg-[#F7F9FA] text-base text-[#1F2A2E] placeholder:text-[#7A8A90] focus:outline-none focus:ring-0 focus:border-sm-anvaya',
+    hasError ? 'border-red-400' : 'border-[#D5DEE1]'
+  ]
+}
 </script>
 
 <template>
-  <SmCard class="bg-white dark:bg-sm-card-dark border border-sm-line dark:border-white/10 p-4 sm:p-6 rounded-2xl shadow-sm">
-    <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-5 text-center">
-      {{ ui.welcomeTitle }}
-    </h2>
-    <p class="text-xs sm:text-sm text-gray-600 mb-5 sm:mb-6 text-center">
-      {{ ui.welcomeDescription }}
-    </p>
+  <form class="flex flex-col mt-7" novalidate @submit.prevent="handleNext">
+    <div class="flex flex-col gap-5 mb-8">
+      <!-- Name -->
+      <div class="flex flex-col gap-2">
+        <label for="survey-name" class="text-sm font-bold">{{ ui.fullName }}</label>
+        <input
+          id="survey-name"
+          type="text"
+          autocomplete="name"
+          :value="name"
+          :placeholder="ui.fullNamePlaceholder"
+          :aria-invalid="!!errors.name"
+          :class="fieldClass(!!errors.name)"
+          @input="$emit('update:name', ($event.target as HTMLInputElement).value)"
+        />
+        <p v-if="errors.name" class="text-red-600 text-xs">{{ errors.name }}</p>
+      </div>
 
-    <div class="space-y-4 sm:space-y-5">
-      <SmInput
-        id="name"
-        :label="ui.fullName"
-        :placeholder="ui.fullNamePlaceholder"
-        :model-value="name"
-        :error="errors.name"
-        autofocus
-        @update:model-value="(value) => $emit('update:name', value)"
-      />
+      <!-- Email -->
+      <div class="flex flex-col gap-2">
+        <label for="survey-email" class="text-sm font-bold">{{ ui.emailAddress }}</label>
+        <input
+          id="survey-email"
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          :value="email"
+          :placeholder="ui.emailAddressPlaceholder"
+          :aria-invalid="!!errors.email"
+          :class="fieldClass(!!errors.email)"
+          @input="$emit('update:email', ($event.target as HTMLInputElement).value)"
+        />
+        <p v-if="errors.email" class="text-red-600 text-xs">{{ errors.email }}</p>
+      </div>
 
-      <SmInput
-        id="email"
-        type="email"
-        :label="ui.emailAddress"
-        :placeholder="ui.emailAddressPlaceholder"
-        :model-value="email"
-        :error="errors.email"
-        @update:model-value="(value) => $emit('update:email', value)"
-      />
-
-      <div>
-        <label class="label">{{ ui.role }}</label>
-        <div class="flex flex-wrap gap-2 sm:gap-3">
+      <!-- Role -->
+      <fieldset class="flex flex-col gap-2">
+        <legend class="text-sm font-bold mb-2">{{ ui.role }}</legend>
+        <div class="grid grid-cols-3 gap-2" role="radiogroup">
           <button
             v-for="r in ROLES"
             :key="r.value"
             type="button"
+            role="radio"
+            :aria-checked="role === r.value"
             :class="[
-              'px-4 py-2 sm:py-2.5 rounded-lg border-2 text-xs sm:text-sm font-semibold transition-all',
+              'h-12 rounded-2xl border-[1.5px] text-sm font-bold transition-colors',
               role === r.value
-                ? 'bg-teal-500 text-white border-teal-500'
-                : 'bg-white text-gray-900 border-gray-200 hover:border-teal-300 hover:bg-teal-50'
+                ? 'bg-sm-anvaya border-sm-anvaya text-white'
+                : 'bg-white border-[#D5DEE1] text-[#1F2A2E] hover:border-[#9FB3BA]'
             ]"
             @click="selectRole(r.value)"
           >
             {{ ui[r.key] }}
           </button>
         </div>
-        <p v-if="errors.role" class="text-red-500 text-xs mt-1.5">{{ errors.role }}</p>
-      </div>
+        <p v-if="errors.role" class="text-red-600 text-xs">{{ errors.role }}</p>
+      </fieldset>
 
+      <!-- Consent -->
       <div>
-        <label class="flex items-start gap-2.5 cursor-pointer">
+        <label class="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
             :checked="consent"
-            class="mt-0.5 h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500 shrink-0"
+            class="mt-0.5 h-5 w-5 rounded-md border-[#9FB3BA] text-sm-anvaya focus:ring-sm-anvaya shrink-0"
             @change="$emit('update:consent', ($event.target as HTMLInputElement).checked)"
           />
-          <span class="text-xs sm:text-sm text-gray-600">
+          <span class="text-[13px] leading-relaxed text-[#4A5A60]">
             {{ ui.consentPrefix }}
             <router-link
               :to="{ name: 'survey-terms', query: { lang: language } }"
               target="_blank"
-              class="text-teal-600 font-semibold underline hover:text-teal-700"
+              class="text-sm-anvaya font-bold underline"
               @click.stop
             >{{ ui.consentLinkText }}</router-link>{{ ui.consentSuffix }}
           </span>
         </label>
-        <p v-if="errors.consent" class="text-red-500 text-xs mt-1.5">{{ errors.consent }}</p>
+        <p v-if="errors.consent" class="text-red-600 text-xs mt-1.5">{{ errors.consent }}</p>
       </div>
 
-      <div v-if="errors.general" class="p-3 bg-red-50 border border-red-200 rounded-lg">
+      <div v-if="errors.general" class="p-3 bg-red-50 border border-red-200 rounded-xl">
         <p class="text-red-600 text-sm">{{ errors.general }}</p>
       </div>
-
-      <SmButton
-        :disabled="!isFormValid"
-        class="w-full text-base py-3 mt-2"
-        @click="handleNext"
-      >
-        {{ ui.next }}
-      </SmButton>
     </div>
-  </SmCard>
-</template>
 
-<style scoped>
-.label {
-  display: block;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: inherit;
-  margin-bottom: 0.375rem;
-  letter-spacing: 0.01em;
-}
-</style>
+    <button
+      type="submit"
+      :disabled="!isFormValid"
+      class="mt-auto h-14 w-full rounded-full bg-sm-anvaya text-white text-base font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      {{ ui.next }}
+    </button>
+  </form>
+</template>
