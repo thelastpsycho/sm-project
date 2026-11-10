@@ -60,6 +60,8 @@ export const postContract = async (payload: {
   allotment: string[]
   notifyMe: string[]
   emailToNotify: string
+  submittedByName: string
+  submittedByEmail: string
   sessionId: string
 }) => {
   try {
@@ -76,6 +78,8 @@ export const postContract = async (payload: {
       "Allotment": payload.allotment || [],
       "notify me": payload.notifyMe || [],
       "email to notify when contract is ready!": payload.emailToNotify,
+      "Submitted By": payload.submittedByName,
+      "Submitted By Email": payload.submittedByEmail,
       "submittedAt": new Date().toISOString(),
       "formMode": "live"
     }

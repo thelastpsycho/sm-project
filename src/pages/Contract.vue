@@ -246,7 +246,13 @@ const handleSubmit = async () => {
 
   try {
     const sessionId = ensureSession()
-    await postContract({ ...form.value, emailToNotify: notifyEmail.value, sessionId })
+    await postContract({
+      ...form.value,
+      emailToNotify: notifyEmail.value,
+      submittedByName: sessionStore.currentUser?.name ?? '',
+      submittedByEmail: notifyEmail.value,
+      sessionId
+    })
     isApprovalModalOpen.value = true
   } catch (e: any) {
     errorMessage.value = e.message || 'Failed to submit'
