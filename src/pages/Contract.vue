@@ -6,7 +6,7 @@
       <p class="text-xs text-sm-muted mt-1.5">Fill in the details below</p>
     </div>
 
-    <form @submit.prevent="handleSubmit" class="p-4 lg:px-8 space-y-6 max-w-[760px] mx-auto lg:mx-0">
+    <form @submit.prevent="openPreview" class="p-4 lg:px-8 space-y-6 max-w-[760px] mx-auto lg:mx-0">
       
       <!-- Section: Person Information -->
       <div class="rounded-2xl p-5 border border-sm-line dark:border-white/10 space-y-5 animate-fade-in-up" style="animation-delay: 100ms;">
@@ -139,13 +139,12 @@
         >
           Reset
         </button>
-        <button 
-          type="submit" 
-          :disabled="isSubmitting || !isFormValid"
+        <button
+          type="submit"
+          :disabled="!isFormValid"
           class="flex-1 py-4 rounded-2xl bg-sm-ink text-white dark:bg-white dark:text-sm-ink font-bold disabled:opacity-50 active:scale-[0.99] transition-all text-center"
         >
-          <span v-if="!isSubmitting">Submit Contract</span>
-          <span v-else>Processing...</span>
+          Preview & Submit
         </button>
       </div>
 
@@ -153,6 +152,84 @@
         {{ errorMessage }}
       </div>
     </form>
+
+    <!-- Preview Modal -->
+    <div v-if="isPreviewOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-sm-ink/40 backdrop-blur-md" @click="isPreviewOpen = false"></div>
+
+      <div class="relative bg-white dark:bg-sm-card-dark w-full max-w-lg max-h-[90vh] rounded-[2rem] shadow-2xl overflow-hidden animate-fade-in-up flex flex-col">
+        <div class="px-6 py-5 border-b border-sm-line dark:border-white/10">
+          <h2 class="text-xl font-extrabold tracking-[-0.02em] text-sm-ink dark:text-white">Review Contract Details</h2>
+          <p class="text-xs text-sm-muted mt-1">Please confirm everything is correct before submitting</p>
+        </div>
+
+        <div class="px-6 py-5 space-y-5 overflow-y-auto">
+          <div class="rounded-2xl border border-sm-line dark:border-white/10 divide-y divide-sm-hair dark:divide-white/10">
+            <div class="px-4 py-3 flex justify-between gap-4">
+              <span class="sm-eyebrow">Market</span>
+              <span class="text-sm-ink dark:text-white font-semibold text-right">{{ form.market }}</span>
+            </div>
+            <div class="px-4 py-3 flex justify-between gap-4">
+              <span class="sm-eyebrow">Company</span>
+              <span class="text-sm-ink dark:text-white font-semibold text-right">{{ form.company || '—' }}</span>
+            </div>
+            <div class="px-4 py-3 flex justify-between gap-4">
+              <span class="sm-eyebrow">Name</span>
+              <span class="text-sm-ink dark:text-white font-semibold text-right">{{ form.title }} {{ form.fullName || '—' }}</span>
+            </div>
+            <div class="px-4 py-3 flex justify-between gap-4">
+              <span class="sm-eyebrow">Designation</span>
+              <span class="text-sm-ink dark:text-white font-semibold text-right">{{ form.designation || '—' }}</span>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-sm-line dark:border-white/10 divide-y divide-sm-hair dark:divide-white/10">
+            <div class="px-4 py-3 flex justify-between gap-4">
+              <span class="sm-eyebrow">Address</span>
+              <span class="text-sm-ink dark:text-white font-semibold text-right">{{ [form.addressLine1, form.addressLine2].filter(Boolean).join(', ') || '—' }}</span>
+            </div>
+            <div class="px-4 py-3 flex justify-between gap-4">
+              <span class="sm-eyebrow">Email</span>
+              <span class="text-sm-ink dark:text-white font-semibold text-right break-all">{{ form.email || '—' }}</span>
+            </div>
+            <div class="px-4 py-3 flex justify-between gap-4">
+              <span class="sm-eyebrow">Phone</span>
+              <span class="text-sm-ink dark:text-white font-semibold text-right">{{ form.phone || '—' }}</span>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-sm-line dark:border-white/10 divide-y divide-sm-hair dark:divide-white/10">
+            <div class="px-4 py-3 flex justify-between gap-4">
+              <span class="sm-eyebrow">Allotment Request</span>
+              <span class="text-sm-ink dark:text-white font-semibold text-right">{{ form.allotment.includes('add') ? 'Yes' : 'No' }}</span>
+            </div>
+            <div class="px-4 py-3 flex justify-between gap-4">
+              <span class="sm-eyebrow">Notifications</span>
+              <span class="text-sm-ink dark:text-white font-semibold text-right">{{ form.notifyMe.includes('yes') ? notifyEmail : 'Off' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 py-5 border-t border-sm-line dark:border-white/10 flex items-center gap-4">
+          <button
+            type="button"
+            @click="isPreviewOpen = false"
+            class="px-6 py-4 rounded-2xl border border-sm-line dark:border-white/15 text-sm-ink dark:text-white font-bold hover:bg-sm-surface dark:hover:bg-white/5 transition-colors"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            @click="handleSubmit"
+            :disabled="isSubmitting"
+            class="flex-1 py-4 rounded-2xl bg-sm-ink text-white dark:bg-white dark:text-sm-ink font-bold disabled:opacity-50 active:scale-[0.99] transition-all text-center"
+          >
+            <span v-if="!isSubmitting">Confirm & Submit</span>
+            <span v-else>Submitting...</span>
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Submission Modal (Human in the Loop) -->
     <div v-if="isApprovalModalOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -234,11 +311,17 @@ const form = ref<ContractForm>({
 const isSubmitting = ref(false)
 const errorMessage = ref('')
 const isApprovalModalOpen = ref(false)
+const isPreviewOpen = ref(false)
 
 // Simple validation
 const isFormValid = computed(() => {
   return form.value.company && form.value.fullName && form.value.email
 })
+
+const openPreview = () => {
+  if (!isFormValid.value) return
+  isPreviewOpen.value = true
+}
 
 const handleSubmit = async () => {
   isSubmitting.value = true
@@ -253,8 +336,10 @@ const handleSubmit = async () => {
       submittedByEmail: notifyEmail.value,
       sessionId
     })
+    isPreviewOpen.value = false
     isApprovalModalOpen.value = true
   } catch (e: any) {
+    isPreviewOpen.value = false
     errorMessage.value = e.message || 'Failed to submit'
   } finally {
     isSubmitting.value = false
