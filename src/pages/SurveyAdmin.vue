@@ -315,7 +315,7 @@ function handleExportCsv() {
                 class="flex items-center justify-between gap-3 py-3 border-t border-sm-hair dark:border-white/5"
               >
                 <div class="min-w-0 flex-1">
-                  <p class="text-sm font-bold text-sm-ink dark:text-white truncate">{{ response.event?.eventName }}</p>
+                  <p class="text-sm font-bold text-sm-ink dark:text-white truncate">{{ response.event?.eventName || 'Unknown event' }}</p>
                   <p class="text-eyebrow text-sm-muted">{{ new Date(response.createdAt).toLocaleDateString() }}</p>
                 </div>
                 <p class="text-sm font-bold text-sm-primary shrink-0">
