@@ -6,7 +6,7 @@ import SmSelect from '@/components/ui/SmSelect.vue'
 import { useSurveyStore } from '@/stores/survey'
 import { useSessionStore } from '@/stores/session'
 import { usePermissionsStore } from '@/stores/permissions'
-import { generateSurveyUrl, copyToClipboard, formatScore, getQuestionLabel, getRoleLabel, combineTextFeedback, rowsToCsv, downloadCsv } from '@/lib/surveyUtils'
+import { generateSurveyUrl, copyToClipboard, formatScore, getQuestionLabel, getRoleLabel, combineTextFeedback, formatDeviceLabel, formatLocationLabel, rowsToCsv, downloadCsv } from '@/lib/surveyUtils'
 import { DEFAULT_REVIEW_THRESHOLD } from '@/lib/surveyConstants'
 import type { AdminTab, Event } from '@/types/survey'
 import {
@@ -89,7 +89,14 @@ const exportRows = computed(() => {
     event: response.event?.eventName || 'Unknown',
     email: response.email,
     score: formatScore(response.averageScore || response.totalScore / 6),
-    feedback: combineTextFeedback(response.textAnswers) || '—'
+    feedback: combineTextFeedback(response.textAnswers) || '—',
+    device: formatDeviceLabel(response.metadata),
+    browserName: response.metadata?.browserName || '—',
+    browserVersion: response.metadata?.browserVersion || '—',
+    browserType: response.metadata?.browserType || '—',
+    location: formatLocationLabel(response.metadata),
+    language: response.metadata?.language || '—',
+    referrer: response.metadata?.referrer || '—'
   }))
 })
 
@@ -224,8 +231,8 @@ function getScorePercentage(score: number): number {
 
 function handleExportCsv() {
   const csv = rowsToCsv(
-    ['Name', 'Company', 'Event', 'Email', 'Score', 'Response'],
-    exportRows.value.map(row => [row.name, row.company, row.event, row.email, row.score, row.feedback])
+    ['Name', 'Company', 'Event', 'Email', 'Score', 'Response', 'Device', 'Browser Name', 'Browser Version', 'Browser Type', 'Location', 'Language', 'Referrer'],
+    exportRows.value.map(row => [row.name, row.company, row.event, row.email, row.score, row.feedback, row.device, row.browserName, row.browserVersion, row.browserType, row.location, row.language, row.referrer])
   )
   const eventSuffix = selectedEventId.value === 'all'
     ? 'all-events'
@@ -543,7 +550,7 @@ function handleExportCsv() {
           <p v-if="!exportRows.length" class="py-16 text-center text-sm-faint">No responses found.</p>
 
           <div v-else class="overflow-x-auto -mx-6 lg:-mx-12 px-6 lg:px-12">
-            <table class="w-full min-w-[720px] text-left">
+            <table class="w-full min-w-[960px] text-left">
               <thead>
                 <tr class="border-b border-sm-line dark:border-white/10 sm-eyebrow">
                   <th class="py-3 pr-4 font-bold">Name</th>
@@ -551,7 +558,9 @@ function handleExportCsv() {
                   <th class="py-3 pr-4 font-bold">Event</th>
                   <th class="py-3 pr-4 font-bold">Email</th>
                   <th class="py-3 pr-4 font-bold text-right">Score</th>
-                  <th class="py-3 font-bold">Response</th>
+                  <th class="py-3 pr-4 font-bold">Response</th>
+                  <th class="py-3 pr-4 font-bold">Device</th>
+                  <th class="py-3 font-bold">Location</th>
                 </tr>
               </thead>
               <tbody>
@@ -565,7 +574,9 @@ function handleExportCsv() {
                   <td class="py-3 pr-4 text-sm text-sm-ink-soft dark:text-gray-300 whitespace-nowrap">{{ row.event }}</td>
                   <td class="py-3 pr-4 text-sm text-sm-ink-soft dark:text-gray-300 break-all">{{ row.email }}</td>
                   <td class="py-3 pr-4 text-sm font-bold text-sm-primary text-right whitespace-nowrap">{{ row.score }}</td>
-                  <td class="py-3 text-sm text-sm-muted max-w-sm">{{ row.feedback }}</td>
+                  <td class="py-3 pr-4 text-sm text-sm-muted max-w-sm">{{ row.feedback }}</td>
+                  <td class="py-3 pr-4 text-sm text-sm-ink-soft dark:text-gray-300 whitespace-nowrap">{{ row.device }}</td>
+                  <td class="py-3 text-sm text-sm-ink-soft dark:text-gray-300 whitespace-nowrap">{{ row.location }}</td>
                 </tr>
               </tbody>
             </table>

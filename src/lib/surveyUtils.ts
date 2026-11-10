@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import type { ResponseMetadata } from '@/types/survey'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -61,6 +62,21 @@ export function combineTextFeedback(textAnswers: Record<string, string> | undefi
     .filter(([, value]) => value && value.trim())
     .map(([key, value]) => `${getQuestionLabel(key)}: ${value.trim()}`)
     .join(' | ')
+}
+
+export function formatDeviceLabel(metadata: ResponseMetadata | undefined): string {
+  if (!metadata) return '—'
+  const browser = [metadata.browserName, metadata.browserVersion].filter(Boolean).join(' ')
+  const os = [metadata.osName, metadata.osVersion].filter(Boolean).join(' ')
+  const isPlainBrowser = !metadata.browserType || metadata.browserType === 'browser'
+  return [browser, os, metadata.deviceType, isPlainBrowser ? undefined : `(${metadata.browserType})`]
+    .filter(Boolean)
+    .join(' • ') || '—'
+}
+
+export function formatLocationLabel(metadata: ResponseMetadata | undefined): string {
+  if (!metadata) return '—'
+  return [metadata.geoCity, metadata.geoRegion, metadata.geoCountry].filter(Boolean).join(', ') || '—'
 }
 
 function escapeCsvField(field: string | number): string {

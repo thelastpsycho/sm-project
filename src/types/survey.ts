@@ -10,6 +10,28 @@ export interface Event {
 
 export type UserRole = 'participant' | 'organizer' | 'speaker'
 
+export interface ResponseMetadata {
+  browserName?: string
+  browserVersion?: string
+  browserType?: string
+  osName?: string
+  osVersion?: string
+  deviceType?: string
+  screenWidth?: number
+  screenHeight?: number
+  viewportWidth?: number
+  viewportHeight?: number
+  devicePixelRatio?: number
+  language?: string
+  timezone?: string
+  referrer?: string
+  urlParams?: Record<string, string>
+  connectionType?: string
+  geoCountry?: string
+  geoRegion?: string
+  geoCity?: string
+}
+
 export interface Response {
   id: string
   eventId: string
@@ -23,6 +45,7 @@ export interface Response {
   percentage: number
   averageScore: number
   comment?: string
+  metadata?: ResponseMetadata
   createdAt: Date
 }
 

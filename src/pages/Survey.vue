@@ -4,10 +4,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { doc, getDoc } from 'firebase/firestore'
 import { db, COLLECTIONS } from '@/lib/firebase'
 import { getSurveyQuestions, getLikertOptions, getUIText, getValidationMessages } from '@/lib/surveyConstants'
-import type { Event, Response, UserRole } from '@/types/survey'
+import type { Event, Response, ResponseMetadata, UserRole } from '@/types/survey'
 import PreSurvey from '@/components/survey/PreSurvey.vue'
 import { useSurveyStore } from '@/stores/survey'
 import { useHead } from '@vueuse/head'
+import { getClientMetadata, getGeoMetadata } from '@/lib/collectMetadata'
 
 const route = useRoute()
 const router = useRouter()
@@ -110,8 +111,16 @@ watch(step, () => {
   window.scrollTo({ top: 0 })
 })
 
+// Fetched once up front so it's already in hand by the time the guest submits —
+// the IP-geo lookup is a network round trip and shouldn't add latency to submit.
+const geoMetadata = ref<Partial<ResponseMetadata>>({})
+
 onMounted(async () => {
   await loadEvent()
+})
+
+onMounted(() => {
+  getGeoMetadata().then(data => { geoMetadata.value = data })
 })
 
 async function loadEvent() {
@@ -244,7 +253,8 @@ async function handleSubmit() {
       textAnswers: textAnswers.value,
       totalScore,
       percentage,
-      averageScore
+      averageScore,
+      metadata: { ...getClientMetadata(), ...geoMetadata.value }
     }
 
     await surveyStore.submitSurvey(response)
