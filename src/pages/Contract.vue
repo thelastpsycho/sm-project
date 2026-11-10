@@ -126,7 +126,7 @@
       <div v-if="form.notifyMe.includes('yes')" class="rounded-2xl p-5 border border-sm-line dark:border-white/10">
         <div class="rounded-2xl border border-sm-line dark:border-white/10 px-4 py-2">
            <label class="sm-eyebrow">Notify Email</label>
-           <input v-model="form.emailToNotify" type="email" class="w-full bg-transparent border-none p-0 text-sm-ink dark:text-white focus:ring-0 placeholder:text-sm-faint font-semibold" placeholder="notify@example.com" />
+           <p class="text-sm-ink dark:text-white font-semibold">{{ notifyEmail }}</p>
         </div>
       </div>
 
@@ -185,6 +185,7 @@
 import { ref, computed } from 'vue'
 import { postContract } from '@/utils/api'
 import { useSession } from '@/composables/useSession'
+import { useSessionStore } from '@/stores/session'
 import type { ContractForm } from '@/types/contract'
 import { useHead } from '@vueuse/head'
 
@@ -199,6 +200,8 @@ useHead({
 })
 
 const { ensureSession } = useSession()
+const sessionStore = useSessionStore()
+const notifyEmail = computed(() => sessionStore.currentUser?.email ?? '')
 
 const marketOptions = [
   { value: 'WW', label: 'Worldwide' },
@@ -224,7 +227,7 @@ const form = ref<ContractForm>({
   email: '',
   phone: '',
   allotment: [],
-  notifyMe: [],
+  notifyMe: ['yes'],
   emailToNotify: ''
 })
 
@@ -243,7 +246,7 @@ const handleSubmit = async () => {
 
   try {
     const sessionId = ensureSession()
-    await postContract({ ...form.value, sessionId })
+    await postContract({ ...form.value, emailToNotify: notifyEmail.value, sessionId })
     isApprovalModalOpen.value = true
   } catch (e: any) {
     errorMessage.value = e.message || 'Failed to submit'
@@ -269,7 +272,7 @@ const resetForm = () => {
     email: '',
     phone: '',
     allotment: [],
-    notifyMe: [],
+    notifyMe: ['yes'],
     emailToNotify: ''
   }
 }
