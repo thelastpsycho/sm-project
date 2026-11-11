@@ -11,16 +11,18 @@ export interface McpKeySummary {
 }
 
 /**
- * Call the self-service MCP key endpoint (`/api/mcp/keys`) with the caller's Firebase
- * ID token. Any signed-in user may manage their own keys — the server scopes
- * list/revoke to the caller's own uid.
+ * Call the self-service MCP key actions on `/api/mcp` with the caller's Firebase ID
+ * token. Any signed-in user may manage their own keys — the server scopes list/revoke
+ * to the caller's own uid. Key management shares the `/api/mcp` function (rather than
+ * its own route) to stay under the Hobby plan's per-deployment function count limit;
+ * the server tells it apart from MCP protocol requests by the `action` field.
  */
 export async function mcpKeysApi(action: McpKeyAction, payload: Record<string, unknown> = {}): Promise<any> {
   const user = auth.currentUser
   if (!user) throw new Error('Not signed in.')
   const token = await user.getIdToken()
 
-  const res = await fetch('/api/mcp/keys', {
+  const res = await fetch('/api/mcp', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

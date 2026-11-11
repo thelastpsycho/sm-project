@@ -1,7 +1,9 @@
-// Shared plumbing for the MCP server (api/mcp/index.ts) and key-management endpoint
-// (api/mcp/keys.ts). Imports the existing Admin SDK / role-matrix helpers from
-// cron/_shared.ts rather than duplicating them — see that file for `db()`,
-// `loadDeals()`, `loadEventsSince()`, `loadRoleMatrix()`, `roleGrants()`.
+// Shared plumbing for api/mcp/index.ts, which handles both the MCP protocol and the
+// self-service key-management actions (combined into one function to stay under the
+// Hobby plan's per-deployment Serverless Function count). Imports the existing Admin
+// SDK / role-matrix helpers from cron/_shared.ts rather than duplicating them — see
+// that file for `db()`, `loadDeals()`, `loadEventsSince()`, `loadRoleMatrix()`,
+// `roleGrants()`.
 
 import crypto from 'node:crypto'
 import type { VercelRequest } from '@vercel/node'
