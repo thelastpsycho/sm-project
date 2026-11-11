@@ -1,11 +1,11 @@
 // Pipeline revenue calculations, permissions, and formatting helpers.
 
-import type { Deal, DealOutcome, DealStage } from '@/types/crm'
-import type { UserRole } from '@/types/user'
-import { roleHas } from '@/lib/roles'
-import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
-import { baliToday } from '@/lib/time'
-import { formatMoney } from '@/lib/money'
+import type { Deal, DealOutcome, DealStage } from '../types/crm.js'
+import type { UserRole } from '../types/user.js'
+import { roleHas } from './roles.js'
+import { DEFAULT_ALERT_CONFIG } from './crmAlerts.js'
+import { baliToday } from './time.js'
+import { formatMoney } from './money.js'
 
 export { formatMoney }
 

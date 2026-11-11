@@ -1,13 +1,13 @@
-import type { Deal, DealStage, PipelineEvent } from '@/types/crm'
-import { DEFAULT_ALERT_CONFIG } from '@/lib/crmAlerts'
-import { computeDealAnomalies, computeStageBaselines, type DealAnomaly } from '@/lib/crmAnomalies'
-import { computeDuplicateMatches } from '@/lib/crmDuplicates'
+import type { Deal, DealStage, PipelineEvent } from '../types/crm.js'
+import { DEFAULT_ALERT_CONFIG } from './crmAlerts.js'
+import { computeDealAnomalies, computeStageBaselines, type DealAnomaly } from './crmAnomalies.js'
+import { computeDuplicateMatches } from './crmDuplicates.js'
 
 export type IntelligenceHealth = 'hot' | 'healthy' | 'attention' | 'at-risk' | 'stale'
 export type DueState = 'overdue' | 'today' | 'soon' | 'none'
 
-import { STAGE_PROBABILITY, weightedDealValue } from '@/lib/crmForecast'
-export { STAGE_PROBABILITY } from '@/lib/crmForecast'
+import { STAGE_PROBABILITY, weightedDealValue } from './crmForecast.js'
+export { STAGE_PROBABILITY } from './crmForecast.js'
 
 export interface DealIntelligence {
   deal: Deal

@@ -8,6 +8,7 @@ import { useSessionStore } from '@/stores/session'
 import { usePermissionsStore } from '@/stores/permissions'
 import { generateSurveyUrl, copyToClipboard, formatScore, getQuestionLabel, getRoleLabel, combineTextFeedback, formatDeviceLabel, formatLocationLabel, rowsToCsv, downloadCsv } from '@/lib/surveyUtils'
 import { DEFAULT_REVIEW_THRESHOLD } from '@/lib/surveyConstants'
+import { computeSurveyStats, computeEventStats } from '@/lib/surveyStats'
 import type { AdminTab, Event } from '@/types/survey'
 import {
   PlusIcon,
@@ -100,40 +101,9 @@ const exportRows = computed(() => {
   }))
 })
 
-const stats = computed(() => {
-  const responses = surveyStore.responsesWithEvents
-  if (responses.length === 0) {
-    return {
-      totalResponses: 0,
-      averageScore: 0,
-      reviewRedirectRate: 0,
-      scoreDistribution: [0, 0, 0, 0, 0]
-    }
-  }
-
-  const totalResponses = responses.length
-  const averageScore = responses.reduce((sum, r) => sum + r.averageScore, 0) / totalResponses
-
-  const threshold = surveyStore.adminSettings.reviewThreshold
-  const highScoreCount = responses.filter(r => r.averageScore >= threshold).length
-  const reviewRedirectRate = (highScoreCount / totalResponses) * 100
-
-  const scoreDistribution = [0, 0, 0, 0, 0]
-  responses.forEach(response => {
-    const bucket = Math.round(response.averageScore) - 1
-    if (bucket >= 0 && bucket < 5) {
-      const idx = bucket as 0 | 1 | 2 | 3 | 4
-      scoreDistribution[idx] = (scoreDistribution[idx] ?? 0) + 1
-    }
-  })
-
-  return {
-    totalResponses,
-    averageScore,
-    reviewRedirectRate,
-    scoreDistribution
-  }
-})
+const stats = computed(() =>
+  computeSurveyStats(surveyStore.responsesWithEvents, surveyStore.adminSettings.reviewThreshold)
+)
 
 onMounted(async () => {
   await surveyStore.loadAllData()
@@ -202,17 +172,7 @@ async function handleSaveSettings() {
 
 function getEventStats(event: Event) {
   const eventResponses = surveyStore.responsesWithEvents.filter(r => r.eventId === event.id)
-  const count = eventResponses.length
-
-  if (count === 0) {
-    return { count, averageScore: 0, reviewRedirectRate: 0 }
-  }
-
-  const averageScore = eventResponses.reduce((sum, r) => sum + r.averageScore, 0) / count
-  const highScoreCount = eventResponses.filter(r => r.averageScore >= 4.0).length
-  const reviewRedirectRate = (highScoreCount / count) * 100
-
-  return { count, averageScore, reviewRedirectRate }
+  return computeEventStats(eventResponses)
 }
 
 function toggleExpand(responseId: string | null) {

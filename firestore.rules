@@ -117,6 +117,13 @@ service cloud.firestore {
       allow read, write: if isRealUser();
     }
 
+    // MCP API keys (remote connector access) — only ever written/read via the Admin
+    // SDK (api/mcp/keys.ts, api/mcp/index.ts), which bypasses these rules entirely.
+    // Explicit deny here is just documentation: the client SDK must never touch this.
+    match /mcpApiKeys/{id} {
+      allow read, write: if false;
+    }
+
     // NOTE: there is intentionally no generic `match /{collection}/{document=**}`
     // catch-all here. Firestore composes rules additively — if any matching block
     // allows a request, it's allowed — so a broad catch-all does not act as a
