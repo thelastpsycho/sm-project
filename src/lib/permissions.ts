@@ -91,6 +91,11 @@ export const PERMISSION_CATALOG: PermissionGroup[] = [
     actions: [{ key: 'view', label: 'View' }]
   },
   {
+    resource: 'mcp',
+    label: 'MCP Access',
+    actions: [{ key: 'access', label: 'Access' }]
+  },
+  {
     resource: 'users',
     label: 'Team & Access',
     adminOnly: true,
@@ -166,7 +171,7 @@ const SALES_BASE: Permission[] = [
 
 export const DEFAULT_ROLE_PERMISSIONS: RoleMatrix = {
   admin: [...ALL_PERMISSIONS],
-  manager: [...SALES_BASE, 'pipeline:edit', 'reports:team', 'analytics:view'],
+  manager: [...SALES_BASE, 'pipeline:edit', 'reports:team', 'analytics:view', 'mcp:access'],
   sales: [...SALES_BASE],
   viewer: [...VIEW_ALL]
 }

@@ -113,18 +113,23 @@
 
       <p v-if="listError" class="mt-4 text-xs text-sm-bad">{{ listError }}</p>
 
+      <p v-if="scope === 'all'" class="mt-6 text-xs text-sm-faint">
+        Showing every user's keys (admin view).
+      </p>
+
       <div v-if="loading" class="text-center py-16 text-sm-faint">Loading…</div>
 
       <div v-else-if="keys.length === 0" class="text-center py-16 text-sm-faint text-sm">
         No API keys yet. Create one to connect an MCP client.
       </div>
 
-      <div v-else class="mt-6">
+      <div v-else class="mt-4">
         <div class="hidden lg:flex items-center gap-3 px-1 py-3 border-b border-sm-line dark:border-white/10 sm-eyebrow">
-          <span class="flex-[1.6]">Label</span>
-          <span class="flex-[1.2]">Created</span>
-          <span class="flex-[1.2]">Last used</span>
-          <span class="flex-[0.9] text-right">Status</span>
+          <span class="flex-[1.4]">Label</span>
+          <span v-if="scope === 'all'" class="flex-[1.4]">Owner</span>
+          <span class="flex-[1.1]">Created</span>
+          <span class="flex-[1.1]">Last used</span>
+          <span class="flex-[0.8] text-right">Status</span>
           <span class="w-[56px]"></span>
         </div>
 
@@ -134,16 +139,20 @@
           class="flex items-center gap-3 px-1 py-3.5 border-b border-sm-hair dark:border-white/5"
           :class="{ 'opacity-50': k.revoked }"
         >
-          <div class="min-w-0 flex-1 lg:flex-[1.6]">
+          <div class="min-w-0 flex-1 lg:flex-[1.4]">
             <p class="text-smd font-bold text-sm-ink dark:text-white truncate">{{ k.label || 'Unlabeled key' }}</p>
-            <p class="lg:hidden text-xs text-sm-muted">
+            <p class="lg:hidden text-xs text-sm-muted truncate">
+              <template v-if="scope === 'all'">{{ k.ownerName || k.ownerEmail }} · </template>
               {{ formatDate(k.createdAt) }} · {{ k.lastUsedAt ? formatDate(k.lastUsedAt) : 'Never used' }}
             </p>
           </div>
-          <span class="hidden lg:block flex-[1.2] text-sm text-sm-ink-soft dark:text-gray-300">{{ formatDate(k.createdAt) }}</span>
-          <span class="hidden lg:block flex-[1.2] text-sm text-sm-ink-soft dark:text-gray-300">{{ k.lastUsedAt ? formatDate(k.lastUsedAt) : 'Never used' }}</span>
+          <span v-if="scope === 'all'" class="hidden lg:block flex-[1.4] text-sm text-sm-ink-soft dark:text-gray-300 truncate">
+            {{ k.ownerName || k.ownerEmail || '—' }}
+          </span>
+          <span class="hidden lg:block flex-[1.1] text-sm text-sm-ink-soft dark:text-gray-300">{{ formatDate(k.createdAt) }}</span>
+          <span class="hidden lg:block flex-[1.1] text-sm text-sm-ink-soft dark:text-gray-300">{{ k.lastUsedAt ? formatDate(k.lastUsedAt) : 'Never used' }}</span>
           <span
-            class="hidden lg:block flex-[0.9] text-right text-eyebrow font-bold uppercase tracking-[0.06em]"
+            class="hidden lg:block flex-[0.8] text-right text-eyebrow font-bold uppercase tracking-[0.06em]"
             :class="k.revoked ? 'text-sm-faint' : 'text-sm-won'"
             >{{ k.revoked ? 'Revoked' : 'Active' }}</span
           >
@@ -257,7 +266,7 @@ import { PlusIcon, NoSymbolIcon, ClipboardDocumentIcon, CheckIcon } from '@heroi
 import SmButton from '@/components/ui/SmButton.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
-import { mcpKeysApi, type McpKeySummary } from '@/lib/mcpApi'
+import { mcpKeysApi, type McpKeySummary, type McpKeysListResult } from '@/lib/mcpApi'
 import { useHead } from '@vueuse/head'
 
 useHead({
@@ -284,6 +293,7 @@ const clientTabs: { key: ClientTab; label: string }[] = [
 const activeClientTab = ref<ClientTab>('cli')
 
 const keys = ref<McpKeySummary[]>([])
+const scope = ref<'all' | 'own'>('own')
 const loading = ref(false)
 const listError = ref('')
 
@@ -291,8 +301,9 @@ async function loadKeys() {
   loading.value = true
   listError.value = ''
   try {
-    const data = await mcpKeysApi('list')
+    const data: McpKeysListResult = await mcpKeysApi('list')
     keys.value = data.keys ?? []
+    scope.value = data.scope ?? 'own'
   } catch (err: any) {
     listError.value = err?.message ?? 'Could not load keys.'
   } finally {
@@ -367,7 +378,8 @@ const confirm = reactive({
 
 function askRevoke(k: McpKeySummary) {
   confirm.title = `Revoke “${k.label || 'this key'}”?`
-  confirm.message = 'Any client using this key will immediately lose access. This can\'t be undone.'
+  const owner = scope.value === 'all' ? ` belonging to ${k.ownerName || k.ownerEmail || 'another user'}` : ''
+  confirm.message = `Any client using this key${owner} will immediately lose access. This can't be undone.`
   confirm.action = async () => {
     confirm.loading = true
     listError.value = ''

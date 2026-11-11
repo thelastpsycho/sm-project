@@ -11,10 +11,11 @@
 // processes and tool calls here don't need multi-turn session state.
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { Firestore } from 'firebase-admin/firestore'
 import { getAuth } from 'firebase-admin/auth'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { db, loadRoleMatrix } from '../cron/_shared.js'
+import { db, loadRoleMatrix, roleGrants, effectiveRole } from '../cron/_shared.js'
 import { generateApiKey, resolveMcpCaller } from './_shared.js'
 import { registerCrmTools } from './_tools/crmTools.js'
 import { registerFunctionChartTools } from './_tools/functionChartTools.js'
@@ -24,25 +25,46 @@ export const config = { maxDuration: 30 }
 
 const KEY_ACTIONS = new Set(['create', 'list', 'revoke'])
 
-async function verifyFirebaseUser(req: VercelRequest): Promise<{ uid: string } | null> {
+interface FirebaseCaller {
+  uid: string
+  email: string
+  name: string
+  role: string
+  isAdmin: boolean
+}
+
+async function verifyFirebaseUser(req: VercelRequest, store: Firestore): Promise<FirebaseCaller | null> {
   const header = req.headers['authorization']
   const token = typeof header === 'string' && header.startsWith('Bearer ') ? header.slice(7) : null
   if (!token) return null
   try {
     const decoded = await getAuth().verifyIdToken(token)
-    return { uid: decoded.uid }
+    const userDoc = await store.collection('users').doc(decoded.uid).get()
+    const data = userDoc.data() as { email?: string; name?: string; role?: string } | undefined
+    const email = data?.email ?? decoded.email ?? ''
+    const role = effectiveRole({ email, role: data?.role })
+    return { uid: decoded.uid, email, name: data?.name ?? '', role, isAdmin: role === 'admin' }
   } catch {
     return null
   }
 }
 
-/** Self-service MCP API key lifecycle, gated by a normal Firebase ID token (not an MCP key). */
+/**
+ * Self-service MCP API key lifecycle, gated by a normal Firebase ID token (not an MCP
+ * key) and the `mcp:access` permission. Admins see and can revoke every user's keys;
+ * everyone else only their own.
+ */
 async function handleKeyAction(req: VercelRequest, res: VercelResponse, body: Record<string, any>) {
   // db() also ensures the firebase-admin app is initialized — must run before
   // getAuth() below, which otherwise throws on a cold instance with no app yet.
   const store = db()
-  const caller = await verifyFirebaseUser(req)
+  const caller = await verifyFirebaseUser(req, store)
   if (!caller) return res.status(401).json({ error: 'Unauthorized' })
+
+  const matrix = await loadRoleMatrix(store)
+  if (!roleGrants(matrix, { email: caller.email, role: caller.role }, 'mcp:access')) {
+    return res.status(403).json({ error: 'Your role does not have MCP access.' })
+  }
 
   const { action } = body
 
@@ -52,6 +74,8 @@ async function handleKeyAction(req: VercelRequest, res: VercelResponse, body: Re
       const { raw, hash } = generateApiKey()
       await store.collection('mcpApiKeys').doc(hash).set({
         uid: caller.uid,
+        ownerName: caller.name,
+        ownerEmail: caller.email,
         label,
         createdAt: new Date(),
         lastUsedAt: null,
@@ -62,18 +86,23 @@ async function handleKeyAction(req: VercelRequest, res: VercelResponse, body: Re
     }
 
     if (action === 'list') {
-      const snap = await store.collection('mcpApiKeys').where('uid', '==', caller.uid).get()
+      const query = caller.isAdmin
+        ? store.collection('mcpApiKeys')
+        : store.collection('mcpApiKeys').where('uid', '==', caller.uid)
+      const snap = await query.get()
       const keys = snap.docs.map(d => {
         const data = d.data()
         return {
           keyId: d.id,
           label: data.label ?? '',
+          ownerName: data.ownerName ?? '',
+          ownerEmail: data.ownerEmail ?? '',
           createdAt: data.createdAt?.toDate?.() ?? null,
           lastUsedAt: data.lastUsedAt?.toDate?.() ?? null,
           revoked: !!data.revoked
         }
       })
-      return res.status(200).json({ ok: true, keys })
+      return res.status(200).json({ ok: true, keys, scope: caller.isAdmin ? 'all' : 'own' })
     }
 
     if (action === 'revoke') {
@@ -81,7 +110,8 @@ async function handleKeyAction(req: VercelRequest, res: VercelResponse, body: Re
       if (!keyId || typeof keyId !== 'string') return res.status(400).json({ error: 'keyId required' })
       const ref = store.collection('mcpApiKeys').doc(keyId)
       const snap = await ref.get()
-      if (!snap.exists || snap.data()?.uid !== caller.uid) {
+      if (!snap.exists) return res.status(404).json({ error: 'Key not found' })
+      if (!caller.isAdmin && snap.data()?.uid !== caller.uid) {
         return res.status(404).json({ error: 'Key not found' })
       }
       await ref.update({ revoked: true })

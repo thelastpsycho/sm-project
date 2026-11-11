@@ -57,8 +57,7 @@ export const NAV_ITEMS: NavItem[] = [
   { name: 'Survey Admin', to: '/survey/admin', icon: ClipboardDocumentIcon, permission: 'survey:view' },
   { name: 'Company Analytics', to: '/analytics/companies', icon: BuildingOffice2Icon, permission: 'analytics:view' },
   { name: 'Team & Access', to: '/users', icon: UsersIcon, permission: 'users:access' },
-  // No permission gate — self-service, every signed-in user manages their own keys.
-  { name: 'MCP Access', to: '/mcp', icon: KeyIcon }
+  { name: 'MCP Access', to: '/mcp', icon: KeyIcon, permission: 'mcp:access' }
 ]
 
 /** Flattens groups back into a single list — used by BottomNav (mobile has room). */
