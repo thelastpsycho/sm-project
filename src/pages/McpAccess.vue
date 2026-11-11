@@ -32,19 +32,82 @@
             <component :is="copiedId === 'url' ? CheckIcon : ClipboardDocumentIcon" class="w-4 h-4" />
           </button>
         </div>
-        <p class="text-xs text-sm-faint mt-3">
-          Register it with Claude Code using a key from below:
-        </p>
-        <div class="flex items-center gap-2 mt-1">
-          <code class="flex-1 min-w-0 truncate text-xs text-sm-muted bg-sm-surface dark:bg-white/5 rounded-lg px-3 py-2">{{ sampleCommand }}</code>
+      </div>
+
+      <!-- How to connect -->
+      <div class="mt-5">
+        <p class="sm-eyebrow mb-2">How to connect</p>
+        <div class="flex flex-wrap gap-2 border-b border-sm-line dark:border-white/10 pb-3" role="tablist" aria-label="MCP client setup">
           <button
+            v-for="tab in clientTabs"
+            :key="tab.key"
             type="button"
-            class="p-2 rounded-full text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-white/5 transition-colors shrink-0"
-            title="Copy command"
-            @click="copy(sampleCommand, 'cmd')"
+            role="tab"
+            :aria-selected="activeClientTab === tab.key"
+            class="rounded-lg px-3.5 py-2 text-xs font-bold tracking-wide transition-colors"
+            :class="
+              activeClientTab === tab.key
+                ? 'bg-sm-ink text-white dark:bg-white dark:text-sm-ink'
+                : 'text-sm-muted hover:bg-sm-surface dark:hover:bg-white/5'
+            "
+            @click="activeClientTab = tab.key"
           >
-            <component :is="copiedId === 'cmd' ? CheckIcon : ClipboardDocumentIcon" class="w-4 h-4" />
+            {{ tab.label }}
           </button>
+        </div>
+
+        <!-- Claude Code / Cursor -->
+        <div v-if="activeClientTab === 'cli'" class="rounded-b-2xl border border-t-0 border-sm-line dark:border-white/10 p-4">
+          <p class="text-sm text-sm-muted mb-3">
+            These clients take a remote MCP server and a custom header directly on the command line.
+          </p>
+          <div class="flex items-center gap-2">
+            <code class="flex-1 min-w-0 break-all text-xs text-sm-muted bg-sm-surface dark:bg-white/5 rounded-lg px-3 py-2">{{ sampleCommand }}</code>
+            <button
+              type="button"
+              class="p-2 rounded-full text-sm-muted hover:text-sm-ink dark:hover:text-white hover:bg-sm-surface dark:hover:bg-white/5 transition-colors shrink-0"
+              title="Copy command"
+              @click="copy(sampleCommand, 'cmd')"
+            >
+              <component :is="copiedId === 'cmd' ? CheckIcon : ClipboardDocumentIcon" class="w-4 h-4" />
+            </button>
+          </div>
+          <p class="text-xs text-sm-faint mt-3">
+            Replace <code>&lt;your-key&gt;</code> with a key from below. Works the same way in Claude Code, and in Cursor's
+            <code>mcp.json</code> (as the <code>Authorization</code> header).
+          </p>
+        </div>
+
+        <!-- Claude.ai / Claude Desktop -->
+        <div v-else-if="activeClientTab === 'claude-app'" class="rounded-b-2xl border border-t-0 border-sm-line dark:border-white/10 p-4">
+          <p class="text-sm text-sm-muted mb-3">
+            Claude.ai and Claude Desktop support custom connectors with a fixed request header — no OAuth needed.
+          </p>
+          <ol class="list-decimal list-inside space-y-1.5 text-sm text-sm-ink-soft dark:text-gray-300">
+            <li>Go to <strong>Settings → Connectors</strong> (Team/Enterprise: <strong>Organization settings → Connectors</strong>).</li>
+            <li>Click <strong>Add</strong> → <strong>Custom</strong> → <strong>Web</strong>, give it a name, and paste the server URL above.</li>
+            <li>For <strong>Authentication</strong>, choose <strong>No sign-in</strong>.</li>
+            <li>
+              Under <strong>Request headers</strong>, add header
+              <code class="text-xs bg-sm-surface dark:bg-white/5 rounded px-1.5 py-0.5">Authorization</code>
+              with value <code class="text-xs bg-sm-surface dark:bg-white/5 rounded px-1.5 py-0.5">Bearer &lt;your-key&gt;</code> (a key from below).
+            </li>
+            <li>Click <strong>Add</strong> to finish.</li>
+          </ol>
+          <p class="text-xs text-sm-faint mt-3">
+            If you don't see a Request headers field, this feature is still rolling out on some accounts — it may take
+            a little longer to appear.
+          </p>
+        </div>
+
+        <!-- ChatGPT -->
+        <div v-else class="rounded-b-2xl border border-t-0 border-sm-line dark:border-white/10 p-4">
+          <p class="text-sm text-sm-muted">
+            ChatGPT's custom connectors currently only offer <strong>OAuth</strong> or <strong>no authentication</strong> —
+            there's no reliable field for a static API key or bearer token today. This server can't be connected
+            directly to ChatGPT until that changes (or until we put an OAuth layer in front of it, which isn't built
+            yet). Claude Code, Claude Desktop, claude.ai, and Cursor all work now.
+          </p>
         </div>
       </div>
 
@@ -211,6 +274,14 @@ const serverUrl = computed(() => `${window.location.origin}/api/mcp`)
 const sampleCommand = computed(
   () => `claude mcp add --transport http sm-anvaya ${serverUrl.value} --header "Authorization: Bearer <your-key>"`
 )
+
+type ClientTab = 'cli' | 'claude-app' | 'chatgpt'
+const clientTabs: { key: ClientTab; label: string }[] = [
+  { key: 'cli', label: 'Claude Code / Cursor' },
+  { key: 'claude-app', label: 'Claude.ai / Desktop' },
+  { key: 'chatgpt', label: 'ChatGPT' }
+]
+const activeClientTab = ref<ClientTab>('cli')
 
 const keys = ref<McpKeySummary[]>([])
 const loading = ref(false)
