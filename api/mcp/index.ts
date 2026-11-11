@@ -38,10 +38,12 @@ async function verifyFirebaseUser(req: VercelRequest): Promise<{ uid: string } |
 
 /** Self-service MCP API key lifecycle, gated by a normal Firebase ID token (not an MCP key). */
 async function handleKeyAction(req: VercelRequest, res: VercelResponse, body: Record<string, any>) {
+  // db() also ensures the firebase-admin app is initialized — must run before
+  // getAuth() below, which otherwise throws on a cold instance with no app yet.
+  const store = db()
   const caller = await verifyFirebaseUser(req)
   if (!caller) return res.status(401).json({ error: 'Unauthorized' })
 
-  const store = db()
   const { action } = body
 
   try {
