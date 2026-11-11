@@ -1,6 +1,12 @@
 import { UAParser } from 'ua-parser-js'
 import type { ResponseMetadata } from '@/types/survey'
 
+// Firestore's addDoc() rejects any field whose value is literally `undefined`,
+// so optional metadata must be dropped rather than set to undefined.
+function stripUndefined<T extends object>(obj: T): T {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as T
+}
+
 // Everything readable synchronously from the browser — no network round trip, so this
 // is safe to call right before submit.
 export function getClientMetadata(): ResponseMetadata {
@@ -13,7 +19,7 @@ export function getClientMetadata(): ResponseMetadata {
 
   const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection
 
-  return {
+  return stripUndefined({
     browserName: ua.browser.name,
     browserVersion: ua.browser.version,
     // Unset means a regular browser; ua-parser-js only fills this in to flag
@@ -32,7 +38,7 @@ export function getClientMetadata(): ResponseMetadata {
     referrer: document.referrer || undefined,
     urlParams: Object.keys(urlParams).length ? urlParams : undefined,
     connectionType: connection?.effectiveType
-  }
+  })
 }
 
 // Country/region/city only exist server-side, read off the request's Vercel geo
@@ -43,11 +49,11 @@ export async function getGeoMetadata(): Promise<Partial<ResponseMetadata>> {
     const res = await fetch('/api/survey/geo')
     if (!res.ok) return {}
     const data = await res.json()
-    return {
+    return stripUndefined({
       geoCountry: data.country || undefined,
       geoRegion: data.region || undefined,
       geoCity: data.city || undefined
-    }
+    })
   } catch {
     return {}
   }
