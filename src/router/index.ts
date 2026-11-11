@@ -106,6 +106,13 @@ const router = createRouter({
       meta: { requiresPermission: 'function:view' }
     },
     {
+      path: '/mcp',
+      name: 'mcp-access',
+      // Self-service — no permission gate. A key only ever carries the signed-in
+      // user's own role, so there's nothing extra to protect here.
+      component: () => import('@/pages/McpAccess.vue')
+    },
+    {
       path: '/login',
       name: 'login',
       component: Login

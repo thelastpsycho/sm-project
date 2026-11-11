@@ -15,7 +15,8 @@ import {
   SparklesIcon,
   ExclamationCircleIcon,
   CheckBadgeIcon,
-  BuildingOffice2Icon
+  BuildingOffice2Icon,
+  KeyIcon
 } from '@heroicons/vue/24/outline'
 import type { Permission } from '@/lib/permissions'
 
@@ -55,7 +56,9 @@ export const NAV_ITEMS: NavItem[] = [
   { name: 'Contract', to: '/contract', icon: DocumentTextIcon, permission: 'contract:access' },
   { name: 'Survey Admin', to: '/survey/admin', icon: ClipboardDocumentIcon, permission: 'survey:view' },
   { name: 'Company Analytics', to: '/analytics/companies', icon: BuildingOffice2Icon, permission: 'analytics:view' },
-  { name: 'Team & Access', to: '/users', icon: UsersIcon, permission: 'users:access' }
+  { name: 'Team & Access', to: '/users', icon: UsersIcon, permission: 'users:access' },
+  // No permission gate — self-service, every signed-in user manages their own keys.
+  { name: 'MCP Access', to: '/mcp', icon: KeyIcon }
 ]
 
 /** Flattens groups back into a single list — used by BottomNav (mobile has room). */
