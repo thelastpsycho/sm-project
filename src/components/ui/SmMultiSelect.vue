@@ -35,6 +35,14 @@
         >
           {{ allFilteredSelected ? 'Clear all' : search ? 'Select all (filtered)' : 'Select all' }}
         </button>
+        <button
+          v-if="modelValue.length"
+          type="button"
+          class="w-full text-left px-3 py-1.5 text-xsm font-bold text-sm-muted hover:bg-sm-surface dark:hover:bg-white/5"
+          @click="clearSelection"
+        >
+          Clear selection
+        </button>
         <label
           v-for="opt in filteredOptions"
           :key="opt.value"
@@ -123,6 +131,11 @@ function toggleAll(): void {
   } else {
     emit('update:modelValue', [...new Set([...props.modelValue, ...filteredValues])])
   }
+}
+
+/** Unlike toggleAll, always clears the full selection regardless of search filtering. */
+function clearSelection(): void {
+  emit('update:modelValue', [])
 }
 
 function onClickOutside(e: MouseEvent): void {
