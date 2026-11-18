@@ -3,7 +3,7 @@
 // The Revenue Console's RMS API is browser-unreachable by design (CORS locked to its
 // own origins, session cookie is SameSite=Strict) — so these Vercel functions act as a
 // same-origin relay: the Vue app calls /api/rms/*, we log into RMS server-side with the
-// PIN, hold the session cookie, and forward the request.
+// operator username/password, hold the session cookie, and forward the request.
 //
 // Session cookie caching is per-function-instance (module scope), not shared across
 // room-types/pace/reports or across cold starts — each warm instance re-logs in at most
@@ -59,15 +59,16 @@ function baseUrl(): string {
 }
 
 async function login(): Promise<string> {
-  const pin = process.env.RMS_PIN
-  if (!pin) throw new RmsError(503, 'RMS_PIN is not configured')
+  const username = process.env.RMS_USERNAME
+  const password = process.env.RMS_PASSWORD
+  if (!username || !password) throw new RmsError(503, 'RMS_USERNAME/RMS_PASSWORD is not configured')
 
   let res: Response
   try {
     res = await fetch(`${baseUrl()}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin })
+      body: JSON.stringify({ username, password })
     })
   } catch {
     throw new RmsError(503, 'RMS backend unreachable')
