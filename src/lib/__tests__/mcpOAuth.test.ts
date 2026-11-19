@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { Timestamp, type Firestore } from 'firebase-admin/firestore'
+import { FieldPath, Timestamp, type Firestore } from 'firebase-admin/firestore'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { handleOAuth, oauthConfig, resolveOAuthCaller } from '../../../api/mcp/_oauth'
+import { handleOAuth, listOAuthConnections, oauthConfig, resolveOAuthCaller, revokeOAuthConnection } from '../../../api/mcp/_oauth'
 import { generateApiKey, resolveMcpCaller } from '../../../api/mcp/_shared'
 
 const firebase = vi.hoisted(() => ({
@@ -19,7 +19,36 @@ const CHALLENGE = createHash('sha256').update(VERIFIER).digest('base64url')
 
 function testStore() {
   const records = new Map<string, Record<string, unknown>>()
+
+  function matchesFilter(id: string, data: Record<string, unknown>, field: unknown, op: string, value: unknown) {
+    const actual = field instanceof FieldPath ? id : data[field as string]
+    if (op === '==') return actual === value
+    if (op === '>=') return (actual as string) >= (value as string)
+    if (op === '<') return (actual as string) < (value as string)
+    throw new Error('Unsupported query operator: ' + op)
+  }
+
+  function buildQuery(name: string, filters: Array<[unknown, string, unknown]>) {
+    return {
+      where(field: unknown, op: string, value: unknown) {
+        return buildQuery(name, [...filters, [field, op, value]])
+      },
+      async get() {
+        const prefix = name + '/'
+        const docs = [...records.entries()]
+          .filter(([path]) => path.startsWith(prefix))
+          .map(([path, data]) => ({ id: path.slice(prefix.length), data }))
+          .filter(({ id, data }) => filters.every(([field, op, value]) => matchesFilter(id, data, field, op, value)))
+          .map(({ id, data }) => ({ id, data: () => data }))
+        return { docs }
+      }
+    }
+  }
+
   const collection = (name: string) => ({
+    where(field: unknown, op: string, value: unknown) {
+      return buildQuery(name, [[field, op, value]])
+    },
     doc(id: string) {
       const path = name + '/' + id
       const get = async () => ({ data: () => records.get(path), exists: records.has(path), ref })
@@ -135,7 +164,9 @@ beforeEach(async () => {
     uid: 'staff', auth_time: 1_700_000_000, firebase: { sign_in_provider: 'password' }
   })
   firebase.getUser.mockResolvedValue({ email: 'staff@example.com', disabled: false })
-  await store.collection('users').doc('staff').set({ role: 'manager', status: 'active' })
+  await store.collection('users').doc('staff').set({
+    role: 'manager', status: 'active', name: 'Staff Member', email: 'staff@example.com'
+  })
 })
 
 afterEach(() => vi.unstubAllEnvs())
@@ -212,5 +243,42 @@ describe('MCP OAuth', () => {
     await store.collection('mcpApiKeys').doc(key.hash).set({ uid: 'staff', revoked: false })
     const req = { headers: { authorization: 'Bearer ' + key.raw } } as VercelRequest
     expect(await resolveMcpCaller(req, store.db)).toMatchObject({ uid: 'staff', role: 'manager' })
+  })
+
+  it('lists active OAuth connections and lets the owner revoke one', async () => {
+    const config = oauthConfig()!
+    const client = await register()
+    const code = await authorizeAndApprove(client)
+    const { payload: tokens } = await exchange(client, code)
+
+    const [connection] = await listOAuthConnections(store.db, config, 'staff')
+    expect(connection).toMatchObject({
+      clientName: 'Test client', uid: 'staff', ownerName: 'Staff Member', ownerEmail: 'staff@example.com'
+    })
+
+    // Someone else can't see or revoke another user's connection.
+    expect(await listOAuthConnections(store.db, config, 'someone-else')).toHaveLength(0)
+    expect(await revokeOAuthConnection(store.db, config, connection.familyId, 'someone-else', false)).toBe(false)
+    expect(await listOAuthConnections(store.db, config, 'staff')).toHaveLength(1)
+
+    // An admin can see and revoke it regardless of owner.
+    expect(await listOAuthConnections(store.db, config, null)).toHaveLength(1)
+    expect(await revokeOAuthConnection(store.db, config, connection.familyId, 'someone-else', true)).toBe(true)
+
+    expect(await listOAuthConnections(store.db, config, 'staff')).toHaveLength(0)
+    expect(await resolveOAuthCaller(tokens.access_token!, store.db, config)).toBeNull()
+    expect((await refresh(client, tokens.refresh_token!)).payload.error).toBe('invalid_grant')
+  })
+
+  it('lets the owner revoke their own connection directly', async () => {
+    const config = oauthConfig()!
+    const client = await register()
+    const code = await authorizeAndApprove(client)
+    const { payload: tokens } = await exchange(client, code)
+    const [connection] = await listOAuthConnections(store.db, config, 'staff')
+
+    expect(await revokeOAuthConnection(store.db, config, connection.familyId, 'staff', false)).toBe(true)
+    expect(await resolveOAuthCaller(tokens.access_token!, store.db, config)).toBeNull()
+    expect(await listOAuthConnections(store.db, config, 'staff')).toHaveLength(0)
   })
 })

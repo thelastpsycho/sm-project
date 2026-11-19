@@ -101,10 +101,19 @@
         </div>
 
         <!-- ChatGPT -->
-        <div v-else class="rounded-b-2xl border border-t-0 border-sm-line dark:border-white/10 p-4">
+        <div v-else-if="activeClientTab === 'chatgpt'" class="rounded-b-2xl border border-t-0 border-sm-line dark:border-white/10 p-4">
           <ol class="list-decimal list-inside space-y-1.5 text-sm text-sm-ink-soft dark:text-gray-300">
             <li>Create a custom MCP connector and paste the server URL above.</li>
             <li>Choose <strong>OAuth</strong> and let ChatGPT register the client automatically.</li>
+            <li>Sign in with your ANVAYA account, then review and approve access.</li>
+          </ol>
+        </div>
+
+        <!-- Gemini -->
+        <div v-else class="rounded-b-2xl border border-t-0 border-sm-line dark:border-white/10 p-4">
+          <ol class="list-decimal list-inside space-y-1.5 text-sm text-sm-ink-soft dark:text-gray-300">
+            <li>In Gemini, open <strong>Settings → Apps</strong> and add a custom MCP connector with the server URL above.</li>
+            <li>Choose <strong>OAuth</strong> and let Gemini register the client automatically.</li>
             <li>Sign in with your ANVAYA account, then review and approve access.</li>
           </ol>
         </div>
@@ -113,61 +122,104 @@
       <p v-if="listError" class="mt-4 text-xs text-sm-bad">{{ listError }}</p>
 
       <p v-if="scope === 'all'" class="mt-6 text-xs text-sm-faint">
-        Showing every user's keys (admin view).
+        Showing every user's keys and connections (admin view).
       </p>
 
       <div v-if="loading" class="text-center py-16 text-sm-faint">Loading…</div>
 
-      <div v-else-if="keys.length === 0" class="text-center py-16 text-sm-faint text-sm">
-        No API keys yet. Create one to connect an MCP client.
-      </div>
-
-      <div v-else class="mt-4">
-        <div class="hidden lg:flex items-center gap-3 px-1 py-3 border-b border-sm-line dark:border-white/10 sm-eyebrow">
-          <span class="flex-[1.4]">Label</span>
-          <span v-if="scope === 'all'" class="flex-[1.4]">Owner</span>
-          <span class="flex-[1.1]">Created</span>
-          <span class="flex-[1.1]">Last used</span>
-          <span class="flex-[0.8] text-right">Status</span>
-          <span class="w-[56px]"></span>
-        </div>
-
-        <div
-          v-for="k in keys"
-          :key="k.keyId"
-          class="flex items-center gap-3 px-1 py-3.5 border-b border-sm-hair dark:border-white/5"
-          :class="{ 'opacity-50': k.revoked }"
-        >
-          <div class="min-w-0 flex-1 lg:flex-[1.4]">
-            <p class="text-smd font-bold text-sm-ink dark:text-white truncate">{{ k.label || 'Unlabeled key' }}</p>
-            <p class="lg:hidden text-xs text-sm-muted truncate">
-              <template v-if="scope === 'all'">{{ k.ownerName || k.ownerEmail }} · </template>
-              {{ formatDate(k.createdAt) }} · {{ k.lastUsedAt ? formatDate(k.lastUsedAt) : 'Never used' }}
-            </p>
+      <template v-else>
+        <!-- Connected apps (OAuth sessions, e.g. ChatGPT, Gemini) -->
+        <div v-if="connections.length > 0" class="mt-8">
+          <p class="sm-eyebrow mb-2">Connected apps</p>
+          <div class="hidden lg:flex items-center gap-3 px-1 py-3 border-b border-sm-line dark:border-white/10 sm-eyebrow">
+            <span class="flex-[1.4]">Client</span>
+            <span v-if="scope === 'all'" class="flex-[1.4]">Owner</span>
+            <span class="flex-[1.1]">Expires</span>
+            <span class="w-[56px]"></span>
           </div>
-          <span v-if="scope === 'all'" class="hidden lg:block flex-[1.4] text-sm text-sm-ink-soft dark:text-gray-300 truncate">
-            {{ k.ownerName || k.ownerEmail || '—' }}
-          </span>
-          <span class="hidden lg:block flex-[1.1] text-sm text-sm-ink-soft dark:text-gray-300">{{ formatDate(k.createdAt) }}</span>
-          <span class="hidden lg:block flex-[1.1] text-sm text-sm-ink-soft dark:text-gray-300">{{ k.lastUsedAt ? formatDate(k.lastUsedAt) : 'Never used' }}</span>
-          <span
-            class="hidden lg:block flex-[0.8] text-right text-eyebrow font-bold uppercase tracking-[0.06em]"
-            :class="k.revoked ? 'text-sm-faint' : 'text-sm-won'"
-            >{{ k.revoked ? 'Revoked' : 'Active' }}</span
+
+          <div
+            v-for="c in connections"
+            :key="c.familyId"
+            class="flex items-center gap-3 px-1 py-3.5 border-b border-sm-hair dark:border-white/5"
           >
-          <div class="flex items-center shrink-0 w-[56px] justify-end">
-            <button
-              v-if="!k.revoked"
-              type="button"
-              class="p-2 rounded-full text-sm-bad hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-              title="Revoke"
-              @click="askRevoke(k)"
-            >
-              <NoSymbolIcon class="w-5 h-5" />
-            </button>
+            <div class="min-w-0 flex-1 lg:flex-[1.4]">
+              <p class="text-smd font-bold text-sm-ink dark:text-white truncate">{{ c.clientName }}</p>
+              <p class="lg:hidden text-xs text-sm-muted truncate">
+                <template v-if="scope === 'all'">{{ c.ownerName || c.ownerEmail }} · </template>
+                Expires {{ formatDate(c.expiresAt) }}
+              </p>
+            </div>
+            <span v-if="scope === 'all'" class="hidden lg:block flex-[1.4] text-sm text-sm-ink-soft dark:text-gray-300 truncate">
+              {{ c.ownerName || c.ownerEmail || '—' }}
+            </span>
+            <span class="hidden lg:block flex-[1.1] text-sm text-sm-ink-soft dark:text-gray-300">{{ formatDate(c.expiresAt) }}</span>
+            <div class="flex items-center shrink-0 w-[56px] justify-end">
+              <button
+                type="button"
+                class="p-2 rounded-full text-sm-bad hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                title="Revoke"
+                @click="askRevokeConnection(c)"
+              >
+                <NoSymbolIcon class="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+
+        <!-- API keys -->
+        <p v-if="connections.length > 0 || keys.length > 0" class="sm-eyebrow mb-2 mt-8">API keys</p>
+        <div v-if="keys.length === 0" class="text-center py-16 text-sm-faint text-sm">
+          No API keys yet. Create one to connect an MCP client.
+        </div>
+
+        <div v-else class="mt-4">
+          <div class="hidden lg:flex items-center gap-3 px-1 py-3 border-b border-sm-line dark:border-white/10 sm-eyebrow">
+            <span class="flex-[1.4]">Label</span>
+            <span v-if="scope === 'all'" class="flex-[1.4]">Owner</span>
+            <span class="flex-[1.1]">Created</span>
+            <span class="flex-[1.1]">Last used</span>
+            <span class="flex-[0.8] text-right">Status</span>
+            <span class="w-[56px]"></span>
+          </div>
+
+          <div
+            v-for="k in keys"
+            :key="k.keyId"
+            class="flex items-center gap-3 px-1 py-3.5 border-b border-sm-hair dark:border-white/5"
+            :class="{ 'opacity-50': k.revoked }"
+          >
+            <div class="min-w-0 flex-1 lg:flex-[1.4]">
+              <p class="text-smd font-bold text-sm-ink dark:text-white truncate">{{ k.label || 'Unlabeled key' }}</p>
+              <p class="lg:hidden text-xs text-sm-muted truncate">
+                <template v-if="scope === 'all'">{{ k.ownerName || k.ownerEmail }} · </template>
+                {{ formatDate(k.createdAt) }} · {{ k.lastUsedAt ? formatDate(k.lastUsedAt) : 'Never used' }}
+              </p>
+            </div>
+            <span v-if="scope === 'all'" class="hidden lg:block flex-[1.4] text-sm text-sm-ink-soft dark:text-gray-300 truncate">
+              {{ k.ownerName || k.ownerEmail || '—' }}
+            </span>
+            <span class="hidden lg:block flex-[1.1] text-sm text-sm-ink-soft dark:text-gray-300">{{ formatDate(k.createdAt) }}</span>
+            <span class="hidden lg:block flex-[1.1] text-sm text-sm-ink-soft dark:text-gray-300">{{ k.lastUsedAt ? formatDate(k.lastUsedAt) : 'Never used' }}</span>
+            <span
+              class="hidden lg:block flex-[0.8] text-right text-eyebrow font-bold uppercase tracking-[0.06em]"
+              :class="k.revoked ? 'text-sm-faint' : 'text-sm-won'"
+              >{{ k.revoked ? 'Revoked' : 'Active' }}</span
+            >
+            <div class="flex items-center shrink-0 w-[56px] justify-end">
+              <button
+                v-if="!k.revoked"
+                type="button"
+                class="p-2 rounded-full text-sm-bad hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                title="Revoke"
+                @click="askRevoke(k)"
+              >
+                <NoSymbolIcon class="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- Create key modal -->
@@ -265,7 +317,7 @@ import { PlusIcon, NoSymbolIcon, ClipboardDocumentIcon, CheckIcon } from '@heroi
 import SmButton from '@/components/ui/SmButton.vue'
 import SmInput from '@/components/ui/SmInput.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
-import { mcpKeysApi, type McpKeySummary, type McpKeysListResult } from '@/lib/mcpApi'
+import { mcpKeysApi, type McpConnectionSummary, type McpKeySummary, type McpKeysListResult } from '@/lib/mcpApi'
 import { useHead } from '@vueuse/head'
 
 useHead({
@@ -283,15 +335,17 @@ const sampleCommand = computed(
   () => `claude mcp add --transport http sm-anvaya ${serverUrl.value} --header "Authorization: Bearer <your-key>"`
 )
 
-type ClientTab = 'cli' | 'claude-app' | 'chatgpt'
+type ClientTab = 'cli' | 'claude-app' | 'chatgpt' | 'gemini'
 const clientTabs: { key: ClientTab; label: string }[] = [
   { key: 'cli', label: 'Claude Code / Cursor' },
   { key: 'claude-app', label: 'Claude.ai / Desktop' },
-  { key: 'chatgpt', label: 'ChatGPT' }
+  { key: 'chatgpt', label: 'ChatGPT' },
+  { key: 'gemini', label: 'Gemini' }
 ]
 const activeClientTab = ref<ClientTab>('cli')
 
 const keys = ref<McpKeySummary[]>([])
+const connections = ref<McpConnectionSummary[]>([])
 const scope = ref<'all' | 'own'>('own')
 const loading = ref(false)
 const listError = ref('')
@@ -302,6 +356,7 @@ async function loadKeys() {
   try {
     const data: McpKeysListResult = await mcpKeysApi('list')
     keys.value = data.keys ?? []
+    connections.value = data.connections ?? []
     scope.value = data.scope ?? 'own'
   } catch (err: any) {
     listError.value = err?.message ?? 'Could not load keys.'
@@ -388,6 +443,26 @@ function askRevoke(k: McpKeySummary) {
       confirm.open = false
     } catch (err: any) {
       listError.value = err?.message ?? 'Could not revoke key.'
+    } finally {
+      confirm.loading = false
+    }
+  }
+  confirm.open = true
+}
+
+function askRevokeConnection(c: McpConnectionSummary) {
+  confirm.title = `Revoke access for “${c.clientName}”?`
+  const owner = scope.value === 'all' ? ` for ${c.ownerName || c.ownerEmail || 'another user'}` : ''
+  confirm.message = `This immediately ends the connection${owner}. The client will need to reconnect and get approved again.`
+  confirm.action = async () => {
+    confirm.loading = true
+    listError.value = ''
+    try {
+      await mcpKeysApi('revokeConnection', { familyId: c.familyId })
+      await loadKeys()
+      confirm.open = false
+    } catch (err: any) {
+      listError.value = err?.message ?? 'Could not revoke connection.'
     } finally {
       confirm.loading = false
     }

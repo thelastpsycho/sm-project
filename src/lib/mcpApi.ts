@@ -1,6 +1,6 @@
 import { auth } from '@/lib/firebase'
 
-export type McpKeyAction = 'create' | 'list' | 'revoke'
+export type McpKeyAction = 'create' | 'list' | 'revoke' | 'revokeConnection'
 
 export interface McpKeySummary {
   keyId: string
@@ -12,10 +12,19 @@ export interface McpKeySummary {
   revoked: boolean
 }
 
+export interface McpConnectionSummary {
+  familyId: string
+  clientName: string
+  ownerName: string
+  ownerEmail: string
+  expiresAt: string
+}
+
 export interface McpKeysListResult {
   ok: true
   keys: McpKeySummary[]
-  /** 'all' for admins (every user's keys), 'own' for everyone else. */
+  connections: McpConnectionSummary[]
+  /** 'all' for admins (every user's keys/connections), 'own' for everyone else. */
   scope: 'all' | 'own'
 }
 

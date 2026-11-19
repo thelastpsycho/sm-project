@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { getAuth } from 'firebase-admin/auth'
-import type { Firestore, Timestamp, Transaction } from 'firebase-admin/firestore'
+import { FieldPath, type Firestore, type Timestamp, type Transaction } from 'firebase-admin/firestore'
 import { effectiveRole, loadRoleMatrix, roleGrants } from '../cron/_shared.js'
 import { bearerToken, hashApiKey, type McpCaller } from './_shared.js'
 
@@ -364,6 +364,75 @@ export async function resolveOAuthCaller(token: string, store: Firestore, config
 
 export function oauthChallenge(config: OAuthConfig, error?: 'invalid_token' | 'insufficient_scope') {
   return `Bearer resource_metadata="${config.metadata}", scope="${SCOPE}"` + (error ? `, error="${error}"` : '')
+}
+
+export interface OAuthConnectionSummary {
+  familyId: string
+  clientName: string
+  uid: string
+  ownerName: string
+  ownerEmail: string
+  expiresAt: Date
+}
+
+/**
+ * Active OAuth sessions (token families), for the MCP Access page. Ownership isn't
+ * denormalized onto the family record, so it's read off the still-live refresh
+ * credential each family tracks — works for every family regardless of when it was
+ * created, with no backfill needed.
+ */
+export async function listOAuthConnections(
+  store: Firestore, config: OAuthConfig, uid: string | null
+): Promise<OAuthConnectionSummary[]> {
+  const snap = await store.collection('mcpOAuth')
+    .where(FieldPath.documentId(), '>=', 'family_')
+    .where(FieldPath.documentId(), '<', 'family_')
+    .get()
+  const families = snap.docs
+    .map(d => ({ familyId: d.id.slice('family_'.length), data: d.data() as TokenFamily }))
+    .filter(f => live(f.data))
+
+  const credentialDocs = await Promise.all(families.map(f => document(store, 'credential', f.data.refreshId).get()))
+  const owned = families
+    .map((family, i) => ({ family, owner: credentialDocs[i].data() as Credential | undefined }))
+    .filter(({ owner }) => owner?.resource === config.resource && (!uid || owner.uid === uid))
+
+  const [clientDocs, userDocs] = await Promise.all([
+    Promise.all(owned.map(({ owner }) => document(store, 'client', owner!.clientId).get())),
+    Promise.all(owned.map(({ owner }) => store.collection('users').doc(owner!.uid).get()))
+  ])
+  return owned.map(({ family, owner }, i) => {
+    const client = clientDocs[i].data() as Client | undefined
+    const profile = userDocs[i].data() as { name?: string; email?: string } | undefined
+    return {
+      familyId: family.familyId,
+      clientName: client?.name ?? 'Unknown client',
+      uid: owner!.uid,
+      ownerName: profile?.name ?? '',
+      ownerEmail: profile?.email ?? '',
+      expiresAt: family.data.expiresAt.toDate()
+    }
+  })
+}
+
+/** Revoke one OAuth session (its access + refresh credentials and the family record). */
+export async function revokeOAuthConnection(
+  store: Firestore, config: OAuthConfig, familyId: string, uid: string, isAdmin: boolean
+): Promise<boolean> {
+  if (!ID.test(familyId)) return false
+  const ref = document(store, 'family', familyId)
+  return store.runTransaction(async tx => {
+    const family = (await tx.get(ref)).data() as TokenFamily | undefined
+    if (!family) return false
+    if (!isAdmin) {
+      const owner = (await tx.get(document(store, 'credential', family.refreshId))).data() as Credential | undefined
+      if (!owner || owner.uid !== uid || owner.resource !== config.resource) return false
+    }
+    tx.delete(ref)
+    tx.delete(document(store, 'credential', family.accessId))
+    tx.delete(document(store, 'credential', family.refreshId))
+    return true
+  })
 }
 
 export async function handleOAuth(

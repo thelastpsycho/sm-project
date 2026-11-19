@@ -17,14 +17,17 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { db, loadRoleMatrix, roleGrants, effectiveRole } from '../cron/_shared.js'
 import { bearerToken, generateApiKey, resolveMcpCaller } from './_shared.js'
-import { handleOAuth, isOAuthAccessToken, oauthChallenge, oauthConfig, resolveOAuthCaller } from './_oauth.js'
+import {
+  handleOAuth, isOAuthAccessToken, listOAuthConnections, oauthChallenge, oauthConfig,
+  resolveOAuthCaller, revokeOAuthConnection
+} from './_oauth.js'
 import { registerCrmTools } from './_tools/crmTools.js'
 import { registerFunctionChartTools } from './_tools/functionChartTools.js'
 import { registerSurveyTools } from './_tools/surveyTools.js'
 
 export const config = { maxDuration: 30 }
 
-const KEY_ACTIONS = new Set(['create', 'list', 'revoke'])
+const KEY_ACTIONS = new Set(['create', 'list', 'revoke', 'revokeConnection'])
 
 interface FirebaseCaller {
   uid: string
@@ -103,7 +106,9 @@ async function handleKeyAction(req: VercelRequest, res: VercelResponse, body: Re
           revoked: !!data.revoked
         }
       })
-      return res.status(200).json({ ok: true, keys, scope: caller.isAdmin ? 'all' : 'own' })
+      const oauth = oauthConfig()
+      const connections = oauth ? await listOAuthConnections(store, oauth, caller.isAdmin ? null : caller.uid) : []
+      return res.status(200).json({ ok: true, keys, connections, scope: caller.isAdmin ? 'all' : 'own' })
     }
 
     if (action === 'revoke') {
@@ -116,6 +121,15 @@ async function handleKeyAction(req: VercelRequest, res: VercelResponse, body: Re
         return res.status(404).json({ error: 'Key not found' })
       }
       await ref.update({ revoked: true })
+      return res.status(200).json({ ok: true })
+    }
+
+    if (action === 'revokeConnection') {
+      const { familyId } = body
+      if (!familyId || typeof familyId !== 'string') return res.status(400).json({ error: 'familyId required' })
+      const oauth = oauthConfig()
+      const ok = oauth && await revokeOAuthConnection(store, oauth, familyId, caller.uid, caller.isAdmin)
+      if (!ok) return res.status(404).json({ error: 'Connection not found' })
       return res.status(200).json({ ok: true })
     }
 
