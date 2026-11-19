@@ -16,7 +16,8 @@ import { getAuth } from 'firebase-admin/auth'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { db, loadRoleMatrix, roleGrants, effectiveRole } from '../cron/_shared.js'
-import { generateApiKey, resolveMcpCaller } from './_shared.js'
+import { bearerToken, generateApiKey, resolveMcpCaller } from './_shared.js'
+import { handleOAuth, isOAuthAccessToken, oauthChallenge, oauthConfig, resolveOAuthCaller } from './_oauth.js'
 import { registerCrmTools } from './_tools/crmTools.js'
 import { registerFunctionChartTools } from './_tools/functionChartTools.js'
 import { registerSurveyTools } from './_tools/surveyTools.js'
@@ -125,27 +126,36 @@ async function handleKeyAction(req: VercelRequest, res: VercelResponse, body: Re
 }
 
 async function handleMcpRequest(req: VercelRequest, res: VercelResponse) {
-  const store = db()
-
-  let caller
   try {
-    caller = await resolveMcpCaller(req, store)
-  } catch (err) {
-    console.error('MCP auth error:', err)
-    res.status(500).json({ error: 'Internal error resolving caller' })
-    return
-  }
-  if (!caller) {
-    res.status(401).json({ error: 'Unauthorized. Provide a valid MCP API key as "Authorization: Bearer <key>".' })
-    return
-  }
-  if (caller.status === 'disabled') {
-    res.status(403).json({ error: 'This account is disabled.' })
-    return
-  }
+    const oauth = oauthConfig()
+    const token = bearerToken(req)
+    const usingOAuth = !!token && isOAuthAccessToken(token)
+    const store = token ? db() : null
+    const caller = store && token
+      ? usingOAuth
+        ? oauth && await resolveOAuthCaller(token, store, oauth)
+        : await resolveMcpCaller(req, store)
+      : null
+    if (!caller || !store) {
+      if (oauth) res.setHeader('WWW-Authenticate', oauthChallenge(oauth, token ? 'invalid_token' : undefined))
+      res.status(401).json({
+        error: oauth ? 'Unauthorized. Connect with OAuth or provide a valid MCP API key.'
+          : 'Unauthorized. Provide a valid MCP API key.'
+      })
+      return
+    }
+    if (req.method !== 'POST') {
+      res.setHeader('Allow', 'POST')
+      res.status(405).json({ error: 'This MCP endpoint supports stateless POST requests.' })
+      return
+    }
 
-  try {
     const matrix = await loadRoleMatrix(store)
+    if (usingOAuth && oauth && !roleGrants(matrix, caller, 'mcp:access')) {
+      res.setHeader('WWW-Authenticate', oauthChallenge(oauth, 'insufficient_scope'))
+      res.status(403).json({ error: 'Your role does not have MCP access.' })
+      return
+    }
 
     const server = new McpServer({ name: 'sm-anvaya-mcp', version: '1.0.0' })
     const ctx = { store, caller, matrix }
@@ -170,13 +180,19 @@ async function handleMcpRequest(req: VercelRequest, res: VercelResponse) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed. This endpoint only supports stateless POST requests.' })
+  const route = req.query.oauthRoute
+  if (typeof route === 'string') {
+    try {
+      await handleOAuth(req, res, route, db)
+    } catch (err) {
+      console.error('MCP OAuth request failed:', err instanceof Error ? err.name : 'Unknown error')
+      if (!res.headersSent) res.status(500).json({ error: 'server_error' })
+    }
     return
   }
 
   const body = (req.body || {}) as Record<string, any>
-  if (typeof body.action === 'string' && KEY_ACTIONS.has(body.action)) {
+  if (req.method === 'POST' && typeof body.action === 'string' && KEY_ACTIONS.has(body.action)) {
     await handleKeyAction(req, res, body)
     return
   }

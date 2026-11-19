@@ -47,3 +47,14 @@ export async function mcpKeysApi(action: McpKeyAction, payload: Record<string, u
   }
   return data
 }
+
+export function isMcpRequest(value: unknown): value is string {
+  return typeof value === 'string' && /^[A-Za-z0-9_-]{43}$/.test(value)
+}
+
+export function afterLogin(mcpRequest: unknown) {
+  if (isMcpRequest(mcpRequest)) {
+    return { name: 'mcp-consent', query: { request: mcpRequest } }
+  }
+  return { name: 'home' }
+}

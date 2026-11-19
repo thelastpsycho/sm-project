@@ -44,6 +44,8 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, 'adminSettings', 'config'), { reviewThreshold: 4 })
   await setDoc(doc(db, 'rfps', 'rfp1'), { client_email: 'client@example.com' })
   await setDoc(doc(db, 'functions', 'fn1'), { title: 'Ballroom hold' })
+  await setDoc(doc(db, 'users', 'staff-uid'), { role: 'sales', status: 'active' })
+  await setDoc(doc(db, 'mcpOAuth', 'test-credential'), { uid: 'staff-uid' })
 })
 
 const anon = testEnv.unauthenticatedContext().firestore()
@@ -126,6 +128,23 @@ record(
   await assertSucceeds(updateDoc(doc(staff, 'functions', 'fn1'), { title: 'Ballroom hold v2' }))
     .then(() => true)
     .catch(() => false)
+)
+
+record(
+  'staff can update their own notification settings',
+  await assertSucceeds(updateDoc(doc(staff, 'users', 'staff-uid'), {
+    fcmTokens: ['test-token'], notificationsSeenAt: '2026-11-19T00:00:00Z'
+  })).then(() => true).catch(() => false)
+)
+record(
+  'staff cannot change their own role',
+  await assertFails(updateDoc(doc(staff, 'users', 'staff-uid'), { role: 'manager' }))
+    .then(() => true).catch(() => false)
+)
+record(
+  'staff cannot read OAuth credentials directly',
+  await assertFails(getDoc(doc(staff, 'mcpOAuth', 'test-credential')))
+    .then(() => true).catch(() => false)
 )
 
 await testEnv.cleanup()

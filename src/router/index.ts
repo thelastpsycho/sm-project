@@ -7,6 +7,7 @@ import Login from '@/pages/Login.vue'
 import { useSessionStore } from '@/stores/session'
 import { usePermissionsStore } from '@/stores/permissions'
 import type { Permission } from '@/lib/permissions'
+import { afterLogin, isMcpRequest } from '@/lib/mcpApi'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -112,6 +113,11 @@ const router = createRouter({
       meta: { requiresPermission: 'mcp:access' }
     },
     {
+      path: '/mcp/authorize',
+      name: 'mcp-consent',
+      component: () => import('@/pages/McpConsent.vue')
+    },
+    {
       path: '/login',
       name: 'login',
       component: Login
@@ -160,11 +166,16 @@ router.beforeEach(async (to, from, next) => {
 
   // Not signed in → always to login (before any permission checks).
   if (!sessionStore.isAuthenticated && to.name !== 'login') {
-    next({ name: 'login' })
+    const mcpRequest = to.name === 'mcp-consent' ? to.query.request : null
+    if (isMcpRequest(mcpRequest)) {
+      next({ name: 'login', query: { mcpRequest } })
+    } else {
+      next({ name: 'login' })
+    }
     return
   }
   if (sessionStore.isAuthenticated && to.name === 'login') {
-    next({ name: 'home' })
+    next(afterLogin(to.query.mcpRequest))
     return
   }
 
