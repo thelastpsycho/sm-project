@@ -32,6 +32,11 @@ self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
 
+  // OAuth redirects and the consent screen must always go to the network.
+  if (url.origin === self.location.origin &&
+      (url.pathname.startsWith('/oauth/') || url.pathname.startsWith('/.well-known/oauth-') ||
+       url.pathname === '/mcp/authorize' || url.pathname === '/api/mcp')) return
+
   if (url.origin === self.location.origin) {
     event.respondWith(handleStaticRequest(request))
   } else if (url.pathname.includes('/webhook/')) {

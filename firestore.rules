@@ -98,7 +98,10 @@ service cloud.firestore {
       // A user may update their own doc (fcmTokens / notificationsSeenAt); an admin
       // may update any user's metadata. Role/status also propagate via the admin API.
       allow update: if isRealUser() &&
-                       (request.auth.uid == uid || request.auth.token.admin == true);
+                       (request.auth.token.admin == true ||
+                        (request.auth.uid == uid &&
+                         request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['fcmTokens', 'notificationsSeenAt'])));
       allow create, delete: if isRealUser() && request.auth.token.admin == true;
     }
 

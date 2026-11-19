@@ -35,9 +35,9 @@ export function hashApiKey(raw: string): string {
   return crypto.createHash('sha256').update(raw).digest('hex')
 }
 
-function bearerToken(req: VercelRequest): string | null {
-  const header = String(req.headers['authorization'] || '')
-  return header.startsWith('Bearer ') ? header.slice(7).trim() : null
+export function bearerToken(req: VercelRequest): string | null {
+  const header = req.headers.authorization
+  return typeof header === 'string' ? /^Bearer +([^\s,]+)$/i.exec(header)?.[1] ?? null : null
 }
 
 /**

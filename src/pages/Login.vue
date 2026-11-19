@@ -59,7 +59,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { afterLogin } from '@/lib/mcpApi'
 import { useSessionStore } from '@/stores/session'
 import SmInput from '@/components/ui/SmInput.vue'
 import SmButton from '@/components/ui/SmButton.vue'
@@ -77,6 +78,7 @@ useHead({
 })
 
 const router = useRouter()
+const route = useRoute()
 const sessionStore = useSessionStore()
 
 const email = ref('')
@@ -99,8 +101,9 @@ const onSubmit = async () => {
   resetSent.value = false
   loading.value = true
   try {
+    const destination = afterLogin(route.query.mcpRequest)
     await sessionStore.login(email.value, password.value)
-    router.push('/')
+    await router.replace(destination)
   } catch {
     flashError(sessionStore.authError ?? 'Incorrect email or password.')
     password.value = ''

@@ -102,12 +102,11 @@
 
         <!-- ChatGPT -->
         <div v-else class="rounded-b-2xl border border-t-0 border-sm-line dark:border-white/10 p-4">
-          <p class="text-sm text-sm-muted">
-            ChatGPT's custom connectors currently only offer <strong>OAuth</strong> or <strong>no authentication</strong> —
-            there's no reliable field for a static API key or bearer token today. This server can't be connected
-            directly to ChatGPT until that changes (or until we put an OAuth layer in front of it, which isn't built
-            yet). Claude Code, Claude Desktop, claude.ai, and Cursor all work now.
-          </p>
+          <ol class="list-decimal list-inside space-y-1.5 text-sm text-sm-ink-soft dark:text-gray-300">
+            <li>Create a custom MCP connector and paste the server URL above.</li>
+            <li>Choose <strong>OAuth</strong> and let ChatGPT register the client automatically.</li>
+            <li>Sign in with your ANVAYA account, then review and approve access.</li>
+          </ol>
         </div>
       </div>
 
