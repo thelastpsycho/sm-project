@@ -100,7 +100,7 @@ export async function middleware(request: Request) {
 
   try {
     // Fetch event data from Firebase Firestore REST API
-    const firebaseProjectId = 'pwa-projectanv'
+    const firebaseProjectId = 'sm-proj-74228'
     const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${firebaseProjectId}/databases/(default)/documents/events/${eventId}`
 
     const response = await fetch(firestoreUrl)
